@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Direction Assistant</title>
+<style>
+:root{
+--bg:#0e1116;
+--panel:#171b22;
+--text:#f2f4f7;
+--muted:#9aa4b2;
+--accent:#3ba7ff;
+--ok:#3ecf8e;
+--warn:#ff9f43;
+--danger:#ff5c5c;
+--focus:#ffd93d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+background:var(--bg);
+color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+min-height:100%;
+}
+main{
+max-width:520px;
+margin:0 auto;
+padding:20px 18px 80px;
+}
+h1{font-size:1.4rem; margin-bottom:4px;}
+.lead{color:var(--muted); font-size:0.95rem; line-height:1.5; margin-bottom:20px;}
+
+.status{
+background:var(--panel);
+border-radius:14px;
+padding:22px 18px;
+text-align:center;
+margin-bottom:20px;
+border:2px solid transparent;
+transition:border-color .2s ease;
+}
+.status.ok{border-color:var(--ok);}
+.status.left{border-color:var(--accent);}
+.status.right{border-color:var(--warn);}
+.status.off{border-color:var(--danger);}
+.status h2{font-size:1.6rem; margin-bottom:6px;}
+.status .sub{color:var(--muted); font-size:0.9rem;}
+.btnrow{display:flex; gap:12px; margin-bottom:22px;}
+button{
+flex:1;
+font-size:1.1rem;
+font-weight:600;
+padding:16px 10px;
+border-radius:12px;
+border:none;
+cursor:pointer;
+min-height:56px;
+}
+button:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+#mainBtn{background:var(--ok); color:#04211a;}
+#mainBtn.stop{background:var(--danger); color:#2a0000;}
+#resetBtn{background:var(--panel); color:var(--text); border:1px solid #2c3340;}
+button:disabled{opacity:0.4; cursor:not-allowed;}
+fieldset{
+border:1px solid #2c3340;
+border-radius:12px;
+padding:14px 16px 18px;
+margin:0 0 20px;
+}
+legend{padding:0 6px; font-weight:600;}
+label{display:block; margin:12px 0 6px; font-size:0.95rem;}
+input[type=range]{width:100%;}
+.rowval{display:flex; justify-content:space-between; color:var(--muted); font-size:0.85rem;}
+.toggle{display:flex; align-items:center; gap:10px; margin-top:14px;}
+.toggle input{width:20px; height:20px;}
+#permMsg{font-size:0.85rem; color:var(--warn); margin-top:10px;}
+#log{font-size:0.8rem; color:var(--muted); margin-top:10px; line-height:1.5;}
+footer{
+position:fixed; bottom:0; left:0; right:0;
+background:var(--panel);
+border-top:1px solid #2c3340;
+padding:12px;
+text-align:center;
+}
+footer button{
+background:transparent;
+color:var(--accent);
+border:1px solid var(--accent);
+padding:8px 16px;
+border-radius:8px;
+font-size:0.95rem;
+flex:none;
+}
+</style>
+</head>
+<body>
+
+<main>
+<h1 id="title">Direction Assistant</h1>
+<p class="lead" id="desc">Tool to maintain walking direction. Press Start, set your direction, and the app warns you with spatial audio and vibrations if you drift. Does not replace a white cane or guide dog.</p>
+
+<div id="status" class="status off" role="status" aria-live="polite">
+<h2 id="statusText">Ready</h2>
+<div class="sub" id="statusSub">Press the main button to begin.</div>
+</div>
+
+<div class="btnrow">
+<button id="mainBtn" type="button" aria-label="Start">Start</button>
+<button id="resetBtn" type="button" disabled>Set Direction</button>
+</div>
+
+<div id="permMsg" role="alert"></div>
+<div id="log" aria-hidden="true"></div>
+
+<fieldset>
+<legend id="settingsTitle">Settings</legend>
+
+<label for="threshold" id="lblThreshold">Sensitivity (degrees)</label>
+<input type="range" id="threshold" min="5" max="40" step="1" value="15" aria-describedby="thresholdVal">
+<div class="rowval"><span id="lblPrecise">Precise</span><span id="thresholdVal">15°</span><span id="lblLoose">Loose</span></div>
+
+<div class="toggle">
+<input type="checkbox" id="soundOn" checked>
+<label for="soundOn" style="margin:0;" id="lblSound">Spatial audio feedback</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="vibrateOn" checked>
+<label for="vibrateOn" style="margin:0;" id="lblVibrate">Vibrations</label>
+</div>
+
+<div class="toggle">
+<input type="checkbox" id="distOn">
+<label for="distOn" style="margin:0;" id="lblDist">Announce "Doing good" every X meters</label>
+</div>
+<label for="distRange" id="lblDistRange">Meters distance</label>
+<input type="range" id="distRange" min="5" max="50" step="5" value="10" disabled>
+<div class="rowval"><span>5m</span><span id="distVal">10m</span><span>50m</span></div> </fieldset>
+</main>
+
+<footer>
+<button id="langBtn" type="button">Slovenčina</button>
+</footer>
+
+<script>
+(function(){
+const T = {
+en: {
+title: "Direction Assistant",
+desc: "Tool to maintain walking direction. Press Start, set your direction, and the app warns you with spatial audio and vibrations if you drift. Does not replace a white cane or guide dog.",
+start: "Start", stop: "Stop", setDir: "Set Direction",
+ready: "Ready", readySub: "Press the main button to begin.",
+scanning: "Scanning compass...", scanningSub: "Press Set Direction.",
+dirSet: "Direction Set", dirSetSub: "Walk straight.",
+straight: "Straight", straightSub: "You are on track.",
+sRight: "Slight Right", sRightSub: "Turn left.",
+hRight: "Hard Right", hRightSub: "Turn left!",
+sLeft: "Slight Left", sLeftSub: "Turn right.",
+hLeft: "Hard Left", hLeftSub: "Turn right!",
+waitCompass: "Waiting for compass...",
+stopped: "Stopped", stoppedSub: "Press Start.",
+settings: "Settings", sensitivity: "Sensitivity (degrees)", precise: "Precise", loose: "Loose",
+sound: "Spatial audio feedback", vibrate: "Vibrations",
+distToggle: "Announce \"Doing good\" every X meters", distLabel: "Meters distance",
+doingGood: "Doing good",
+errNoSecure: "ERROR: Missing HTTPS lock. Compass blocked.",
+errPerm: "Requesting permission...", errGranted: "Permission granted.", errDenied: "Permission denied.",
+errTimeout: "Error: Browser not responding.",
+errNoData: "Failed to read compass. Check permissions.",
+errNoSensor: "Browser does not support compass.",
+langBtn: "Slovenčina", deg: "Drift"
+},
+sk: {
+title: "Smerový Asistent",
+desc: "Pomôcka na udržanie smeru. Stlačte Štart, nastavte smer a aplikácia vás upozorní priestorovým zvukom a vibráciami, ak sa vychýlite. Nenahrádza bielu palicu ani psa.",
+start: "Štart", stop: "Stop", setDir: "Nastaviť smer",
+ready: "Pripravené", readySub: "Stlačte hlavné tlačidlo.",
+scanning: "Snímam kompas...", scanningSub: "Stlačte Nastaviť smer.",
+dirSet: "Smer nastavený", dirSetSub: "Choďte rovno.",
+straight: "Rovno", straightSub: "Držíte smer.",
+sRight: "Mierne doprava", sRightSub: "Zabočte vľavo.",
+hRight: "Silno doprava", hRightSub: "Zabočte vľavo!",
+sLeft: "Mierne doľava", sLeftSub: "Zabočte vpravo.",
+hLeft: "Silno doľava", hLeftSub: "Zabočte vpravo!",
+waitCompass: "Čakám na kompas...",
+stopped: "Zastavené", stoppedSub: "Stlačte Štart.",
+settings: "Nastavenia", sensitivity: "Citlivosť (stupne)", precise: "Presnejšie", loose: "Voľnejšie",
+sound: "Priestorový zvuk", vibrate: "Vibrácie",
+distToggle: "Oznámiť \"Ideš dobre\" každých X metrov", distLabel: "Vzdialenosť v metroch",
+doingGood: "Ideš dobre",
+errNoSecure: "CHYBA: Chýba HTTPS zámok. Kompas je blokovaný.",
+errPerm: "Žiadam o povolenie...", errGranted: "Povolenie udelené.", errDenied: "Povolenie zamietnuté.",
+errTimeout: "Chyba: Prehliadač neodpovedá.",
+errNoData: "Kompas sa nepodarilo prečítať. Skontrolujte povolenia.",
+errNoSensor: "Prehliadač nepodporuje kompas.",
+langBtn: "English", deg: "Odchýlka"
+}
+};
+
+let lang = 'en';
+function t(key) { return T[lang][key] || key; }
+
+function applyLang() {
+document.title = t('title');
+document.getElementById('title').textContent = t('title');
+document.getElementById('desc').textContent = t('desc');
+document.getElementById('settingsTitle').textContent = t('settings');
+document.getElementById('lblThreshold').textContent = t('sensitivity');
+document.getElementById('lblPrecise').textContent = t('precise');
+document.getElementById('lblLoose').textContent = t('loose');
+document.getElementById('lblSound').textContent = t('sound');
+document.getElementById('lblVibrate').textContent = t('vibrate');
+document.getElementById('lblDist').textContent = t('distToggle');
+document.getElementById('lblDistRange').textContent = t('distLabel');
+document.getElementById('langBtn').textContent = t('langBtn');
+if (!running) {
+announce(t('ready'), t('readySub'), null);
+}
+}
+
+const mainBtn = document.getElementById('mainBtn');
+const resetBtn = document.getElementById('resetBtn');
+const statusBox = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+const statusSub = document.getElementById('statusSub');
+const permMsg = document.getElementById('permMsg');
+const thresholdInput = document.getElementById('threshold');
+const thresholdVal = document.getElementById('thresholdVal');
+const soundOn = document.getElementById('soundOn');
+const vibrateOn = document.getElementById('vibrateOn');
+const distOn = document.getElementById('distOn');
+const distRange = document.getElementById('distRange');
+const distVal = document.getElementById('distVal');
+const log = document.getElementById('log');
+
+let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
+let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0;
+let headingSupported = false, watchdog = null;
+let watchId = null, lastGPSTime = 0, lastLat = null, lastLon = null, startLat = null, startLon = null, totalDist = 0, nextDistAnnounce = 0;
+
+thresholdInput.addEventListener('input', () => thresholdVal.textContent = thresholdInput.value + '°');
+distRange.addEventListener('input', () => distVal.textContent = distRange.value + 'm');
+distOn.addEventListener('change', () => distRange.disabled = !distOn.checked);
+document.getElementById('langBtn').addEventListener('click', () => {
+lang = lang === 'en' ? 'sk' : 'en';
+applyLang();
+});
+
+function getHeading(e){
+if (typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading;
+if (e.alpha !== null && e.alpha !== undefined) return (360 - e.alpha) % 360;
+return null;
+}
+function angleDiff(c, t){ return (c - t + 540) % 360 - 180; }
+
+function ensureAudio(){
+if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(pan, freq, dur){
+if(!soundOn.checked) return;
+try{
+ensureAudio();
+const o=audioCtx.createOscillator(), g=audioCtx.createGain(), p=audioCtx.createStereoPanner?audioCtx.createStereoPanner():null;
+o.frequency.value=freq; o.type='sine';
+g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+g.gain.exponentialRampToValueAtTime(0.5,audioCtx.currentTime+0.02);
+g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+if(p){p.pan.value=pan; o.connect(g).connect(p).connect(audioCtx.destination);}
+else{o.connect(g).connect(audioCtx.destination);}
+o.start(); o.stop(audioCtx.currentTime+dur+0.02);
+}catch(e){}
+}
+function vibrate(p){ if(vibrateOn.checked && navigator.vibrate) try{navigator.vibrate(p);}catch(e){} }
+
+function speak(text) {
+if ('speechSynthesis' in window) {
+window.speechSynthesis.cancel();
+const u = new SpeechSynthesisUtterance(text);
+u.lang = lang === 'sk' ? 'sk-SK' : 'en-US';
+u.rate = 1.1;
+window.speechSynthesis.speak(u);
+}
+}
+
+function announce(main, sub, degrees){
+statusText.textContent = main;
+statusSub.textContent = sub;
+let ariaString = main + ". " + sub;
+if(degrees !== null && degrees !== undefined && Math.abs(degrees) > 0){
+const degText = Math.abs(Math.round(degrees)) + "°";
+ariaString += ". " + t('deg') + ": " + degText;
+}
+statusBox.setAttribute('aria-label', ariaString);
+}
+
+function handleOrientation(e){
+const h = getHeading(e);
+if(h===null) return;
+headingSupported = true;
+lastHeading = h;
+
+if(targetHeading === null) return;
+
+const th = parseInt(thresholdInput.value, 10);
+const diff = angleDiff(h, targetHeading);
+const absDiff = Math.abs(diff);
+const now = performance.now();
+
+let state, cls, mainT, subT;
+if(absDiff <= th){
+state='ok'; cls='ok'; mainT=t('straight'); subT=t('straightSub');
+} else if(diff > 0){
+state='right'; cls='right';
+mainT = absDiff > th*2 ? t('hRight') : t('sRight');
+subT = t('sRightSub');
+} else {
+state='left'; cls='left';
+mainT = absDiff > th*2 ? t('hLeft') : t('sLeft');
+subT = t('sLeftSub');
+}
+
+statusBox.className = 'status ' + cls;
+
+if(state !== lastAnnounceState || now - lastAnnounceTime > 4000){
+announce(mainT, subT, diff);
+lastAnnounceState = state;
+lastAnnounceTime = now;
+}
+
+if(state !== 'ok' && now - lastBeepTime > 700){
+lastBeepTime = now;
+const pan = diff > 0 ? 1 : -1;
+const urgency = Math.min(absDiff / (th * 3), 1);
+beep(pan, 420 + urgency * 260, 0.16);
+vibrate(absDiff > th*2 ? [80, 60, 80] : [70]);
+}
+}
+
+function calcDist(lat1, lon1, lat2, lon2){
+const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180;
+const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1000;
+}
+
+function handleGPS(pos){
+const now = performance.now();
+if(now - lastGPSTime < 2000) return;
+lastGPSTime = now;
+const c = pos.coords;
+if(c.accuracy > 20) return;
+
+if(startLat === null){
+startLat = c.latitude; startLon = c.longitude; lastLat = c.latitude; lastLon = c.longitude;
+return;
+}
+
+const segDist = calcDist(lastLat, lastLon, c.latitude, c.longitude);
+if(segDist > 1) {
+totalDist += segDist;
+lastLat = c.latitude; lastLon = c.longitude;
+
+if(distOn.checked && totalDist >= nextDistAnnounce){
+speak(t('doingGood') + " " + Math.round(totalDist) + "m");
+nextDistAnnounce += parseInt(distRange.value, 10);
+}
+}
+}
+
+function setTarget(){
+if(lastHeading !== null){
+targetHeading = lastHeading;
+announce(t('dirSet'), t('dirSetSub'), null);
+statusBox.className = 'status ok';
+} else {
+announce(t('waitCompass'), '', null);
+}
+}
+
+async function start(){
+permMsg.textContent = '';
+log.textContent = '';
+headingSupported = false;
+targetHeading = null;
+totalDist = 0; nextDistAnnounce = parseInt(distRange.value, 10);
+startLat = null; lastLat = null;
+
+if(!window.isSecureContext){
+permMsg.textContent = t('errNoSecure');
+return;
+}
+
+if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+permMsg.textContent = t('errPerm');
+try{
+const res = await Promise.race([
+DeviceOrientationEvent.requestPermission(),
+new Promise((_,rej)=>setTimeout(()=>rej(new Error('T')),4000))
+]);
+if(res==='granted') permMsg.textContent = t('errGranted');
+else { permMsg.textContent = t('errDenied'); return; }
+}catch(e){ permMsg.textContent = t('errTimeout'); return; }
+}
+
+window.addEventListener('deviceorientation', handleOrientation, true);
+if(distOn.checked && navigator.geolocation){
+watchId = navigator.geolocation.watchPosition(handleGPS, ()=>{}, {enableHighAccuracy:true});
+}
+
+running = true;
+mainBtn.textContent = t('stop');
+mainBtn.classList.add('stop');
+mainBtn.setAttribute('aria-label', t('stop'));
+resetBtn.disabled = false;
+announce(t('scanning'), t('scanningSub'), null);
+statusBox.className = 'status off';
+
+watchdog = setTimeout(()=>{
+if(!headingSupported) permMsg.textContent = t('errNoData');
+}, 3000);
+
+setTimeout(setTarget, 1200);
+}
+
+function stop(){
+running = false;
+window.removeEventListener('deviceorientation', handleOrientation, true);
+if(watchId !== null) navigator.geolocation.clearWatch(watchId);
+clearTimeout(watchdog);
+
+mainBtn.textContent = t('start');
+mainBtn.classList.remove('stop');
+mainBtn.setAttribute('aria-label', t('start'));
+resetBtn.disabled = true;
+targetHeading = null;
+statusBox.className = 'status off';
+announce(t('stopped'), t('stoppedSub'), null);
+}
+
+mainBtn.addEventListener('click', () => { running ? stop() : start(); });
+resetBtn.addEventListener('click', setTarget);
+
+if(typeof DeviceOrientationEvent === 'undefined'){
+permMsg.textContent = t('errNoSensor');
+mainBtn.disabled = true;
+}
+
+applyLang();
+})();
+</script>
+</body>
+</html>
