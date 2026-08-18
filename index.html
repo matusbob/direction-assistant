@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Direction Assistant</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Direction">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{
 --bg:#0e1116;
@@ -128,6 +136,15 @@ border-radius:10px; cursor:pointer;
 width:100%; min-height:48px; background:transparent; color:var(--accent);
 border:1px solid var(--accent); border-radius:10px; font-size:1rem; cursor:pointer;
 }
+
+.demobtn{
+display:block; width:100%; min-height:52px; margin:4px 0 20px;
+background:var(--panel); color:var(--ok);
+border:1px solid var(--ok); border-radius:12px;
+font-size:1rem; font-weight:600; cursor:pointer;
+}
+.demobtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+.demobtn:disabled{opacity:0.4; cursor:not-allowed;}
 #permMsg{font-size:0.85rem; color:var(--warn); margin-top:10px;}
 #log{font-size:0.8rem; color:var(--muted); margin-top:10px; line-height:1.5;}
 footer{
@@ -215,6 +232,8 @@ flex:none;
 <input type="checkbox" id="statsOn" checked>
 <label for="statsOn" style="margin:0;" id="lblStats">Announce statistics when stopped</label>
 </div> </fieldset>
+
+<button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
 </main>
 
 <div id="pickerOverlay" class="picker-overlay" hidden>
@@ -236,7 +255,7 @@ en: {
 title: "Direction Assistant", desc: "Tool to maintain walking direction. Warns you with spatial audio, voice, or vibrations if you drift. Does not replace a white cane or guide dog.",
 start: "Start", stop: "Stop", setDir: "Set Direction",
 ready: "Ready", readySub: "Press the main button to begin.",
-scanning: "Scanning compass...", scanningSub: "Press Set Direction.",
+scanning: "Scanning compass...", scanningSub: "Press Set Direction. If the compass seems off, wave your phone in a figure-8 to calibrate it.",
 dirSet: "Direction Set", dirSetSub: "Walk straight.",
 straight: "Straight", straightSub: "You are on track.", backOnTrack: "Back on track.",
 sRight: "Slight Right", sRightSub: "Turn left.",
@@ -259,13 +278,14 @@ langBtn: "Slovenčina",
 voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
 statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
-unitSwitched: "Units: "
+unitSwitched: "Units: ",
+lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished."
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomôcka na udržanie smeru. Upozorní na vybočenie zvukom, hlasom alebo vibráciami. Nenahrádza bielu palicu ani psa.",
 start: "Štart", stop: "Stop", setDir: "Nastaviť smer",
 ready: "Pripravené", readySub: "Stlačte hlavné tlačidlo.",
-scanning: "Snímam kompas...", scanningSub: "Stlačte Nastaviť smer.",
+scanning: "Snímam kompas...", scanningSub: "Stlačte Nastaviť smer. Ak kompas skáče, pohnite telefónom v tvare osmičky, skalibruje sa.",
 dirSet: "Smer nastavený", dirSetSub: "Choďte rovno.",
 straight: "Rovno", straightSub: "Držíte smer.", backOnTrack: "Vrátil si sa do pôvodného smeru.",
 sRight: "Mierne doprava", sRightSub: "Zabočte vľavo.",
@@ -287,7 +307,8 @@ langBtn: "English",
 voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard: "Silné",
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
 statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
-unitSwitched: "Jednotky: "
+unitSwitched: "Jednotky: ",
+lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila."
 }
 };
 
@@ -316,6 +337,7 @@ document.getElementById('lblVoice').textContent = t('lblVoice');
 document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
+document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('langBtn').textContent = t('langBtn');
 
 document.getElementById('voiceMode').options[0].text = t('voiceOff');
@@ -347,6 +369,7 @@ const voiceMode = document.getElementById('voiceMode');
 const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
+const demoBtn = document.getElementById('demoBtn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
 let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0;
@@ -369,6 +392,7 @@ voiceMode.addEventListener('change', () => {});
 document.getElementById('langBtn').addEventListener('click', () => {
 lang = lang === 'en' ? 'sk' : 'en';
 applyLang();
+saveSettings();
 });
 
 function speakSliderValue(text){
@@ -415,12 +439,14 @@ menuBtnDeg.addEventListener('click', () => {
 openPicker(menuBtnDeg, [5,10,15,20,25,30,40], '°', (v) => {
 thresholdDeg.value = v;
 thresholdDeg.dispatchEvent(new Event('input'));
+thresholdDeg.dispatchEvent(new Event('change'));
 });
 });
 menuBtnMet.addEventListener('click', () => {
 openPicker(menuBtnMet, [1,2,3,5,8,10,15], 'm', (v) => {
 thresholdMet.value = v;
 thresholdMet.dispatchEvent(new Event('input'));
+thresholdMet.dispatchEvent(new Event('change'));
 });
 });
 
@@ -487,6 +513,10 @@ lastHeading = h;
 if(targetHeading === null) return;
 
 const diff = angleDiff(h, targetHeading);
+processDrift(diff);
+}
+
+function processDrift(diff){
 const absDiff = Math.abs(diff);
 const now = performance.now();
 const mode = currentUnit();
@@ -544,15 +574,15 @@ speak(t('straight'));
 }
 
 if(state !== 'ok'){
-const urgency = Math.min(currentVal / (th * 3), 1);
-const beepInterval = 700 - urgency * 450;
+const urgency = Math.min(currentVal / (th * 2.5), 1);
+const beepInterval = 700 - urgency * 480;
 if(now - lastBeepTime > beepInterval){
 lastBeepTime = now;
 const isRight = diff > 0;
 const pan = isRight ? 1 : -1;
-const baseFreq = isRight ? 520 : 300;
-const freq = baseFreq + urgency * 220;
-beep(pan, freq, 0.16, isRight ? 'sine' : 'triangle');
+const baseFreq = isRight ? 500 : 280;
+const freq = baseFreq + urgency * 320;
+beep(pan, freq, 0.14 + urgency * 0.05, isRight ? 'sine' : 'triangle');
 vibrate(currentVal > th*2 ? [80, 60, 80] : [70]);
 }
 }
@@ -638,6 +668,7 @@ mainBtn.textContent = t('stop');
 mainBtn.classList.add('stop');
 mainBtn.setAttribute('aria-label', t('stop'));
 resetBtn.disabled = false;
+demoBtn.disabled = true;
 announce(t('scanning'), t('scanningSub'));
 statusBox.className = 'status off';
 
@@ -655,6 +686,7 @@ mainBtn.textContent = t('start');
 mainBtn.classList.remove('stop');
 mainBtn.setAttribute('aria-label', t('start'));
 resetBtn.disabled = true;
+demoBtn.disabled = false;
 targetHeading = null;
 statusBox.className = 'status off';
 
@@ -680,6 +712,91 @@ permMsg.textContent = t('errNoSensor');
 mainBtn.disabled = true;
 }
 
+function sleep(ms){ return new Promise((r) => setTimeout(r, ms)); }
+
+let demoRunning = false;
+async function runDemo(){
+if(demoRunning || running) return;
+demoRunning = true;
+demoBtn.disabled = true;
+mainBtn.disabled = true;
+const saved = { distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount };
+distSinceTarget = 15;
+lastAnnounceState = null;
+speak(t('demoStart'));
+await sleep(2200);
+const steps = [
+{ diff: 0, hold: 1400 },
+{ diff: 12, hold: 1800 },
+{ diff: 30, hold: 2000 },
+{ diff: -12, hold: 1800 },
+{ diff: -30, hold: 2000 },
+{ diff: 0, hold: 1400 }
+];
+for(const step of steps){
+processDrift(step.diff);
+await sleep(step.hold);
+}
+({ distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount } = saved);
+statusBox.className = 'status off';
+announce(t('ready'), t('readySub'));
+speak(t('demoEnd'));
+demoBtn.disabled = false;
+mainBtn.disabled = false;
+demoRunning = false;
+}
+demoBtn.addEventListener('click', runDemo);
+
+const SETTINGS_KEY = 'directionAssistantSettings';
+function saveSettings(){
+try{
+localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+unit: currentUnit(),
+thresholdDeg: thresholdDeg.value,
+thresholdMet: thresholdMet.value,
+voiceMode: voiceMode.value,
+soundOn: soundOn.checked,
+vibrateOn: vibrateOn.checked,
+statsOn: statsOn.checked,
+lang: lang
+}));
+}catch(e){}
+}
+function loadSettings(){
+try{
+const raw = localStorage.getItem(SETTINGS_KEY);
+if(!raw) return;
+const s = JSON.parse(raw);
+if(s.unit === 'meters'){
+document.getElementById('unitMet').checked = true;
+degRow.hidden = true;
+metRow.hidden = false;
+}
+if(s.thresholdDeg) thresholdDeg.value = s.thresholdDeg;
+if(s.thresholdMet) thresholdMet.value = s.thresholdMet;
+thresholdDegVal.textContent = thresholdDeg.value + '°';
+thresholdMetVal.textContent = thresholdMet.value + 'm';
+if(s.voiceMode) voiceMode.value = s.voiceMode;
+if(typeof s.soundOn === 'boolean') soundOn.checked = s.soundOn;
+if(typeof s.vibrateOn === 'boolean') vibrateOn.checked = s.vibrateOn;
+if(typeof s.statsOn === 'boolean') statsOn.checked = s.statsOn;
+if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
+}catch(e){}
+}
+
+unitRadios.forEach((r) => r.addEventListener('change', saveSettings));
+thresholdDeg.addEventListener('change', saveSettings);
+thresholdMet.addEventListener('change', saveSettings);
+voiceMode.addEventListener('change', saveSettings);
+soundOn.addEventListener('change', saveSettings);
+vibrateOn.addEventListener('change', saveSettings);
+statsOn.addEventListener('change', saveSettings);
+
+if('serviceWorker' in navigator){
+window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+loadSettings();
 applyLang();
 })();
 </script>
