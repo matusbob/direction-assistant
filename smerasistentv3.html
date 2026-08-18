@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Direction Assistant v2.0</title>
+<title>Direction Assistant</title>
 <style>
 :root{
 --bg:#0e1116;
@@ -82,6 +82,52 @@ font-size:1rem;
 .rowval{display:flex; justify-content:space-between; color:var(--muted); font-size:0.85rem;}
 .toggle{display:flex; align-items:center; gap:10px; margin-top:14px;}
 .toggle input{width:20px; height:20px;}
+
+.seglabel{display:block; margin:12px 0 6px; font-size:0.95rem;}
+.segmented{display:flex; border:1px solid #2c3340; border-radius:12px; overflow:hidden;}
+.segmented input[type=radio]{position:absolute; opacity:0; width:1px; height:1px;}
+.segmented label{
+flex:1; text-align:center; padding:14px 10px; min-height:48px;
+display:flex; align-items:center; justify-content:center;
+cursor:pointer; font-weight:600; color:var(--text);
+}
+.segmented input[type=radio]:checked + label{background:var(--accent); color:#04213f;}
+.segmented input[type=radio]:focus-visible + label{outline:3px solid var(--focus); outline-offset:-3px;}
+
+.sliderrow{margin-top:16px;}
+.sliderwrap{display:flex; align-items:center; gap:10px;}
+.sliderwrap input[type=range]{flex:1; min-height:44px;}
+.menubtn{
+flex:none; min-width:64px; min-height:44px;
+background:var(--panel); color:var(--accent);
+border:1px solid var(--accent); border-radius:10px;
+font-size:0.9rem; font-weight:600; padding:8px 12px; cursor:pointer;
+}
+.menubtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+
+.picker-overlay{
+position:fixed; inset:0; background:rgba(0,0,0,0.6);
+display:flex; align-items:center; justify-content:center;
+padding:24px; z-index:50;
+}
+.picker-overlay[hidden]{display:none;}
+.picker-dialog{
+background:var(--panel); border-radius:14px; padding:18px;
+max-width:400px; width:100%; max-height:80vh; overflow-y:auto;
+border:1px solid #2c3340;
+}
+.picker-dialog h2{font-size:1.1rem; margin-bottom:14px;}
+.picker-list{display:flex; flex-direction:column; gap:8px; margin-bottom:14px;}
+.picker-item{
+min-height:56px; font-size:1.1rem; font-weight:600;
+background:var(--bg); color:var(--text); border:1px solid #2c3340;
+border-radius:10px; cursor:pointer;
+}
+.picker-item:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+.picker-close{
+width:100%; min-height:48px; background:transparent; color:var(--accent);
+border:1px solid var(--accent); border-radius:10px; font-size:1rem; cursor:pointer;
+}
 #permMsg{font-size:0.85rem; color:var(--warn); margin-top:10px;}
 #log{font-size:0.8rem; color:var(--muted); margin-top:10px; line-height:1.5;}
 footer{
@@ -124,22 +170,31 @@ flex:none;
 <fieldset>
 <legend id="settingsTitle">Settings</legend>
 
-<label for="unitSelect" id="lblUnit">Drift measurement units</label>
-<select id="unitSelect">
-<option value="degrees">Degrees</option>
-<option value="meters">Meters</option>
-<option value="steps">Steps</option>
-</select>
+<span class="seglabel" id="lblUnit">Drift measurement units</span>
+<div class="segmented" role="radiogroup" aria-labelledby="lblUnit">
+<input type="radio" id="unitDeg" name="unit" value="degrees" checked>
+<label for="unitDeg"><span id="optDegLbl">Degrees</span></label>
+<input type="radio" id="unitMet" name="unit" value="meters">
+<label for="unitMet"><span id="optMetLbl">Meters</span></label>
+</div>
 
-<label for="toleranceSelect" id="lblTolerance">Tolerance (how much to ignore)</label>
-<select id="toleranceSelect">
-<option value="3">3 meters</option>
-<option value="5" selected>5 meters</option>
-<option value="10">10 meters</option>
-</select>
+<div class="sliderrow" id="degRow">
+<label for="thresholdDeg" id="lblThresholdDeg">Sensitivity (degrees)</label>
+<div class="sliderwrap">
+<input type="range" id="thresholdDeg" min="5" max="40" step="1" value="15" aria-describedby="thresholdDegVal">
+<button type="button" class="menubtn" id="menuBtnDeg" aria-haspopup="dialog"><span id="lblMenu1">Menu</span></button>
+</div>
+<div class="rowval"><span id="lblPrecise">Precise</span><span id="thresholdDegVal">15°</span><span id="lblLoose">Loose</span></div>
+</div>
 
-<label for="stepLen" id="lblStep" style="display:none;">Your step length (cm)</label>
-<input type="number" id="stepLen" value="70" min="30" max="150" style="display:none;">
+<div class="sliderrow" id="metRow" hidden>
+<label for="thresholdMet" id="lblThresholdMet">Sensitivity (meters)</label>
+<div class="sliderwrap">
+<input type="range" id="thresholdMet" min="1" max="15" step="1" value="5" aria-describedby="thresholdMetVal">
+<button type="button" class="menubtn" id="menuBtnMet" aria-haspopup="dialog"><span id="lblMenu2">Menu</span></button>
+</div>
+<div class="rowval"><span id="lblPrecise2">Precise</span><span id="thresholdMetVal">5m</span><span id="lblLoose2">Loose</span></div>
+</div>
 
 <label for="voiceMode" id="lblVoice">Voice output mode ("Teta")</label>
 <select id="voiceMode">
@@ -155,8 +210,20 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="vibrateOn" checked>
 <label for="vibrateOn" style="margin:0;" id="lblVibrate">Vibrations on drift</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="statsOn" checked>
+<label for="statsOn" style="margin:0;" id="lblStats">Announce statistics when stopped</label>
 </div> </fieldset>
 </main>
+
+<div id="pickerOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+<h2 id="pickerTitle">Choose a value</h2>
+<div id="pickerList" class="picker-list"></div>
+<button type="button" id="pickerClose" class="picker-close">Close</button>
+</div>
+</div>
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
@@ -179,18 +246,20 @@ hLeft: "Hard Left", hLeftSub: "Turn right!",
 waitCompass: "Waiting for compass...",
 stopped: "Stopped", stoppedSub: "Press Start.",
 settings: "Settings",
-lblUnit: "Drift measurement units", lblTolerance: "Tolerance (how much to ignore)",
-optDeg: "Degrees", optMet: "Meters", optStep: "Steps",
-tol3: "3 meters", tol5: "5 meters", tol10: "10 meters",
-lblStep: "Your step length (cm)",
+lblUnit: "Drift measurement units", optDeg: "Degrees", optMet: "Meters",
+lblThresholdDeg: "Sensitivity (degrees)", lblThresholdMet: "Sensitivity (meters)",
+precise: "Precise", loose: "Loose", lblMenu: "Menu", pickerTitle: "Choose a value", pickerClose: "Close",
 lblVoice: "Voice output mode (Teta)", voiceOff: "Off", voiceDrift: "Only when drifting", voiceAlways: "Always speak (Straight/Drift)",
-lblSound: "Spatial audio beeps on drift", lblVibrate: "Vibrations on drift",
+lblSound: "Spatial audio beeps on drift", lblVibrate: "Vibrations on drift", lblStats: "Announce statistics when stopped",
 errNoSecure: "ERROR: Missing HTTPS lock. Compass blocked.",
 errPerm: "Requesting permission...", errGranted: "Permission granted.", errDenied: "Permission denied.",
 errTimeout: "Error: Browser not responding.", errNoData: "Failed to read compass. Check permissions.", errNoSensor: "Browser does not support compass.",
+errNoGPS: "GPS unavailable. Switched to degrees mode.",
 langBtn: "Slovenčina",
 voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
-statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters", statSteps: "steps"
+statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
+statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
+unitSwitched: "Units: "
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomôcka na udržanie smeru. Upozorní na vybočenie zvukom, hlasom alebo vibráciami. Nenahrádza bielu palicu ani psa.",
@@ -206,17 +275,19 @@ hLeft: "Silno doľava", hLeftSub: "Zabočte vpravo!",
 waitCompass: "Čakám na kompas...",
 stopped: "Zastavené", stoppedSub: "Stlačte Štart.",
 settings: "Nastavenia",
-lblUnit: "Jednotky merania vybočenia", lblTolerance: "Tolerancia (koľko ignorovať)",
-optDeg: "Stupne", optMet: "Metre", optStep: "Kroky",
-tol3: "3 metre", tol5: "5 metrov", tol10: "10 metrov",
-lblStep: "Dĺžka tvojho kroku (cm)",
+lblUnit: "Jednotky merania vybočenia", optDeg: "Stupne", optMet: "Metre",
+lblThresholdDeg: "Citlivosť (stupne)", lblThresholdMet: "Citlivosť (metre)",
+precise: "Presnejšie", loose: "Voľnejšie", lblMenu: "Ponuka", pickerTitle: "Vyber hodnotu", pickerClose: "Zavrieť",
 lblVoice: "Režim hlasového výstupu (Teta)", voiceOff: "Vypnutý", voiceDrift: "Len pri vybočení", voiceAlways: "Stále hovoriť (Rovno/Vybočenie)",
-lblSound: "Priestorové pípky pri vybočení", lblVibrate: "Vibrácie pri vybočení",
+lblSound: "Priestorové pípky pri vybočení", lblVibrate: "Vibrácie pri vybočení", lblStats: "Oznámiť štatistiku po zastavení",
 errNoSecure: "CHYBA: Chýba HTTPS zámok.", errPerm: "Žiadam o povolenie...", errGranted: "Povolenie udelené.", errDenied: "Povolenie zamietnuté.",
 errTimeout: "Chyba: Prehliadač neodpovedá.", errNoData: "Kompas sa nepodarilo prečítať.", errNoSensor: "Prehliadač nepodporuje kompas.",
+errNoGPS: "GPS nedostupné. Prepnuté na stupne.",
 langBtn: "English",
 voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard: "Silné",
-statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov", statSteps: "krokov"
+statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
+statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
+unitSwitched: "Jednotky: "
 }
 };
 
@@ -229,24 +300,28 @@ document.getElementById('title').textContent = t('title');
 document.getElementById('desc').textContent = t('desc');
 document.getElementById('settingsTitle').textContent = t('settings');
 document.getElementById('lblUnit').textContent = t('lblUnit');
-document.getElementById('lblTolerance').textContent = t('lblTolerance');
-document.getElementById('lblStep').textContent = t('lblStep');
+document.getElementById('optDegLbl').textContent = t('optDeg');
+document.getElementById('optMetLbl').textContent = t('optMet');
+document.getElementById('lblThresholdDeg').textContent = t('lblThresholdDeg');
+document.getElementById('lblThresholdMet').textContent = t('lblThresholdMet');
+document.getElementById('lblPrecise').textContent = t('precise');
+document.getElementById('lblLoose').textContent = t('loose');
+document.getElementById('lblPrecise2').textContent = t('precise');
+document.getElementById('lblLoose2').textContent = t('loose');
+document.getElementById('lblMenu1').textContent = t('lblMenu');
+document.getElementById('lblMenu2').textContent = t('lblMenu');
+document.getElementById('pickerTitle').textContent = t('pickerTitle');
+document.getElementById('pickerClose').textContent = t('pickerClose');
 document.getElementById('lblVoice').textContent = t('lblVoice');
 document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
+document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('langBtn').textContent = t('langBtn');
 
-document.getElementById('unitSelect').options[0].text = t('optDeg');
-document.getElementById('unitSelect').options[1].text = t('optMet');
-document.getElementById('unitSelect').options[2].text = t('optStep');
-document.getElementById('toleranceSelect').options[0].text = t('tol3');
-document.getElementById('toleranceSelect').options[1].text = t('tol5');
-document.getElementById('toleranceSelect').options[2].text = t('tol10');
 document.getElementById('voiceMode').options[0].text = t('voiceOff');
 document.getElementById('voiceMode').options[1].text = t('voiceDrift');
 document.getElementById('voiceMode').options[2].text = t('voiceAlways');
 
-toggleStepInput();
 if (!running) announce(t('ready'), t('readySub'));
 }
 
@@ -256,37 +331,98 @@ const statusBox = document.getElementById('status');
 const statusText = document.getElementById('statusText');
 const statusSub = document.getElementById('statusSub');
 const permMsg = document.getElementById('permMsg');
-const unitSelect = document.getElementById('unitSelect');
-const toleranceSelect = document.getElementById('toleranceSelect');
-const stepLenInput = document.getElementById('stepLen');
-const stepLabel = document.getElementById('lblStep');
+const unitRadios = document.querySelectorAll('input[name=unit]');
+const degRow = document.getElementById('degRow');
+const metRow = document.getElementById('metRow');
+const thresholdDeg = document.getElementById('thresholdDeg');
+const thresholdDegVal = document.getElementById('thresholdDegVal');
+const thresholdMet = document.getElementById('thresholdMet');
+const thresholdMetVal = document.getElementById('thresholdMetVal');
+const menuBtnDeg = document.getElementById('menuBtnDeg');
+const menuBtnMet = document.getElementById('menuBtnMet');
+const pickerOverlay = document.getElementById('pickerOverlay');
+const pickerList = document.getElementById('pickerList');
+const pickerCloseBtn = document.getElementById('pickerClose');
 const voiceMode = document.getElementById('voiceMode');
 const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
+const statsOn = document.getElementById('statsOn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
 let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0;
 let headingSupported = false, watchdog = null;
+let sliderSpeakTimer = null, pickerTrigger = null;
 
-let totalDistMeters = 0, sumDriftMeters = 0, driftSamples = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
+let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
 
-unitSelect.addEventListener('change', toggleStepInput);
+function currentUnit(){
+return document.querySelector('input[name=unit]:checked').value;
+}
+
+unitRadios.forEach(r => r.addEventListener('change', () => {
+const isMeters = currentUnit() === 'meters';
+degRow.hidden = isMeters;
+metRow.hidden = !isMeters;
+speak(t('unitSwitched') + (isMeters ? t('optMet') : t('optDeg')));
+}));
 voiceMode.addEventListener('change', () => {});
 document.getElementById('langBtn').addEventListener('click', () => {
 lang = lang === 'en' ? 'sk' : 'en';
 applyLang();
 });
 
-function toggleStepInput() {
-const isSteps = unitSelect.value === 'steps';
-stepLenInput.style.display = isSteps ? 'block' : 'none';
-stepLabel.style.display = isSteps ? 'block' : 'none';
+function speakSliderValue(text){
+clearTimeout(sliderSpeakTimer);
+sliderSpeakTimer = setTimeout(() => speak(text), 450);
 }
 
-function getToleranceDegrees() {
-const tolMeters = parseInt(toleranceSelect.value, 10);
-return tolMeters * 5;
+thresholdDeg.addEventListener('input', () => {
+thresholdDegVal.textContent = thresholdDeg.value + '°';
+beep(0, 500, 0.05);
+speakSliderValue(thresholdDeg.value + '°');
+});
+thresholdMet.addEventListener('input', () => {
+thresholdMetVal.textContent = thresholdMet.value + 'm';
+beep(0, 500, 0.05);
+speakSliderValue(thresholdMet.value + 'm');
+});
+
+function openPicker(trigger, values, suffix, onPick){
+pickerTrigger = trigger;
+pickerList.innerHTML = '';
+values.forEach(v => {
+const b = document.createElement('button');
+b.type = 'button';
+b.className = 'picker-item';
+b.textContent = v + suffix;
+b.addEventListener('click', () => { onPick(v); closePicker(); });
+pickerList.appendChild(b);
+});
+pickerOverlay.hidden = false;
+document.addEventListener('keydown', pickerKeydown);
+pickerCloseBtn.focus();
 }
+function closePicker(){
+pickerOverlay.hidden = true;
+document.removeEventListener('keydown', pickerKeydown);
+if(pickerTrigger) pickerTrigger.focus();
+}
+function pickerKeydown(e){ if(e.key === 'Escape') closePicker(); }
+pickerCloseBtn.addEventListener('click', closePicker);
+pickerOverlay.addEventListener('click', (e) => { if(e.target === pickerOverlay) closePicker(); });
+
+menuBtnDeg.addEventListener('click', () => {
+openPicker(menuBtnDeg, [5,10,15,20,25,30,40], '°', (v) => {
+thresholdDeg.value = v;
+thresholdDeg.dispatchEvent(new Event('input'));
+});
+});
+menuBtnMet.addEventListener('click', () => {
+openPicker(menuBtnMet, [1,2,3,5,8,10,15], 'm', (v) => {
+thresholdMet.value = v;
+thresholdMet.dispatchEvent(new Event('input'));
+});
+});
 
 function getHeading(e){
 if (typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading;
@@ -299,12 +435,12 @@ function ensureAudio(){
 if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 if(audioCtx.state === 'suspended') audioCtx.resume();
 }
-function beep(pan, freq, dur){
+function beep(pan, freq, dur, waveType){
 if(!soundOn.checked) return;
 try{
 ensureAudio();
 const o=audioCtx.createOscillator(), g=audioCtx.createGain(), p=audioCtx.createStereoPanner?audioCtx.createStereoPanner():null;
-o.frequency.value=freq; o.type='sine';
+o.frequency.value=freq; o.type=waveType || 'sine';
 g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
 g.gain.exponentialRampToValueAtTime(0.5,audioCtx.currentTime+0.02);
 g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
@@ -330,23 +466,15 @@ statusText.textContent = main;
 statusSub.textContent = sub;
 }
 
-function formatDrift(diffDegrees) {
-const absDiff = Math.abs(diffDegrees);
-const mode = unitSelect.value;
-const tolMeters = parseInt(toleranceSelect.value, 10);
-
-if (mode === 'degrees') {
-return Math.round(absDiff) + "°";
-} else if (mode === 'meters') {
-const met = (absDiff / 5) * tolMeters;
-return Math.round(met) + "m";
-} else if (mode === 'steps') {
-const stepCm = parseInt(stepLenInput.value, 10) || 70;
-const met = (absDiff / 5) * tolMeters;
-const steps = Math.round(met / (stepCm / 100));
-return steps + " " + t('statSteps').toLowerCase();
+function metersOffset(diffDegrees){
+return distSinceTarget * Math.sin(diffDegrees * Math.PI / 180);
 }
-return "";
+
+function formatDrift(diffDegrees) {
+if (currentUnit() === 'degrees') {
+return Math.round(Math.abs(diffDegrees)) + "°";
+}
+return Math.round(Math.abs(metersOffset(diffDegrees))) + "m";
 }
 
 function handleOrientation(e){
@@ -358,28 +486,36 @@ lastHeading = h;
 
 if(targetHeading === null) return;
 
-const th = getToleranceDegrees();
 const diff = angleDiff(h, targetHeading);
 const absDiff = Math.abs(diff);
 const now = performance.now();
+const mode = currentUnit();
 
-const tolMeters = parseInt(toleranceSelect.value, 10);
-const currentDriftMeters = (absDiff / 5) * tolMeters;
-sumDriftMeters += currentDriftMeters;
-driftSamples++;
+let th, currentVal;
+if(mode === 'degrees'){
+th = parseFloat(thresholdDeg.value);
+currentVal = absDiff;
+} else {
+th = parseFloat(thresholdMet.value);
+currentVal = Math.abs(metersOffset(diff));
+}
+
+const wasOk = lastAnnounceState === 'ok' || lastAnnounceState === null;
 
 let state, cls, mainT, subT;
-if(absDiff <= th){
+if(currentVal <= th){
 state='ok'; cls='ok'; mainT=t('straight'); subT=t('straightSub');
 } else if(diff > 0){
 state='right'; cls='right';
-mainT = absDiff > th*2 ? t('hRight') : t('sRight');
+mainT = currentVal > th*2 ? t('hRight') : t('sRight');
 subT = t('sRightSub');
 } else {
 state='left'; cls='left';
-mainT = absDiff > th*2 ? t('hLeft') : t('sLeft');
+mainT = currentVal > th*2 ? t('hLeft') : t('sLeft');
 subT = t('sLeftSub');
 }
+
+if(state !== 'ok' && wasOk) driftEventCount++;
 
 statusBox.className = 'status ' + cls;
 
@@ -391,19 +527,14 @@ lastAnnounceTime = now;
 
 const vm = voiceMode.value;
 if(vm !== 'off') {
-if(state === 'ok' && lastAnnounceState !== 'ok' && vm === 'drift') {
+if(state === 'ok' && !wasOk && vm === 'drift') {
 speak(t('backOnTrack'));
 }
 else if(state !== 'ok' && now - lastVoiceTime > 3000) {
 lastVoiceTime = now;
-let voiceText = "";
-if(state === 'ok') {
-voiceText = t('straight');
-} else {
-const prefix = (absDiff > th*2) ? t('voiceHard') + " " : "";
+const prefix = (currentVal > th*2) ? t('voiceHard') + " " : "";
 const dir = (diff > 0) ? t('voiceDriftR') : t('voiceDriftL');
-voiceText = prefix + dir + ": " + formatDrift(diff);
-}
+const voiceText = prefix + dir + ": " + formatDrift(diff);
 speak(voiceText);
 }
 else if(state === 'ok' && vm === 'always' && now - lastVoiceTime > 8000) {
@@ -412,12 +543,18 @@ speak(t('straight'));
 }
 }
 
-if(state !== 'ok' && now - lastBeepTime > 700){
+if(state !== 'ok'){
+const urgency = Math.min(currentVal / (th * 3), 1);
+const beepInterval = 700 - urgency * 450;
+if(now - lastBeepTime > beepInterval){
 lastBeepTime = now;
-const pan = diff > 0 ? 1 : -1;
-const urgency = Math.min(absDiff / (th * 3), 1);
-beep(pan, 420 + urgency * 260, 0.16);
-vibrate(absDiff > th*2 ? [80, 60, 80] : [70]);
+const isRight = diff > 0;
+const pan = isRight ? 1 : -1;
+const baseFreq = isRight ? 520 : 300;
+const freq = baseFreq + urgency * 220;
+beep(pan, freq, 0.16, isRight ? 'sine' : 'triangle');
+vibrate(currentVal > th*2 ? [80, 60, 80] : [70]);
+}
 }
 }
 
@@ -440,13 +577,21 @@ const segDist = R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1000;
 
 if(segDist > 2) {
 totalDistMeters += segDist;
+distSinceTarget += segDist;
 lastLat = c.latitude; lastLon = c.longitude;
 }
+}
+
+function switchToDegreesFallback(){
+document.getElementById('unitDeg').checked = true;
+degRow.hidden = false;
+metRow.hidden = true;
 }
 
 function setTarget(){
 if(lastHeading !== null){
 targetHeading = lastHeading;
+distSinceTarget = 0;
 announce(t('dirSet'), t('dirSetSub'));
 statusBox.className = 'status ok';
 } else {
@@ -458,7 +603,7 @@ async function start(){
 permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
-totalDistMeters = 0; sumDriftMeters = 0; driftSamples = 0; lastLat = null; lastGPSTime = 0;
+totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = 0;
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); return; }
 
@@ -475,7 +620,18 @@ else { permMsg.textContent = t('errDenied'); return; }
 }
 
 window.addEventListener('deviceorientation', handleOrientation, true);
-if(navigator.geolocation) navigator.geolocation.watchPosition(handleGPS, ()=>{}, {enableHighAccuracy:true});
+if(navigator.geolocation){
+navigator.geolocation.watchPosition(handleGPS, () => {
+if(currentUnit() === 'meters'){
+switchToDegreesFallback();
+permMsg.textContent = t('errNoGPS');
+speak(t('errNoGPS'));
+}
+}, {enableHighAccuracy:true});
+} else if(currentUnit() === 'meters'){
+switchToDegreesFallback();
+permMsg.textContent = t('errNoGPS');
+}
 
 running = true;
 mainBtn.textContent = t('stop');
@@ -502,10 +658,13 @@ resetBtn.disabled = true;
 targetHeading = null;
 statusBox.className = 'status off';
 
-if(totalDistMeters > 5 && driftSamples > 0) {
-const avgDrift = sumDriftMeters / driftSamples;
+if(statsOn.checked && totalDistMeters > 5) {
 let statText = t('statDist') + ": " + Math.round(totalDistMeters) + " " + t('statMeters') + ". ";
-statText += t('statAvg') + ": " + avgDrift.toFixed(1) + " " + t('statMeters') + ".";
+if(driftEventCount > 0){
+statText += t('statDriftCount') + " " + driftEventCount + " " + t('statTimes') + ".";
+} else {
+statText += t('statNoDrift') + ".";
+}
 speak(statText);
 announce(t('stopped'), statText);
 } else {
