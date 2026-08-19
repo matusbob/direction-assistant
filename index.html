@@ -119,6 +119,7 @@ display:flex; align-items:center; justify-content:center;
 padding:24px; z-index:50;
 }
 .picker-overlay[hidden]{display:none;}
+#pickerOverlay{z-index:60;}
 .picker-dialog{
 background:var(--panel); border-radius:14px; padding:18px;
 max-width:400px; width:100%; max-height:80vh; overflow-y:auto;
@@ -234,6 +235,7 @@ flex:none;
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
+<button type="button" id="routesBtn" class="demobtn"><span id="lblRoutes">Saved routes</span></button>
 </main>
 
 <div id="pickerOverlay" class="picker-overlay" hidden>
@@ -241,6 +243,25 @@ flex:none;
 <h2 id="pickerTitle">Choose a value</h2>
 <div id="pickerList" class="picker-list"></div>
 <button type="button" id="pickerClose" class="picker-close">Close</button>
+</div>
+</div>
+
+<div id="routesOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routesTitle">
+<h2 id="routesTitle">Saved routes</h2>
+<button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblRecordRoute">Record new route</span></button>
+<div id="routeList" class="picker-list"></div>
+<button type="button" id="routesCloseBtn" class="picker-close"><span id="lblRoutesClose">Close</span></button>
+</div>
+</div>
+
+<div id="recordOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
+<h2 id="recordTitle">Recording route</h2>
+<div id="recordStatus" class="rowval" style="margin-bottom:14px;"></div>
+<button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
+<button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
+<button type="button" id="cancelRecordBtn" class="picker-close"><span id="lblCancelRecord">Cancel</span></button>
 </div>
 </div>
 
@@ -279,7 +300,18 @@ voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
 statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
 unitSwitched: "Units: ",
-lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished."
+lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
+lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
+recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute: "Finish route", lblCancelRecord: "Cancel",
+recordStart: "Recording started. Walk your route and mark points as you go.",
+recordStatusText: "{points} points marked, {dist} m walked",
+customLabel: "Custom name...", customLabelPrompt: "Name this point:",
+routeNamePrompt: "Name this route:", routeDefaultName: "Route",
+routeSaved: "Route saved.", noPointsYet: "Mark at least one point before finishing.",
+noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "Delete route",
+pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
+routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
+routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation"
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomôcka na udržanie smeru. Upozorní na vybočenie zvukom, hlasom alebo vibráciami. Nenahrádza bielu palicu ani psa.",
@@ -308,7 +340,18 @@ voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard:
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
 statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
 unitSwitched: "Jednotky: ",
-lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila."
+lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
+lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
+recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRoute: "Dokončiť trasu", lblCancelRecord: "Zrušiť",
+recordStart: "Nahrávanie spustené. Choď svojou trasou a priebežne označuj body.",
+recordStatusText: "Označených bodov: {points}, prejdených {dist} m",
+customLabel: "Vlastný názov...", customLabelPrompt: "Pomenuj tento bod:",
+routeNamePrompt: "Pomenuj túto trasu:", routeDefaultName: "Trasa",
+routeSaved: "Trasa uložená.", noPointsYet: "Pred dokončením označ aspoň jeden bod.",
+noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať trasu", confirmDelete: "Zmazať trasu",
+pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
+routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
+routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy"
 }
 };
 
@@ -338,6 +381,14 @@ document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('lblDemo').textContent = t('lblDemo');
+document.getElementById('lblRoutes').textContent = t('lblRoutes');
+document.getElementById('routesTitle').textContent = t('routesTitle');
+document.getElementById('lblRecordRoute').textContent = t('lblRecordRoute');
+document.getElementById('lblRoutesClose').textContent = t('lblRoutesClose');
+document.getElementById('recordTitle').textContent = t('recordTitle');
+document.getElementById('lblMarkPoint').textContent = t('lblMarkPoint');
+document.getElementById('lblFinishRoute').textContent = t('lblFinishRoute');
+document.getElementById('lblCancelRecord').textContent = t('lblCancelRecord');
 document.getElementById('langBtn').textContent = t('langBtn');
 
 document.getElementById('voiceMode').options[0].text = t('voiceOff');
@@ -345,6 +396,7 @@ document.getElementById('voiceMode').options[1].text = t('voiceDrift');
 document.getElementById('voiceMode').options[2].text = t('voiceAlways');
 
 if (!running) announce(t('ready'), t('readySub'));
+if (!routesOverlay.hidden) renderRouteList();
 }
 
 const mainBtn = document.getElementById('mainBtn');
@@ -370,6 +422,16 @@ const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
 const demoBtn = document.getElementById('demoBtn');
+const routesBtn = document.getElementById('routesBtn');
+const routesOverlay = document.getElementById('routesOverlay');
+const routeList = document.getElementById('routeList');
+const recordRouteBtn = document.getElementById('recordRouteBtn');
+const routesCloseBtn = document.getElementById('routesCloseBtn');
+const recordOverlay = document.getElementById('recordOverlay');
+const recordStatusEl = document.getElementById('recordStatus');
+const markPointBtn = document.getElementById('markPointBtn');
+const finishRouteBtn = document.getElementById('finishRouteBtn');
+const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
 let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0;
@@ -377,6 +439,10 @@ let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
 let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
+
+let navMode = 'idle';
+let activeRoute = null, routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let recording = false, recordRoute = null, recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
 
 function currentUnit(){
 return document.querySelector('input[name=unit]:checked').value;
@@ -496,11 +562,28 @@ function metersOffset(diffDegrees){
 return distSinceTarget * Math.sin(diffDegrees * Math.PI / 180);
 }
 
-function formatDrift(diffDegrees) {
-if (currentUnit() === 'degrees') {
+function formatDrift(diffDegrees, forceMode) {
+const mode = forceMode || currentUnit();
+if (mode === 'degrees') {
 return Math.round(Math.abs(diffDegrees)) + "°";
 }
 return Math.round(Math.abs(metersOffset(diffDegrees))) + "m";
+}
+
+function haversineMeters(lat1, lon1, lat2, lon2){
+const R = 6371000;
+const dLat = (lat2 - lat1) * Math.PI / 180;
+const dLon = (lon2 - lon1) * Math.PI / 180;
+const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function bearingDegrees(lat1, lon1, lat2, lon2){
+const phi1 = lat1 * Math.PI / 180, phi2 = lat2 * Math.PI / 180;
+const dLon = (lon2 - lon1) * Math.PI / 180;
+const y = Math.sin(dLon) * Math.cos(phi2);
+const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLon);
+return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
 function handleOrientation(e){
@@ -509,6 +592,12 @@ const h = getHeading(e);
 if(h===null) return;
 headingSupported = true;
 lastHeading = h;
+
+if(navMode === 'route'){
+if(currentBearing === null) return;
+processDrift(angleDiff(h, currentBearing));
+return;
+}
 
 if(targetHeading === null) return;
 
@@ -519,7 +608,7 @@ processDrift(diff);
 function processDrift(diff){
 const absDiff = Math.abs(diff);
 const now = performance.now();
-const mode = currentUnit();
+const mode = navMode === 'route' ? 'degrees' : currentUnit();
 
 let th, currentVal;
 if(mode === 'degrees'){
@@ -564,7 +653,7 @@ else if(state !== 'ok' && now - lastVoiceTime > 3000) {
 lastVoiceTime = now;
 const prefix = (currentVal > th*2) ? t('voiceHard') + " " : "";
 const dir = (diff > 0) ? t('voiceDriftR') : t('voiceDriftL');
-const voiceText = prefix + dir + ": " + formatDrift(diff);
+const voiceText = prefix + dir + ": " + formatDrift(diff, navMode === 'route' ? 'degrees' : undefined);
 speak(voiceText);
 }
 else if(state === 'ok' && vm === 'always' && now - lastVoiceTime > 8000) {
@@ -598,17 +687,49 @@ if(c.accuracy > 20) return;
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
+if(navMode === 'route') updateRouteBearing(c.latitude, c.longitude);
 return;
 }
 
-const R=6371; const dLat=(c.latitude-lastLat)*Math.PI/180; const dLon=(c.longitude-lastLon)*Math.PI/180;
-const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lastLat*Math.PI/180)*Math.cos(c.latitude*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-const segDist = R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1000;
+const segDist = haversineMeters(lastLat, lastLon, c.latitude, c.longitude);
 
 if(segDist > 2) {
 totalDistMeters += segDist;
 distSinceTarget += segDist;
 lastLat = c.latitude; lastLon = c.longitude;
+}
+
+if(navMode === 'route') updateRouteBearing(c.latitude, c.longitude);
+}
+
+function updateRouteBearing(lat, lon){
+if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
+const wp = activeRoute.waypoints[routeIndex];
+const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
+currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
+
+const ARRIVE_THRESHOLD = 10;
+if(dist <= ARRIVE_THRESHOLD){
+routeIndex++;
+if(routeIndex >= activeRoute.waypoints.length){
+speak(t('routeDone'));
+announce(t('routeDone'), '');
+stopRouteNav(true);
+return;
+}
+const next = activeRoute.waypoints[routeIndex];
+currentBearing = null;
+speak(t('routeArrived') + " " + wp.label + ". " + t('routeNext') + " " + next.label + ".");
+announce(t('routeNext') + " " + next.label, '');
+lastRouteAnnounce = performance.now();
+return;
+}
+
+const now = performance.now();
+if(now - lastRouteAnnounce > 5000){
+lastRouteAnnounce = now;
+speak(wp.label + ": " + Math.round(dist) + "m.");
+announce(wp.label, Math.round(dist) + "m");
 }
 }
 
@@ -669,11 +790,76 @@ mainBtn.classList.add('stop');
 mainBtn.setAttribute('aria-label', t('stop'));
 resetBtn.disabled = false;
 demoBtn.disabled = true;
+routesBtn.disabled = true;
 announce(t('scanning'), t('scanningSub'));
 statusBox.className = 'status off';
 
 watchdog = setTimeout(()=>{ if(!headingSupported) permMsg.textContent = t('errNoData'); }, 3000);
 setTimeout(setTarget, 1200);
+}
+
+async function startRouteNav(route){
+if(running || recording) return;
+activeRoute = route;
+routeIndex = 0;
+currentBearing = null;
+lastRouteAnnounce = 0;
+navMode = 'route';
+totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = 0;
+permMsg.textContent = '';
+
+if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); navMode = 'idle'; return; }
+
+if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+try{
+const res = await Promise.race([
+DeviceOrientationEvent.requestPermission(),
+new Promise((_,rej)=>setTimeout(()=>rej(new Error('T')),4000))
+]);
+if(res!=='granted'){ permMsg.textContent = t('errDenied'); navMode = 'idle'; return; }
+}catch(e){ permMsg.textContent = t('errTimeout'); navMode = 'idle'; return; }
+}
+
+if(!navigator.geolocation){ permMsg.textContent = t('errNoGPS'); navMode = 'idle'; return; }
+
+window.addEventListener('deviceorientation', handleOrientation, true);
+routeWatchId = navigator.geolocation.watchPosition(handleGPS, () => {
+permMsg.textContent = t('errNoGPS');
+}, {enableHighAccuracy:true});
+
+running = true;
+mainBtn.textContent = t('stop');
+mainBtn.classList.add('stop');
+mainBtn.setAttribute('aria-label', t('stopRoute'));
+resetBtn.disabled = true;
+demoBtn.disabled = true;
+routesBtn.disabled = true;
+statusBox.className = 'status ok';
+const wp = route.waypoints[0];
+announce(t('routeNavStart'), t('routeNext') + " " + wp.label);
+speak(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
+}
+
+function stopRouteNav(finished){
+running = false;
+navMode = 'idle';
+window.removeEventListener('deviceorientation', handleOrientation, true);
+if(routeWatchId !== null){ navigator.geolocation.clearWatch(routeWatchId); routeWatchId = null; }
+if(navigator.vibrate) navigator.vibrate(0);
+
+mainBtn.textContent = t('start');
+mainBtn.classList.remove('stop');
+mainBtn.setAttribute('aria-label', t('start'));
+resetBtn.disabled = true;
+demoBtn.disabled = false;
+routesBtn.disabled = false;
+statusBox.className = 'status off';
+activeRoute = null;
+
+if(!finished){
+announce(t('routeStopped'), t('stoppedSub'));
+speak(t('routeStopped'));
+}
 }
 
 function stop(){
@@ -687,6 +873,7 @@ mainBtn.classList.remove('stop');
 mainBtn.setAttribute('aria-label', t('start'));
 resetBtn.disabled = true;
 demoBtn.disabled = false;
+routesBtn.disabled = false;
 targetHeading = null;
 statusBox.className = 'status off';
 
@@ -704,7 +891,10 @@ announce(t('stopped'), t('stoppedSub'));
 }
 }
 
-mainBtn.addEventListener('click', () => { running ? stop() : start(); });
+mainBtn.addEventListener('click', () => {
+if(navMode === 'route'){ stopRouteNav(false); return; }
+running ? stop() : start();
+});
 resetBtn.addEventListener('click', setTarget);
 
 if(typeof DeviceOrientationEvent === 'undefined'){
@@ -716,10 +906,11 @@ function sleep(ms){ return new Promise((r) => setTimeout(r, ms)); }
 
 let demoRunning = false;
 async function runDemo(){
-if(demoRunning || running) return;
+if(demoRunning || running || recording) return;
 demoRunning = true;
 demoBtn.disabled = true;
 mainBtn.disabled = true;
+routesBtn.disabled = true;
 const saved = { distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount };
 distSinceTarget = 15;
 lastAnnounceState = null;
@@ -743,6 +934,7 @@ announce(t('ready'), t('readySub'));
 speak(t('demoEnd'));
 demoBtn.disabled = false;
 mainBtn.disabled = false;
+routesBtn.disabled = false;
 demoRunning = false;
 }
 demoBtn.addEventListener('click', runDemo);
@@ -795,6 +987,171 @@ statsOn.addEventListener('change', saveSettings);
 if('serviceWorker' in navigator){
 window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
+
+const ROUTES_KEY = 'directionAssistantRoutes';
+function loadRoutes(){
+try{ return JSON.parse(localStorage.getItem(ROUTES_KEY)) || []; }catch(e){ return []; }
+}
+function saveRoute(route){
+const routes = loadRoutes();
+routes.push(route);
+try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
+}
+function deleteRoute(id){
+const routes = loadRoutes().filter((r) => r.id !== id);
+try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
+}
+
+const PRESET_LABELS_EN = ['Entrance','Exit','Platform','Stairs','Elevator','Crossing','Bus stop','Turn'];
+const PRESET_LABELS_SK = ['Vchod','Východ','Nástupište','Schody','Výťah','Priechod pre chodcov','Zastávka','Odbočka'];
+function presetLabels(){ return lang === 'sk' ? PRESET_LABELS_SK : PRESET_LABELS_EN; }
+
+function openLabelPicker(triggerEl, onPick){
+pickerTrigger = triggerEl;
+pickerList.innerHTML = '';
+presetLabels().forEach((lbl) => {
+const b = document.createElement('button');
+b.type = 'button'; b.className = 'picker-item';
+b.textContent = lbl;
+b.addEventListener('click', () => { onPick(lbl); closePicker(); });
+pickerList.appendChild(b);
+});
+const customBtn = document.createElement('button');
+customBtn.type = 'button'; customBtn.className = 'picker-item';
+customBtn.textContent = t('customLabel');
+customBtn.addEventListener('click', () => {
+closePicker();
+const v = window.prompt(t('customLabelPrompt'), '');
+if(v && v.trim()) onPick(v.trim());
+});
+pickerList.appendChild(customBtn);
+pickerOverlay.hidden = false;
+document.addEventListener('keydown', pickerKeydown);
+pickerCloseBtn.focus();
+}
+
+function renderRouteList(){
+routeList.innerHTML = '';
+const routes = loadRoutes();
+if(routes.length === 0){
+const p = document.createElement('div');
+p.className = 'rowval';
+p.textContent = t('noRoutes');
+routeList.appendChild(p);
+return;
+}
+routes.forEach((r) => {
+const row = document.createElement('div');
+row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+
+const navBtn = document.createElement('button');
+navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.flex = '1';
+navBtn.textContent = r.name + ' (' + r.waypoints.length + ')';
+navBtn.addEventListener('click', () => {
+routesOverlay.hidden = true;
+startRouteNav(r);
+});
+
+const delBtn = document.createElement('button');
+delBtn.type = 'button'; delBtn.className = 'menubtn';
+delBtn.textContent = '✕';
+delBtn.setAttribute('aria-label', t('deleteRoute') + ' ' + r.name);
+delBtn.addEventListener('click', () => {
+if(window.confirm(t('confirmDelete') + ' ' + r.name + '?')){
+deleteRoute(r.id);
+renderRouteList();
+}
+});
+
+row.appendChild(navBtn);
+row.appendChild(delBtn);
+routeList.appendChild(row);
+});
+}
+
+function updateRecordStatus(){
+recordStatusEl.textContent = t('recordStatusText')
+.replace('{points}', recordRoute.waypoints.length)
+.replace('{dist}', Math.round(recordDist));
+}
+
+function startRecording(){
+if(running || recording || !navigator.geolocation) return;
+recordRoute = { waypoints: [] };
+recordDist = 0;
+recordLastLat = null; recordLastLon = null;
+recording = true;
+routesOverlay.hidden = true;
+recordOverlay.hidden = false;
+updateRecordStatus();
+recordWatchId = navigator.geolocation.watchPosition((pos) => {
+const c = pos.coords;
+if(c.accuracy > 25) return;
+if(recordLastLat !== null){
+const d = haversineMeters(recordLastLat, recordLastLon, c.latitude, c.longitude);
+if(d > 2) recordDist += d;
+}
+recordLastLat = c.latitude; recordLastLon = c.longitude;
+updateRecordStatus();
+}, () => { permMsg.textContent = t('errNoGPS'); }, { enableHighAccuracy: true });
+speak(t('recordStart'));
+}
+
+function markPoint(){
+if(!recording || recordLastLat === null){ speak(t('waitGPS')); return; }
+openLabelPicker(markPointBtn, (label) => {
+recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, label: label });
+updateRecordStatus();
+speak(label + " " + t('pointMarked'));
+});
+}
+
+function finishRecording(){
+if(recordRoute.waypoints.length === 0){
+speak(t('noPointsYet'));
+return;
+}
+if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
+recording = false;
+const name = window.prompt(t('routeNamePrompt'), t('routeDefaultName') + ' ' + new Date().toLocaleDateString());
+if(name && name.trim()){
+recordRoute.name = name.trim();
+recordRoute.id = Date.now().toString(36);
+recordRoute.createdAt = Date.now();
+saveRoute(recordRoute);
+speak(t('routeSaved'));
+}
+recordOverlay.hidden = true;
+renderRouteList();
+routesOverlay.hidden = false;
+}
+
+function cancelRecording(){
+if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
+recording = false;
+recordOverlay.hidden = true;
+routesOverlay.hidden = false;
+}
+
+function routesOverlayKeydown(e){ if(e.key === 'Escape') closeRoutesOverlay(); }
+function closeRoutesOverlay(){
+routesOverlay.hidden = true;
+document.removeEventListener('keydown', routesOverlayKeydown);
+}
+
+routesBtn.addEventListener('click', () => {
+if(running || recording) return;
+renderRouteList();
+routesOverlay.hidden = false;
+document.addEventListener('keydown', routesOverlayKeydown);
+routesCloseBtn.focus();
+});
+routesCloseBtn.addEventListener('click', closeRoutesOverlay);
+routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) closeRoutesOverlay(); });
+recordRouteBtn.addEventListener('click', startRecording);
+markPointBtn.addEventListener('click', markPoint);
+finishRouteBtn.addEventListener('click', finishRecording);
+cancelRecordBtn.addEventListener('click', cancelRecording);
 
 loadSettings();
 applyLang();
