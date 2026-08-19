@@ -234,6 +234,7 @@ flex:none;
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
+<button type="button" id="routesBtn" class="demobtn"><span id="lblRoutes">Saved routes</span></button>
 </main>
 
 <div id="pickerOverlay" class="picker-overlay" hidden>
@@ -241,6 +242,25 @@ flex:none;
 <h2 id="pickerTitle">Choose a value</h2>
 <div id="pickerList" class="picker-list"></div>
 <button type="button" id="pickerClose" class="picker-close">Close</button>
+</div>
+</div>
+
+<div id="routesOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routesTitle">
+<h2 id="routesTitle">Saved routes</h2>
+<button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblRecordRoute">Record new route</span></button>
+<div id="routeList" class="picker-list"></div>
+<button type="button" id="routesCloseBtn" class="picker-close"><span id="lblRoutesClose">Close</span></button>
+</div>
+</div>
+
+<div id="recordOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
+<h2 id="recordTitle">Recording route</h2>
+<div id="recordStatus" class="rowval" style="margin-bottom:14px;"></div>
+<button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
+<button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
+<button type="button" id="cancelRecordBtn" class="picker-close"><span id="lblCancelRecord">Cancel</span></button>
 </div>
 </div>
 
@@ -279,7 +299,18 @@ voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
 statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
 unitSwitched: "Units: ",
-lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished."
+lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
+lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
+recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute: "Finish route", lblCancelRecord: "Cancel",
+recordStart: "Recording started. Walk your route and mark points as you go.",
+recordStatusText: "{points} points marked, {dist} m walked",
+customLabel: "Custom name...", customLabelPrompt: "Name this point:",
+routeNamePrompt: "Name this route:", routeDefaultName: "Route",
+routeSaved: "Route saved.", noPointsYet: "Mark at least one point before finishing.",
+noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "Delete route",
+pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
+routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
+routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation"
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomôcka na udržanie smeru. Upozorní na vybočenie zvukom, hlasom alebo vibráciami. Nenahrádza bielu palicu ani psa.",
@@ -308,7 +339,18 @@ voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard:
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
 statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
 unitSwitched: "Jednotky: ",
-lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila."
+lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
+lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
+recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRoute: "Dokončiť trasu", lblCancelRecord: "Zrušiť",
+recordStart: "Nahrávanie spustené. Choď svojou trasou a priebežne označuj body.",
+recordStatusText: "Označených bodov: {points}, prejdených {dist} m",
+customLabel: "Vlastný názov...", customLabelPrompt: "Pomenuj tento bod:",
+routeNamePrompt: "Pomenuj túto trasu:", routeDefaultName: "Trasa",
+routeSaved: "Trasa uložená.", noPointsYet: "Pred dokončením označ aspoň jeden bod.",
+noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať trasu", confirmDelete: "Zmazať trasu",
+pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
+routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
+routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy"
 }
 };
 
@@ -338,6 +380,14 @@ document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('lblDemo').textContent = t('lblDemo');
+document.getElementById('lblRoutes').textContent = t('lblRoutes');
+document.getElementById('routesTitle').textContent = t('routesTitle');
+document.getElementById('lblRecordRoute').textContent = t('lblRecordRoute');
+document.getElementById('lblRoutesClose').textContent = t('lblRoutesClose');
+document.getElementById('recordTitle').textContent = t('recordTitle');
+document.getElementById('lblMarkPoint').textContent = t('lblMarkPoint');
+document.getElementById('lblFinishRoute').textContent = t('lblFinishRoute');
+document.getElementById('lblCancelRecord').textContent = t('lblCancelRecord');
 document.getElementById('langBtn').textContent = t('langBtn');
 
 document.getElementById('voiceMode').options[0].text = t('voiceOff');
@@ -345,6 +395,7 @@ document.getElementById('voiceMode').options[1].text = t('voiceDrift');
 document.getElementById('voiceMode').options[2].text = t('voiceAlways');
 
 if (!running) announce(t('ready'), t('readySub'));
+if (!routesOverlay.hidden) renderRouteList();
 }
 
 const mainBtn = document.getElementById('mainBtn');
@@ -370,6 +421,16 @@ const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
 const demoBtn = document.getElementById('demoBtn');
+const routesBtn = document.getElementById('routesBtn');
+const routesOverlay = document.getElementById('routesOverlay');
+const routeList = document.getElementById('routeList');
+const recordRouteBtn = document.getElementById('recordRouteBtn');
+const routesCloseBtn = document.getElementById('routesCloseBtn');
+const recordOverlay = document.getElementById('recordOverlay');
+const recordStatusEl = document.getElementById('recordStatus');
+const markPointBtn = document.getElementById('markPointBtn');
+const finishRouteBtn = document.getElementById('finishRouteBtn');
+const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
 let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0;
@@ -377,6 +438,10 @@ let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
 let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
+
+let navMode = 'idle';
+let activeRoute = null, routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let recording = false, recordRoute = null, recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
 
 function currentUnit(){
 return document.querySelector('input[name=unit]:checked').value;
