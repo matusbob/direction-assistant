@@ -232,6 +232,18 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="statsOn" checked>
 <label for="statsOn" style="margin:0;" id="lblStats">Announce statistics when stopped</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="distOn">
+<label for="distOn" style="margin:0;" id="lblDist">Announce "Doing good" every X meters</label>
+</div>
+<div class="sliderrow" id="distRow">
+<label for="distRange" id="lblDistRange">Meters distance</label>
+<div class="sliderwrap">
+<input type="range" id="distRange" min="1" max="50" step="1" value="10" disabled aria-describedby="distVal">
+<button type="button" class="menubtn" id="menuBtnDist" aria-haspopup="dialog" disabled><span id="lblMenu3">Menu</span></button>
+</div>
+<div class="rowval"><span id="lblDistMin">1m</span><span id="distVal">10m</span><span id="lblDistMax">50m</span></div>
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
@@ -260,6 +272,7 @@ flex:none;
 <h2 id="recordTitle">Recording route</h2>
 <div id="recordStatus" class="rowval" style="margin-bottom:14px;"></div>
 <button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
+<button type="button" id="markStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStraightSegment2">Straight segment</span></button>
 <button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
 <button type="button" id="cancelRecordBtn" class="picker-close"><span id="lblCancelRecord">Cancel</span></button>
 </div>
@@ -289,8 +302,8 @@ settings: "Settings",
 lblUnit: "Drift measurement units", optDeg: "Degrees", optMet: "Meters",
 lblThresholdDeg: "Sensitivity (degrees)", lblThresholdMet: "Sensitivity (meters)",
 precise: "Precise", loose: "Loose", lblMenu: "Menu", pickerTitle: "Choose a value", pickerClose: "Close",
-lblVoice: "Voice output mode (Teta)", voiceOff: "Off", voiceDrift: "Only when drifting", voiceAlways: "Always speak (Straight/Drift)",
-lblSound: "Spatial audio beeps on drift", lblVibrate: "Vibrations on drift", lblStats: "Announce statistics when stopped",
+lblVoice: "Voice output mode (Announce)", voiceOff: "Off", voiceDrift: "Only when drifting", voiceAlways: "Always speak (Straight/Drift)",
+lblSound: "Beep on drift", lblVibrate: "Vibrations on drift", lblStats: "Announce statistics when stopped",
 errNoSecure: "ERROR: Missing HTTPS lock. Compass blocked.",
 errPerm: "Requesting permission...", errGranted: "Permission granted.", errDenied: "Permission denied.",
 errTimeout: "Error: Browser not responding.", errNoData: "Failed to read compass. Check permissions.", errNoSensor: "Browser does not support compass.",
@@ -300,6 +313,7 @@ voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
 statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
 unitSwitched: "Units: ",
+distToggle: "Announce \"Doing good\" every X meters", distLabel: "Meters distance", doingGood: "Doing good",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
 lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
 recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute: "Finish route", lblCancelRecord: "Cancel",
@@ -313,6 +327,8 @@ pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
 routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
 routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation",
 navigateRoute: "Navigate", navigateBack: "Navigate back (reversed)",
+lblStraightSegment: "Straight segment", straightHoldLabel: "Straight segment",
+straightHoldStart: "Hold a straight line for {n}m.", straightHoldRemaining: "Straight, remaining",
 turnRight: "turn right", turnLeft: "turn left", continueStraight: "continue straight",
 turnRightNow: "Now turn right.", turnLeftNow: "Now turn left.",
 turnConfirmedRight: "Great, you turned right. Continue.", turnConfirmedLeft: "Great, you turned left. Continue.",
@@ -335,8 +351,8 @@ settings: "Nastavenia",
 lblUnit: "Jednotky merania vybočenia", optDeg: "Stupne", optMet: "Metre",
 lblThresholdDeg: "Citlivosť (stupne)", lblThresholdMet: "Citlivosť (metre)",
 precise: "Presnejšie", loose: "Voľnejšie", lblMenu: "Ponuka", pickerTitle: "Vyber hodnotu", pickerClose: "Zavrieť",
-lblVoice: "Režim hlasového výstupu (Teta)", voiceOff: "Vypnutý", voiceDrift: "Len pri vybočení", voiceAlways: "Stále hovoriť (Rovno/Vybočenie)",
-lblSound: "Priestorové pípky pri vybočení", lblVibrate: "Vibrácie pri vybočení", lblStats: "Oznámiť štatistiku po zastavení",
+lblVoice: "Režim hlasového výstupu (Oznámiť)", voiceOff: "Vypnutý", voiceDrift: "Len pri vybočení", voiceAlways: "Stále hovoriť (Rovno/Vybočenie)",
+lblSound: "Pípať pri vybočení", lblVibrate: "Vibrácie pri vybočení", lblStats: "Oznámiť štatistiku po zastavení",
 errNoSecure: "CHYBA: Chýba HTTPS zámok.", errPerm: "Žiadam o povolenie...", errGranted: "Povolenie udelené.", errDenied: "Povolenie zamietnuté.",
 errTimeout: "Chyba: Prehliadač neodpovedá.", errNoData: "Kompas sa nepodarilo prečítať.", errNoSensor: "Prehliadač nepodporuje kompas.",
 errNoGPS: "GPS nedostupné. Prepnuté na stupne.",
@@ -345,6 +361,7 @@ voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard:
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
 statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
 unitSwitched: "Jednotky: ",
+distToggle: "Oznámiť \"Ideš dobre\" každých X metrov", distLabel: "Vzdialenosť v metroch", doingGood: "Ideš dobre",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
 lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
 recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRoute: "Dokončiť trasu", lblCancelRecord: "Zrušiť",
@@ -358,6 +375,8 @@ pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
 routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
 routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy",
 navigateRoute: "Navigovať", navigateBack: "Navigovať späť (opačne)",
+lblStraightSegment: "Rovný úsek", straightHoldLabel: "Rovný úsek",
+straightHoldStart: "Udržuj rovný smer na {n}m.", straightHoldRemaining: "Rovno, zostáva",
 turnRight: "odbočte vpravo", turnLeft: "odbočte vľavo", continueStraight: "pokračujte rovno",
 turnRightNow: "Teraz odbočte vpravo.", turnLeftNow: "Teraz odbočte vľavo.",
 turnConfirmedRight: "Výborne, odbočili ste vpravo. Pokračujte.", turnConfirmedLeft: "Výborne, odbočili ste vľavo. Pokračujte.",
@@ -390,6 +409,10 @@ document.getElementById('lblVoice').textContent = t('lblVoice');
 document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
+document.getElementById('lblDist').textContent = t('distToggle');
+document.getElementById('lblDistRange').textContent = t('distLabel');
+document.getElementById('lblMenu3').textContent = t('lblMenu');
+document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
 document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('lblRoutes').textContent = t('lblRoutes');
 document.getElementById('routesTitle').textContent = t('routesTitle');
@@ -431,6 +454,10 @@ const voiceMode = document.getElementById('voiceMode');
 const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
+const distOn = document.getElementById('distOn');
+const distRange = document.getElementById('distRange');
+const distVal = document.getElementById('distVal');
+const menuBtnDist = document.getElementById('menuBtnDist');
 const demoBtn = document.getElementById('demoBtn');
 const routesBtn = document.getElementById('routesBtn');
 const routesOverlay = document.getElementById('routesOverlay');
@@ -440,6 +467,7 @@ const routesCloseBtn = document.getElementById('routesCloseBtn');
 const recordOverlay = document.getElementById('recordOverlay');
 const recordStatusEl = document.getElementById('recordStatus');
 const markPointBtn = document.getElementById('markPointBtn');
+const markStraightBtn = document.getElementById('markStraightBtn');
 const finishRouteBtn = document.getElementById('finishRouteBtn');
 const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
@@ -448,10 +476,11 @@ let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceT
 let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
-let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
+let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null, nextDistAnnounce = 0;
 
 let navMode = 'idle';
 let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let holdingStraight = false, straightTargetHeading = null;
 let announcedThresholds = [], awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, recordRoute = null, recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
 const TURN_THRESHOLDS = [50, 30, 15];
@@ -487,6 +516,15 @@ thresholdMet.addEventListener('input', () => {
 thresholdMetVal.textContent = thresholdMet.value + 'm';
 beep(0, 500, 0.05);
 speakSliderValue(thresholdMet.value + 'm');
+});
+distRange.addEventListener('input', () => {
+distVal.textContent = distRange.value + 'm';
+beep(0, 500, 0.05);
+speakSliderValue(distRange.value + 'm');
+});
+distOn.addEventListener('change', () => {
+distRange.disabled = !distOn.checked;
+menuBtnDist.disabled = !distOn.checked;
 });
 
 function openPicker(trigger, values, suffix, onPick){
@@ -525,6 +563,13 @@ openPicker(menuBtnMet, [1,2,3,5,8,10,15], 'm', (v) => {
 thresholdMet.value = v;
 thresholdMet.dispatchEvent(new Event('input'));
 thresholdMet.dispatchEvent(new Event('change'));
+});
+});
+menuBtnDist.addEventListener('click', () => {
+openPicker(menuBtnDist, [1,2,3,4,5,10,20,30,50], 'm', (v) => {
+distRange.value = v;
+distRange.dispatchEvent(new Event('input'));
+distRange.dispatchEvent(new Event('change'));
 });
 });
 
@@ -614,7 +659,7 @@ return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 
 function computeWaypointTurns(waypoints){
 return waypoints.map((wp, i) => {
-if(i === 0 || i === waypoints.length - 1) return null;
+if(i === 0 || i === waypoints.length - 1 || wp.type === 'straight') return null;
 const incoming = bearingDegrees(waypoints[i-1].lat, waypoints[i-1].lon, wp.lat, wp.lon);
 const outgoing = bearingDegrees(wp.lat, wp.lon, waypoints[i+1].lat, waypoints[i+1].lon);
 const turn = angleDiff(outgoing, incoming);
@@ -637,6 +682,11 @@ headingSupported = true;
 lastHeading = h;
 
 if(navMode === 'route'){
+if(holdingStraight){
+if(straightTargetHeading === null) straightTargetHeading = h;
+processDrift(angleDiff(h, straightTargetHeading));
+return;
+}
 if(currentBearing === null) return;
 const diff = angleDiff(h, currentBearing);
 if(awaitingTurnConfirm && Math.abs(diff) < parseFloat(thresholdDeg.value)){
@@ -736,7 +786,7 @@ if(c.accuracy > 20) return;
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
-if(navMode === 'route') updateRouteBearing(c.latitude, c.longitude);
+if(navMode === 'route' && !holdingStraight) updateRouteBearing(c.latitude, c.longitude);
 return;
 }
 
@@ -746,9 +796,62 @@ if(segDist > 2) {
 totalDistMeters += segDist;
 distSinceTarget += segDist;
 lastLat = c.latitude; lastLon = c.longitude;
+
+if(navMode !== 'route' && distOn.checked && totalDistMeters >= nextDistAnnounce){
+speak(t('doingGood') + " " + Math.round(totalDistMeters) + "m");
+nextDistAnnounce += parseInt(distRange.value, 10);
+}
 }
 
-if(navMode === 'route') updateRouteBearing(c.latitude, c.longitude);
+if(navMode === 'route'){
+if(holdingStraight) checkStraightHoldProgress();
+else updateRouteBearing(c.latitude, c.longitude);
+}
+}
+
+function enterWaypoint(index){
+if(index >= activeRoute.waypoints.length){
+playChime('done');
+speak(t('routeDone'));
+announce(t('routeDone'), '');
+stopRouteNav(true);
+return;
+}
+routeIndex = index;
+const wp = activeRoute.waypoints[index];
+if(wp.type === 'straight'){
+holdingStraight = true;
+straightTargetHeading = lastHeading;
+distSinceTarget = 0;
+currentBearing = null;
+const talk = voiceMode.value !== 'off';
+const msg = t('straightHoldStart').replace('{n}', wp.meters);
+if(talk) speak(msg);
+announce(t('straightHoldLabel'), wp.meters + 'm');
+lastRouteAnnounce = performance.now();
+} else {
+holdingStraight = false;
+currentBearing = null;
+}
+}
+
+function checkStraightHoldProgress(){
+const wp = activeRoute.waypoints[routeIndex];
+const remaining = wp.meters - distSinceTarget;
+const now = performance.now();
+const talk = voiceMode.value !== 'off';
+
+if(distSinceTarget >= wp.meters){
+playChime('arrive');
+enterWaypoint(routeIndex + 1);
+return;
+}
+
+if(now - lastRouteAnnounce > 6000){
+lastRouteAnnounce = now;
+if(talk) speak(t('straightHoldRemaining') + " " + Math.max(0, Math.round(remaining)) + "m.");
+announce(t('straightHoldLabel'), Math.max(0, Math.round(remaining)) + 'm');
+}
 }
 
 function updateRouteBearing(lat, lon){
@@ -778,10 +881,10 @@ lastDistToTarget = dist;
 const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
 const turnType = activeRouteTurns[routeIndex];
-routeIndex++;
+const nextIndex = routeIndex + 1;
 offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; announcedThresholds = [];
 
-if(routeIndex >= activeRoute.waypoints.length){
+if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
 speak(t('routeDone'));
 announce(t('routeDone'), '');
@@ -790,8 +893,15 @@ return;
 }
 
 playChime('arrive');
-const next = activeRoute.waypoints[routeIndex];
+const next = activeRoute.waypoints[nextIndex];
+
+if(next.type === 'straight'){
+enterWaypoint(nextIndex);
+return;
+}
+
 currentBearing = bearingDegrees(wp.lat, wp.lon, next.lat, next.lon);
+routeIndex = nextIndex;
 
 let msg;
 if(turnType === 'right'){ msg = t('turnRightNow'); awaitingTurnConfirm = 'right'; }
@@ -845,6 +955,7 @@ permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
 totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = 0;
+nextDistAnnounce = parseInt(distRange.value, 10);
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); return; }
 
@@ -900,6 +1011,8 @@ awaitingTurnConfirm = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
 offRouteFlag = false;
+holdingStraight = false;
+straightTargetHeading = null;
 navMode = 'route';
 totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = 0;
 permMsg.textContent = '';
@@ -932,8 +1045,14 @@ demoBtn.disabled = true;
 routesBtn.disabled = true;
 statusBox.className = 'status ok';
 const wp = route.waypoints[0];
+if(wp.type === 'straight'){
+speak(t('routeNavStart') + ".");
+announce(t('routeNavStart'), '');
+enterWaypoint(0);
+} else {
 announce(t('routeNavStart'), t('routeNext') + " " + wp.label);
 speak(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
+}
 }
 
 function stopRouteNav(finished){
@@ -951,6 +1070,7 @@ demoBtn.disabled = false;
 routesBtn.disabled = false;
 statusBox.className = 'status off';
 activeRoute = null;
+holdingStraight = false;
 
 if(!finished){
 announce(t('routeStopped'), t('stoppedSub'));
@@ -1046,6 +1166,8 @@ voiceMode: voiceMode.value,
 soundOn: soundOn.checked,
 vibrateOn: vibrateOn.checked,
 statsOn: statsOn.checked,
+distOn: distOn.checked,
+distRange: distRange.value,
 lang: lang
 }));
 }catch(e){}
@@ -1068,6 +1190,9 @@ if(s.voiceMode) voiceMode.value = s.voiceMode;
 if(typeof s.soundOn === 'boolean') soundOn.checked = s.soundOn;
 if(typeof s.vibrateOn === 'boolean') vibrateOn.checked = s.vibrateOn;
 if(typeof s.statsOn === 'boolean') statsOn.checked = s.statsOn;
+if(typeof s.distOn === 'boolean'){ distOn.checked = s.distOn; distRange.disabled = !s.distOn; menuBtnDist.disabled = !s.distOn; }
+if(s.distRange) distRange.value = s.distRange;
+distVal.textContent = distRange.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
 }catch(e){}
 }
@@ -1079,6 +1204,8 @@ voiceMode.addEventListener('change', saveSettings);
 soundOn.addEventListener('change', saveSettings);
 vibrateOn.addEventListener('change', saveSettings);
 statsOn.addEventListener('change', saveSettings);
+distOn.addEventListener('change', saveSettings);
+distRange.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
 window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
@@ -1215,6 +1342,15 @@ speak(label + " " + t('pointMarked'));
 });
 }
 
+function markStraightSegment(){
+if(!recording || recordLastLat === null){ speak(t('waitGPS')); return; }
+openPicker(markStraightBtn, [1,2,3,4,5,10,20,30,50], 'm', (v) => {
+recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, type: 'straight', meters: v, label: t('straightHoldLabel') + ' ' + v + 'm' });
+updateRecordStatus();
+speak(t('straightHoldLabel') + ' ' + v + 'm ' + t('pointMarked'));
+});
+}
+
 function finishRecording(){
 if(recordRoute.waypoints.length === 0){
 speak(t('noPointsYet'));
@@ -1259,6 +1395,7 @@ routesCloseBtn.addEventListener('click', closeRoutesOverlay);
 routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) closeRoutesOverlay(); });
 recordRouteBtn.addEventListener('click', startRecording);
 markPointBtn.addEventListener('click', markPoint);
+markStraightBtn.addEventListener('click', markStraightSegment);
 finishRouteBtn.addEventListener('click', finishRecording);
 cancelRecordBtn.addEventListener('click', cancelRecording);
 
