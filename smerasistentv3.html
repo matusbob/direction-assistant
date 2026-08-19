@@ -273,7 +273,7 @@ flex:none;
 (function(){
 const T = {
 en: {
-title: "Direction Assistant", desc: "Tool to maintain walking direction. Warns you with spatial audio, voice, or vibrations if you drift. Does not replace a white cane or guide dog.",
+title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
 start: "Start", stop: "Stop", setDir: "Set Direction",
 ready: "Ready", readySub: "Press the main button to begin.",
 scanning: "Scanning compass...", scanningSub: "Press Set Direction. If the compass seems off, wave your phone in a figure-8 to calibrate it.",
@@ -311,10 +311,11 @@ routeSaved: "Route saved.", noPointsYet: "Mark at least one point before finishi
 noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "Delete route",
 pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
 routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
-routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation"
+routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation",
+navigateRoute: "Navigate", navigateBack: "Navigate back (reversed)"
 },
 sk: {
-title: "Smerový Asistent", desc: "Pomôcka na udržanie smeru. Upozorní na vybočenie zvukom, hlasom alebo vibráciami. Nenahrádza bielu palicu ani psa.",
+title: "Smerový Asistent", desc: "Pomáha ti udržať rovný smer a navigovať po vlastných uložených trasách pomocou kompasu, GPS, priestorového zvuku, hlasu a vibrácií. Nenahrádza bielu palicu ani psa.",
 start: "Štart", stop: "Stop", setDir: "Nastaviť smer",
 ready: "Pripravené", readySub: "Stlačte hlavné tlačidlo.",
 scanning: "Snímam kompas...", scanningSub: "Stlačte Nastaviť smer. Ak kompas skáče, pohnite telefónom v tvare osmičky, skalibruje sa.",
@@ -351,7 +352,8 @@ routeSaved: "Trasa uložená.", noPointsYet: "Pred dokončením označ aspoň je
 noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať trasu", confirmDelete: "Zmazať trasu",
 pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
 routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
-routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy"
+routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy",
+navigateRoute: "Navigovať", navigateBack: "Navigovať späť (opačne)"
 }
 };
 
@@ -542,6 +544,20 @@ o.start(); o.stop(audioCtx.currentTime+dur+0.02);
 }catch(e){}
 }
 function vibrate(p){ if(!vibrateOn.checked || !running) return; try{navigator.vibrate(p);}catch(e){} }
+function chimeVibrate(p){ if(!vibrateOn.checked || !navigator.vibrate) return; try{navigator.vibrate(p);}catch(e){} }
+
+function playChime(kind){
+if(kind === 'arrive'){
+beep(0, 660, 0.10, 'sine');
+setTimeout(() => beep(0, 880, 0.14, 'sine'), 110);
+chimeVibrate([100]);
+} else if(kind === 'done'){
+beep(0, 660, 0.10, 'sine');
+setTimeout(() => beep(0, 880, 0.10, 'sine'), 110);
+setTimeout(() => beep(0, 1100, 0.18, 'sine'), 220);
+chimeVibrate([100, 60, 100]);
+}
+}
 
 function speak(text) {
 if ('speechSynthesis' in window) {
@@ -712,11 +728,13 @@ const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
 routeIndex++;
 if(routeIndex >= activeRoute.waypoints.length){
+playChime('done');
 speak(t('routeDone'));
 announce(t('routeDone'), '');
 stopRouteNav(true);
 return;
 }
+playChime('arrive');
 const next = activeRoute.waypoints[routeIndex];
 currentBearing = null;
 speak(t('routeArrived') + " " + wp.label + ". " + t('routeNext') + " " + next.label + ".");
@@ -1041,15 +1059,26 @@ routeList.appendChild(p);
 return;
 }
 routes.forEach((r) => {
-const row = document.createElement('div');
-row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+const wrapper = document.createElement('div');
+wrapper.style.cssText = 'border:1px solid #2c3340; border-radius:10px; padding:8px; margin-bottom:10px;';
 
 const navBtn = document.createElement('button');
-navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.flex = '1';
+navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.cssText = 'width:100%; margin-bottom:8px;';
 navBtn.textContent = r.name + ' (' + r.waypoints.length + ')';
 navBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
 startRouteNav(r);
+});
+
+const row2 = document.createElement('div');
+row2.style.cssText = 'display:flex; gap:8px;';
+
+const backBtn = document.createElement('button');
+backBtn.type = 'button'; backBtn.className = 'menubtn'; backBtn.style.flex = '1';
+backBtn.textContent = '⇄ ' + t('navigateBack');
+backBtn.addEventListener('click', () => {
+routesOverlay.hidden = true;
+startRouteNav({ id: r.id, name: r.name, waypoints: r.waypoints.slice().reverse() });
 });
 
 const delBtn = document.createElement('button');
@@ -1063,9 +1092,11 @@ renderRouteList();
 }
 });
 
-row.appendChild(navBtn);
-row.appendChild(delBtn);
-routeList.appendChild(row);
+row2.appendChild(backBtn);
+row2.appendChild(delBtn);
+wrapper.appendChild(navBtn);
+wrapper.appendChild(row2);
+routeList.appendChild(wrapper);
 });
 }
 
