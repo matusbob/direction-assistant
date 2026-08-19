@@ -312,7 +312,11 @@ noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "D
 pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
 routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
 routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation",
-navigateRoute: "Navigate", navigateBack: "Navigate back (reversed)"
+navigateRoute: "Navigate", navigateBack: "Navigate back (reversed)",
+turnRight: "turn right", turnLeft: "turn left", continueStraight: "continue straight",
+turnRightNow: "Now turn right.", turnLeftNow: "Now turn left.",
+turnConfirmedRight: "Great, you turned right. Continue.", turnConfirmedLeft: "Great, you turned left. Continue.",
+offRoute: "You are off the route.", backOnRoute: "Back on the route."
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomáha ti udržať rovný smer a navigovať po vlastných uložených trasách pomocou kompasu, GPS, priestorového zvuku, hlasu a vibrácií. Nenahrádza bielu palicu ani psa.",
@@ -353,7 +357,11 @@ noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať tras
 pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
 routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
 routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy",
-navigateRoute: "Navigovať", navigateBack: "Navigovať späť (opačne)"
+navigateRoute: "Navigovať", navigateBack: "Navigovať späť (opačne)",
+turnRight: "odbočte vpravo", turnLeft: "odbočte vľavo", continueStraight: "pokračujte rovno",
+turnRightNow: "Teraz odbočte vpravo.", turnLeftNow: "Teraz odbočte vľavo.",
+turnConfirmedRight: "Výborne, odbočili ste vpravo. Pokračujte.", turnConfirmedLeft: "Výborne, odbočili ste vľavo. Pokračujte.",
+offRoute: "Nie ste na trase.", backOnRoute: "Späť na trase."
 }
 };
 
@@ -443,8 +451,10 @@ let sliderSpeakTimer = null, pickerTrigger = null;
 let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null;
 
 let navMode = 'idle';
-let activeRoute = null, routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let announcedThresholds = [], awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, recordRoute = null, recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
+const TURN_THRESHOLDS = [50, 30, 15];
 
 function currentUnit(){
 return document.querySelector('input[name=unit]:checked').value;
@@ -602,6 +612,23 @@ const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Ma
 return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+function computeWaypointTurns(waypoints){
+return waypoints.map((wp, i) => {
+if(i === 0 || i === waypoints.length - 1) return null;
+const incoming = bearingDegrees(waypoints[i-1].lat, waypoints[i-1].lon, wp.lat, wp.lon);
+const outgoing = bearingDegrees(wp.lat, wp.lon, waypoints[i+1].lat, waypoints[i+1].lon);
+const turn = angleDiff(outgoing, incoming);
+if(Math.abs(turn) < 20) return 'straight';
+return turn > 0 ? 'right' : 'left';
+});
+}
+
+function turnPhrase(turnType){
+if(turnType === 'right') return t('turnRight');
+if(turnType === 'left') return t('turnLeft');
+return t('continueStraight');
+}
+
 function handleOrientation(e){
 if(!running) return;
 const h = getHeading(e);
@@ -611,7 +638,13 @@ lastHeading = h;
 
 if(navMode === 'route'){
 if(currentBearing === null) return;
-processDrift(angleDiff(h, currentBearing));
+const diff = angleDiff(h, currentBearing);
+if(awaitingTurnConfirm && Math.abs(diff) < parseFloat(thresholdDeg.value)){
+const confirmMsg = awaitingTurnConfirm === 'right' ? t('turnConfirmedRight') : t('turnConfirmedLeft');
+if(voiceMode.value !== 'off') speak(confirmMsg);
+awaitingTurnConfirm = null;
+}
+processDrift(diff);
 return;
 }
 
@@ -723,10 +756,31 @@ if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
 const wp = activeRoute.waypoints[routeIndex];
 const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
 currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
+const talk = voiceMode.value !== 'off';
+
+if(lastDistToTarget !== null){
+if(dist > lastDistToTarget + 2){
+offRouteStreak++;
+} else {
+offRouteStreak = 0;
+if(offRouteFlag){
+offRouteFlag = false;
+if(talk) speak(t('backOnRoute'));
+}
+}
+if(offRouteStreak >= 3 && !offRouteFlag){
+offRouteFlag = true;
+if(talk) speak(t('offRoute'));
+}
+}
+lastDistToTarget = dist;
 
 const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
+const turnType = activeRouteTurns[routeIndex];
 routeIndex++;
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; announcedThresholds = [];
+
 if(routeIndex >= activeRoute.waypoints.length){
 playChime('done');
 speak(t('routeDone'));
@@ -734,19 +788,37 @@ announce(t('routeDone'), '');
 stopRouteNav(true);
 return;
 }
+
 playChime('arrive');
 const next = activeRoute.waypoints[routeIndex];
-currentBearing = null;
-speak(t('routeArrived') + " " + wp.label + ". " + t('routeNext') + " " + next.label + ".");
-announce(t('routeNext') + " " + next.label, '');
+currentBearing = bearingDegrees(wp.lat, wp.lon, next.lat, next.lon);
+
+let msg;
+if(turnType === 'right'){ msg = t('turnRightNow'); awaitingTurnConfirm = 'right'; }
+else if(turnType === 'left'){ msg = t('turnLeftNow'); awaitingTurnConfirm = 'left'; }
+else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
+
+if(talk) speak(wp.label + ". " + msg);
+announce(next.label, msg);
 lastRouteAnnounce = performance.now();
 return;
 }
 
+for(const th of TURN_THRESHOLDS){
+if(dist <= th && !announcedThresholds.includes(th)){
+announcedThresholds.push(th);
+const msg = Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
+if(talk) speak(msg);
+announce(wp.label, Math.round(dist) + "m");
+lastRouteAnnounce = performance.now();
+return;
+}
+}
+
 const now = performance.now();
-if(now - lastRouteAnnounce > 5000){
+if(now - lastRouteAnnounce > 6000){
 lastRouteAnnounce = now;
-speak(wp.label + ": " + Math.round(dist) + "m.");
+if(talk) speak(wp.label + ": " + Math.round(dist) + "m.");
 announce(wp.label, Math.round(dist) + "m");
 }
 }
@@ -819,9 +891,15 @@ setTimeout(setTarget, 1200);
 async function startRouteNav(route){
 if(running || recording) return;
 activeRoute = route;
+activeRouteTurns = computeWaypointTurns(route.waypoints);
 routeIndex = 0;
 currentBearing = null;
 lastRouteAnnounce = 0;
+announcedThresholds = [];
+awaitingTurnConfirm = null;
+lastDistToTarget = null;
+offRouteStreak = 0;
+offRouteFlag = false;
 navMode = 'route';
 totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = 0;
 permMsg.textContent = '';
