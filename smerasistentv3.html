@@ -352,7 +352,7 @@ lblUnit: "Jednotky merania vybočenia", optDeg: "Stupne", optMet: "Metre",
 lblThresholdDeg: "Citlivosť (stupne)", lblThresholdMet: "Citlivosť (metre)",
 precise: "Presnejšie", loose: "Voľnejšie", lblMenu: "Ponuka", pickerTitle: "Vyber hodnotu", pickerClose: "Zavrieť",
 lblVoice: "Režim hlasového výstupu (Oznámiť)", voiceOff: "Vypnutý", voiceDrift: "Len pri vybočení", voiceAlways: "Stále hovoriť (Rovno/Vybočenie)",
-lblSound: "Pípať pri vybočení", lblVibrate: "Vibrácie pri vybočení", lblStats: "Oznámiť štatistiku po zastavení",
+lblSound: "Pípanie pri vybočení", lblVibrate: "Vibrácie pri vybočení", lblStats: "Oznámiť štatistiku po zastavení",
 errNoSecure: "CHYBA: Chýba HTTPS zámok.", errPerm: "Žiadam o povolenie...", errGranted: "Povolenie udelené.", errDenied: "Povolenie zamietnuté.",
 errTimeout: "Chyba: Prehliadač neodpovedá.", errNoData: "Kompas sa nepodarilo prečítať.", errNoSensor: "Prehliadač nepodporuje kompas.",
 errNoGPS: "GPS nedostupné. Prepnuté na stupne.",
@@ -566,7 +566,7 @@ thresholdMet.dispatchEvent(new Event('change'));
 });
 });
 menuBtnDist.addEventListener('click', () => {
-openPicker(menuBtnDist, [1,2,3,4,5,10,20,30,50], 'm', (v) => {
+openPicker(menuBtnDist, [1,2,3,4,5,6,7,8,9,10,15,20,50], 'm', (v) => {
 distRange.value = v;
 distRange.dispatchEvent(new Event('input'));
 distRange.dispatchEvent(new Event('change'));
