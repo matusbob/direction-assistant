@@ -244,6 +244,10 @@ flex:none;
 <button type="button" class="menubtn" id="menuBtnDist" aria-haspopup="dialog" disabled><span id="lblMenu3">Menu</span></button>
 </div>
 <div class="rowval"><span id="lblDistMin">1m</span><span id="distVal">10m</span><span id="lblDistMax">50m</span></div>
+</div>
+<div class="toggle">
+<input type="checkbox" id="routeCorrectionOn">
+<label for="routeCorrectionOn" style="margin:0;" id="lblRouteCorrection">Fine direction correction during route navigation</label>
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
@@ -314,6 +318,7 @@ statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
 statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on track the whole way",
 unitSwitched: "Units: ",
 distToggle: "Announce \"Doing good\" every X meters", distLabel: "Meters distance", doingGood: "Doing good",
+lblRouteCorrection: "Fine direction correction during route navigation",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
 lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
 recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute: "Finish route", lblCancelRecord: "Cancel",
@@ -362,6 +367,7 @@ statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters
 statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cestou si držal smer",
 unitSwitched: "Jednotky: ",
 distToggle: "Oznámiť \"Ideš dobre\" každých X metrov", distLabel: "Vzdialenosť v metroch", doingGood: "Ideš dobre",
+lblRouteCorrection: "Jemná korekcia smeru počas navigácie trasy",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
 lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
 recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRoute: "Dokončiť trasu", lblCancelRecord: "Zrušiť",
@@ -410,6 +416,7 @@ document.getElementById('lblSound').textContent = t('lblSound');
 document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('lblDist').textContent = t('distToggle');
+document.getElementById('lblRouteCorrection').textContent = t('lblRouteCorrection');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -455,6 +462,7 @@ const soundOn = document.getElementById('soundOn');
 const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
 const distOn = document.getElementById('distOn');
+const routeCorrectionOn = document.getElementById('routeCorrectionOn');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -476,14 +484,13 @@ let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceT
 let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
-let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = 0, lastLat = null, lastLon = null, nextDistAnnounce = 0;
+let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = -Infinity, lastLat = null, lastLon = null, nextDistAnnounce = 0;
 
 let navMode = 'idle';
 let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
 let holdingStraight = false, straightTargetHeading = null;
-let announcedThresholds = [], awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
+let routeNextAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, recordRoute = null, recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
-const TURN_THRESHOLDS = [50, 30, 15];
 
 function currentUnit(){
 return document.querySelector('input[name=unit]:checked').value;
@@ -694,7 +701,7 @@ const confirmMsg = awaitingTurnConfirm === 'right' ? t('turnConfirmedRight') : t
 if(voiceMode.value !== 'off') speak(confirmMsg);
 awaitingTurnConfirm = null;
 }
-processDrift(diff);
+if(routeCorrectionOn.checked) processDrift(diff);
 return;
 }
 
@@ -832,6 +839,10 @@ lastRouteAnnounce = performance.now();
 } else {
 holdingStraight = false;
 currentBearing = null;
+routeNextAnnounceDist = null;
+lastDistToTarget = null;
+offRouteStreak = 0;
+offRouteFlag = false;
 }
 }
 
@@ -860,6 +871,11 @@ const wp = activeRoute.waypoints[routeIndex];
 const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
 currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
 const talk = voiceMode.value !== 'off';
+const announceInterval = parseInt(distRange.value, 10) || 10;
+
+if(routeNextAnnounceDist === null){
+routeNextAnnounceDist = Math.max(0, Math.floor(dist / announceInterval) * announceInterval);
+}
 
 if(lastDistToTarget !== null){
 if(dist > lastDistToTarget + 2){
@@ -882,7 +898,7 @@ const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
 const turnType = activeRouteTurns[routeIndex];
 const nextIndex = routeIndex + 1;
-offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; announcedThresholds = [];
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; routeNextAnnounceDist = null;
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
@@ -914,15 +930,13 @@ lastRouteAnnounce = performance.now();
 return;
 }
 
-for(const th of TURN_THRESHOLDS){
-if(dist <= th && !announcedThresholds.includes(th)){
-announcedThresholds.push(th);
+if(routeNextAnnounceDist > 0 && dist <= routeNextAnnounceDist){
 const msg = Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
 if(talk) speak(msg);
 announce(wp.label, Math.round(dist) + "m");
 lastRouteAnnounce = performance.now();
+routeNextAnnounceDist -= announceInterval;
 return;
-}
 }
 
 const now = performance.now();
@@ -954,7 +968,7 @@ async function start(){
 permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
-totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = 0;
+totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = -Infinity;
 nextDistAnnounce = parseInt(distRange.value, 10);
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); return; }
@@ -1006,7 +1020,7 @@ activeRouteTurns = computeWaypointTurns(route.waypoints);
 routeIndex = 0;
 currentBearing = null;
 lastRouteAnnounce = 0;
-announcedThresholds = [];
+routeNextAnnounceDist = null;
 awaitingTurnConfirm = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
@@ -1014,7 +1028,7 @@ offRouteFlag = false;
 holdingStraight = false;
 straightTargetHeading = null;
 navMode = 'route';
-totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = 0;
+totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = -Infinity;
 permMsg.textContent = '';
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); navMode = 'idle'; return; }
@@ -1167,6 +1181,7 @@ soundOn: soundOn.checked,
 vibrateOn: vibrateOn.checked,
 statsOn: statsOn.checked,
 distOn: distOn.checked,
+routeCorrectionOn: routeCorrectionOn.checked,
 distRange: distRange.value,
 lang: lang
 }));
@@ -1191,6 +1206,7 @@ if(typeof s.soundOn === 'boolean') soundOn.checked = s.soundOn;
 if(typeof s.vibrateOn === 'boolean') vibrateOn.checked = s.vibrateOn;
 if(typeof s.statsOn === 'boolean') statsOn.checked = s.statsOn;
 if(typeof s.distOn === 'boolean'){ distOn.checked = s.distOn; distRange.disabled = !s.distOn; menuBtnDist.disabled = !s.distOn; }
+if(typeof s.routeCorrectionOn === 'boolean') routeCorrectionOn.checked = s.routeCorrectionOn;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
@@ -1205,6 +1221,7 @@ soundOn.addEventListener('change', saveSettings);
 vibrateOn.addEventListener('change', saveSettings);
 statsOn.addEventListener('change', saveSettings);
 distOn.addEventListener('change', saveSettings);
+routeCorrectionOn.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
