@@ -270,9 +270,19 @@ flex:none;
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routesTitle">
 <h2 id="routesTitle">Saved routes</h2>
 <button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblRecordRoute">Record new route</span></button>
-<button type="button" id="autoRecordRouteBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblAutoRecordRoute">Auto-record route (start / stop only)</span></button>
+<button type="button" id="autoRecordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblAutoRecordRoute">Auto-record route (start / stop only)</span></button>
+<button type="button" id="importGpxBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblImportGpx">Import GPX file</span></button>
+<input type="file" id="gpxFileInput" accept=".gpx" style="display:none;">
 <div id="routeList" class="picker-list"></div>
 <button type="button" id="routesCloseBtn" class="picker-close"><span id="lblRoutesClose">Close</span></button>
+</div>
+</div>
+
+<div id="editRouteOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="editRouteTitle">
+<h2 id="editRouteTitle">Edit route</h2>
+<div id="editRouteList" class="picker-list"></div>
+<button type="button" id="editRouteDoneBtn" class="picker-close"><span id="lblEditRouteDone">Done</span></button>
 </div>
 </div>
 
@@ -339,6 +349,13 @@ noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "D
 pointMarked: "marked.", waitGPS: "Waiting for GPS signal.",
 routeNavStart: "Navigating route", routeNext: "Next point:", routeArrived: "Arrived at",
 routeDone: "Route finished.", routeStopped: "Route navigation stopped.", stopRoute: "Stop route navigation",
+pauseRoute: "Pause", resumeRoute: "Resume", routePaused: "Navigation paused.", routeResumed: "Continuing navigation.",
+totalRemaining: "Total to destination:",
+compassWarning: "Compass may be unreliable, try calibrating it by waving your phone in a figure-8.",
+editRoute: "Edit", editRouteTitle: "Edit route", renamePoint: "Rename", deletePoint: "Delete",
+confirmDeletePoint: "Delete point", editRouteDone: "Done",
+exportGpx: "Export GPX", importGpx: "Import GPX file",
+gpxImportFailed: "Could not read any points from that file.", gpxImported: "Route imported.",
 navigateRoute: "Navigate", navigateBack: "Navigate back (reversed)",
 lblStraightSegment: "Straight segment", straightHoldLabel: "Straight segment",
 lblAutoRecordRoute: "Auto-record route (start / stop only)",
@@ -394,6 +411,13 @@ noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať tras
 pointMarked: "označený.", waitGPS: "Čakám na GPS signál.",
 routeNavStart: "Navigujem trasu", routeNext: "Ďalší bod:", routeArrived: "Prišiel si k bodu",
 routeDone: "Trasa dokončená.", routeStopped: "Navigácia trasy zastavená.", stopRoute: "Zastaviť navigáciu trasy",
+pauseRoute: "Pauza", resumeRoute: "Pokračovať", routePaused: "Navigácia pozastavená.", routeResumed: "Pokračujem v navigácii.",
+totalRemaining: "Celkovo do cieľa:",
+compassWarning: "Kompas môže byť nespoľahlivý, skús ho skalibrovať pohybom telefónu v tvare osmičky.",
+editRoute: "Upraviť", editRouteTitle: "Upraviť trasu", renamePoint: "Premenovať", deletePoint: "Zmazať",
+confirmDeletePoint: "Zmazať bod", editRouteDone: "Hotovo",
+exportGpx: "Export GPX", importGpx: "Importovať GPX súbor",
+gpxImportFailed: "Z tohto súboru sa nepodarilo prečítať žiadne body.", gpxImported: "Trasa importovaná.",
 navigateRoute: "Navigovať", navigateBack: "Navigovať späť (opačne)",
 lblStraightSegment: "Rovný úsek", straightHoldLabel: "Rovný úsek",
 lblAutoRecordRoute: "Nahrať trasu automaticky (len štart/stop)",
@@ -444,6 +468,9 @@ document.getElementById('lblRoutes').textContent = t('lblRoutes');
 document.getElementById('routesTitle').textContent = t('routesTitle');
 document.getElementById('lblRecordRoute').textContent = t('lblRecordRoute');
 document.getElementById('lblAutoRecordRoute').textContent = t('lblAutoRecordRoute');
+document.getElementById('lblImportGpx').textContent = t('importGpx');
+document.getElementById('editRouteTitle').textContent = t('editRouteTitle');
+document.getElementById('lblEditRouteDone').textContent = t('editRouteDone');
 document.getElementById('recordAutoHint').textContent = t('autoRecordHint');
 document.getElementById('lblRoutesClose').textContent = t('lblRoutesClose');
 document.getElementById('recordTitle').textContent = t('recordTitle');
@@ -494,6 +521,11 @@ const routesOverlay = document.getElementById('routesOverlay');
 const routeList = document.getElementById('routeList');
 const recordRouteBtn = document.getElementById('recordRouteBtn');
 const autoRecordRouteBtn = document.getElementById('autoRecordRouteBtn');
+const importGpxBtn = document.getElementById('importGpxBtn');
+const gpxFileInput = document.getElementById('gpxFileInput');
+const editRouteOverlay = document.getElementById('editRouteOverlay');
+const editRouteList = document.getElementById('editRouteList');
+const editRouteDoneBtn = document.getElementById('editRouteDoneBtn');
 const routesCloseBtn = document.getElementById('routesCloseBtn');
 const recordOverlay = document.getElementById('recordOverlay');
 const recordAutoHint = document.getElementById('recordAutoHint');
@@ -511,7 +543,9 @@ let sliderSpeakTimer = null, pickerTrigger = null;
 let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = -Infinity, lastLat = null, lastLon = null, nextDistAnnounce = 0;
 
 let navMode = 'idle';
-let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
+let navPaused = false;
+let headingHistory = [], lastCompassWarnTime = -Infinity;
+let activeRoute = null, activeRouteTurns = [], activeRouteLegDistances = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, lastTotalDistAnnounce = 0, routeWatchId = null;
 let holdingStraight = false, straightTargetHeading = null;
 let lastRouteAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, autoRecording = false, recordRoute = null, recordTrack = [], recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
@@ -700,10 +734,46 @@ return turn > 0 ? 'right' : 'left';
 });
 }
 
+function computeLegDistances(waypoints){
+const legs = [];
+for(let i = 0; i < waypoints.length - 1; i++){
+const wp = waypoints[i];
+if(wp.type === 'straight' && typeof wp.meters === 'number'){
+legs.push(wp.meters);
+} else {
+legs.push(haversineMeters(wp.lat, wp.lon, waypoints[i+1].lat, waypoints[i+1].lon));
+}
+}
+return legs;
+}
+
+function announceTotalRemaining(currentLegRemaining){
+const now = performance.now();
+if(now - lastTotalDistAnnounce < 30000) return;
+lastTotalDistAnnounce = now;
+let total = currentLegRemaining;
+for(let i = routeIndex; i < activeRouteLegDistances.length; i++) total += activeRouteLegDistances[i];
+if(voiceMode.value !== 'off') speak(t('totalRemaining') + ' ' + Math.round(total) + 'm.');
+}
+
 function turnPhrase(turnType){
 if(turnType === 'right') return t('turnRight');
 if(turnType === 'left') return t('turnLeft');
 return t('continueStraight');
+}
+
+function checkCompassReliability(h, now){
+headingHistory.push({ h: h, t: now });
+while(headingHistory.length && now - headingHistory[0].t > 4000) headingHistory.shift();
+if(headingHistory.length < 4) return;
+let jumps = 0;
+for(let i = 1; i < headingHistory.length; i++){
+if(Math.abs(angleDiff(headingHistory[i].h, headingHistory[i-1].h)) > 45) jumps++;
+}
+if(jumps >= 3 && now - lastCompassWarnTime > 60000){
+lastCompassWarnTime = now;
+speak(t('compassWarning'));
+}
 }
 
 function handleOrientation(e){
@@ -712,8 +782,10 @@ const h = getHeading(e);
 if(h===null) return;
 headingSupported = true;
 lastHeading = h;
+checkCompassReliability(h, performance.now());
 
 if(navMode === 'route'){
+if(navPaused) return;
 if(holdingStraight){
 if(straightTargetHeading === null) straightTargetHeading = h;
 processDrift(angleDiff(h, straightTargetHeading));
@@ -818,7 +890,7 @@ if(c.accuracy > 20) return;
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
-if(navMode === 'route' && !holdingStraight) updateRouteBearing(c.latitude, c.longitude);
+if(navMode === 'route' && !navPaused && !holdingStraight) updateRouteBearing(c.latitude, c.longitude);
 return;
 }
 
@@ -835,7 +907,7 @@ nextDistAnnounce += parseInt(distRange.value, 10);
 }
 }
 
-if(navMode === 'route'){
+if(navMode === 'route' && !navPaused){
 if(holdingStraight) checkStraightHoldProgress();
 else updateRouteBearing(c.latitude, c.longitude);
 }
@@ -876,6 +948,7 @@ const wp = activeRoute.waypoints[routeIndex];
 const remaining = wp.meters - distSinceTarget;
 const now = performance.now();
 const talk = voiceMode.value !== 'off';
+announceTotalRemaining(Math.max(0, remaining));
 
 if(distSinceTarget >= wp.meters){
 playChime('arrive');
@@ -897,6 +970,7 @@ const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
 currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
 const talk = voiceMode.value !== 'off';
 const announceInterval = parseInt(distRange.value, 10) || 10;
+announceTotalRemaining(dist);
 
 if(lastDistToTarget !== null){
 if(dist > lastDistToTarget + 2){
@@ -1037,9 +1111,11 @@ setTimeout(setTarget, 1200);
 }
 
 async function startRouteNav(route){
-if(running || recording) return;
+if(running || recording || !route.waypoints.length) return;
 activeRoute = route;
 activeRouteTurns = computeWaypointTurns(route.waypoints);
+activeRouteLegDistances = computeLegDistances(route.waypoints);
+lastTotalDistAnnounce = 0;
 routeIndex = 0;
 currentBearing = null;
 lastRouteAnnounce = 0;
@@ -1074,10 +1150,12 @@ permMsg.textContent = t('errNoGPS');
 }, {enableHighAccuracy:true});
 
 running = true;
+navPaused = false;
 mainBtn.textContent = t('stop');
 mainBtn.classList.add('stop');
 mainBtn.setAttribute('aria-label', t('stopRoute'));
-resetBtn.disabled = true;
+resetBtn.disabled = false;
+resetBtn.textContent = t('pauseRoute');
 demoBtn.disabled = true;
 routesBtn.disabled = true;
 statusBox.className = 'status ok';
@@ -1103,11 +1181,13 @@ mainBtn.textContent = t('start');
 mainBtn.classList.remove('stop');
 mainBtn.setAttribute('aria-label', t('start'));
 resetBtn.disabled = true;
+resetBtn.textContent = t('setDir');
 demoBtn.disabled = false;
 routesBtn.disabled = false;
 statusBox.className = 'status off';
 activeRoute = null;
 holdingStraight = false;
+navPaused = false;
 
 if(!finished){
 announce(t('routeStopped'), t('stoppedSub'));
@@ -1148,7 +1228,29 @@ mainBtn.addEventListener('click', () => {
 if(navMode === 'route'){ stopRouteNav(false); return; }
 running ? stop() : start();
 });
-resetBtn.addEventListener('click', setTarget);
+
+function togglePauseRoute(){
+if(navMode !== 'route') return;
+navPaused = !navPaused;
+if(navPaused){
+resetBtn.textContent = t('resumeRoute');
+if(navigator.vibrate) navigator.vibrate(0);
+announce(t('routePaused'), '');
+speak(t('routePaused'));
+} else {
+resetBtn.textContent = t('pauseRoute');
+lastRouteAnnounceDist = null;
+lastDistToTarget = null;
+offRouteStreak = 0;
+announce(t('routeResumed'), '');
+speak(t('routeResumed'));
+}
+}
+
+resetBtn.addEventListener('click', () => {
+if(navMode === 'route'){ togglePauseRoute(); return; }
+setTarget();
+});
 
 if(typeof DeviceOrientationEvent === 'undefined'){
 permMsg.textContent = t('errNoSensor');
@@ -1268,6 +1370,127 @@ const routes = loadRoutes().filter((r) => r.id !== id);
 try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
 }
 
+function updateRouteInStorage(route){
+const routes = loadRoutes();
+const idx = routes.findIndex((r) => r.id === route.id);
+if(idx !== -1){
+routes[idx] = route;
+try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
+}
+}
+
+function openEditRoute(routeId){
+const routes = loadRoutes();
+const route = routes.find((r) => r.id === routeId);
+if(!route) return;
+renderEditRouteList(route);
+routesOverlay.hidden = true;
+editRouteOverlay.hidden = false;
+editRouteDoneBtn.focus();
+}
+
+function renderEditRouteList(route){
+editRouteList.innerHTML = '';
+route.waypoints.forEach((wp, i) => {
+const row = document.createElement('div');
+row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+
+const label = document.createElement('div');
+label.className = 'picker-item';
+label.style.cssText = 'flex:1; display:flex; align-items:center; padding-left:14px;';
+label.textContent = wp.label + (wp.type === 'straight' ? '' : '');
+
+const renameBtn = document.createElement('button');
+renameBtn.type = 'button'; renameBtn.className = 'menubtn';
+renameBtn.textContent = t('renamePoint');
+renameBtn.addEventListener('click', () => {
+const v = window.prompt(t('customLabelPrompt'), wp.label);
+if(v && v.trim()){
+wp.label = v.trim();
+updateRouteInStorage(route);
+renderEditRouteList(route);
+}
+});
+
+const delBtn = document.createElement('button');
+delBtn.type = 'button'; delBtn.className = 'menubtn';
+delBtn.textContent = '✕';
+delBtn.setAttribute('aria-label', t('deletePoint') + ' ' + wp.label);
+delBtn.addEventListener('click', () => {
+if(window.confirm(t('confirmDeletePoint') + ' ' + wp.label + '?')){
+route.waypoints.splice(i, 1);
+updateRouteInStorage(route);
+renderEditRouteList(route);
+}
+});
+
+row.appendChild(label);
+row.appendChild(renameBtn);
+row.appendChild(delBtn);
+editRouteList.appendChild(row);
+});
+if(route.waypoints.length === 0){
+const p = document.createElement('div');
+p.className = 'rowval';
+p.textContent = t('noPointsYet');
+editRouteList.appendChild(p);
+}
+}
+
+function escapeXml(s){
+return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function routeToGPX(route){
+let gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Direction Assistant">\n';
+route.waypoints.forEach((wp) => {
+gpx += '<wpt lat="' + wp.lat + '" lon="' + wp.lon + '"><name>' + escapeXml(wp.label) + '</name></wpt>\n';
+});
+gpx += '</gpx>\n';
+return gpx;
+}
+
+function exportRouteGPX(route){
+const gpx = routeToGPX(route);
+const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = (route.name || 'route').replace(/[^\w\- ]/g, '') + '.gpx';
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function parseGPX(text){
+const doc = new DOMParser().parseFromString(text, 'application/xml');
+const wpts = Array.from(doc.getElementsByTagName('wpt'));
+return wpts.map((el) => {
+const lat = parseFloat(el.getAttribute('lat'));
+const lon = parseFloat(el.getAttribute('lon'));
+const nameEl = el.getElementsByTagName('name')[0];
+const label = nameEl ? nameEl.textContent : 'Point';
+return { lat: lat, lon: lon, label: label };
+}).filter((wp) => !isNaN(wp.lat) && !isNaN(wp.lon));
+}
+
+function importGPXFile(file){
+const reader = new FileReader();
+reader.onload = () => {
+const waypoints = parseGPX(String(reader.result));
+if(waypoints.length === 0){ speak(t('gpxImportFailed')); return; }
+const name = window.prompt(t('routeNamePrompt'), file.name.replace(/\.gpx$/i, ''));
+if(name && name.trim()){
+const route = { id: Date.now().toString(36), name: name.trim(), createdAt: Date.now(), waypoints: waypoints };
+saveRoute(route);
+speak(t('gpxImported'));
+renderRouteList();
+}
+};
+reader.readAsText(file);
+}
+
 const PRESET_LABELS_EN = ['Entrance','Exit','Platform','Stairs','Elevator','Crossing','Bus stop','Turn','Obstacle'];
 const PRESET_LABELS_SK = ['Vchod','Východ','Nástupište','Schody','Výťah','Priechod pre chodcov','Zastávka','Odbočka','Prekážka'];
 function presetLabels(){ return lang === 'sk' ? PRESET_LABELS_SK : PRESET_LABELS_EN; }
@@ -1319,7 +1542,7 @@ startRouteNav(r);
 });
 
 const row2 = document.createElement('div');
-row2.style.cssText = 'display:flex; gap:8px;';
+row2.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
 
 const backBtn = document.createElement('button');
 backBtn.type = 'button'; backBtn.className = 'menubtn'; backBtn.style.flex = '1';
@@ -1329,9 +1552,25 @@ routesOverlay.hidden = true;
 startRouteNav({ id: r.id, name: r.name, waypoints: r.waypoints.slice().reverse() });
 });
 
+const editBtn = document.createElement('button');
+editBtn.type = 'button'; editBtn.className = 'menubtn'; editBtn.style.flex = '1';
+editBtn.textContent = t('editRoute');
+editBtn.addEventListener('click', () => { openEditRoute(r.id); });
+
+row2.appendChild(backBtn);
+row2.appendChild(editBtn);
+
+const row3 = document.createElement('div');
+row3.style.cssText = 'display:flex; gap:8px;';
+
+const exportBtn = document.createElement('button');
+exportBtn.type = 'button'; exportBtn.className = 'menubtn'; exportBtn.style.flex = '1';
+exportBtn.textContent = t('exportGpx');
+exportBtn.addEventListener('click', () => { exportRouteGPX(r); });
+
 const delBtn = document.createElement('button');
-delBtn.type = 'button'; delBtn.className = 'menubtn';
-delBtn.textContent = '✕';
+delBtn.type = 'button'; delBtn.className = 'menubtn'; delBtn.style.flex = '1';
+delBtn.textContent = t('deleteRoute');
 delBtn.setAttribute('aria-label', t('deleteRoute') + ' ' + r.name);
 delBtn.addEventListener('click', () => {
 if(window.confirm(t('confirmDelete') + ' ' + r.name + '?')){
@@ -1340,10 +1579,12 @@ renderRouteList();
 }
 });
 
-row2.appendChild(backBtn);
-row2.appendChild(delBtn);
+row3.appendChild(exportBtn);
+row3.appendChild(delBtn);
+
 wrapper.appendChild(navBtn);
 wrapper.appendChild(row2);
+wrapper.appendChild(row3);
 routeList.appendChild(wrapper);
 });
 }
@@ -1530,6 +1771,17 @@ routesCloseBtn.addEventListener('click', closeRoutesOverlay);
 routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) closeRoutesOverlay(); });
 recordRouteBtn.addEventListener('click', startRecording);
 autoRecordRouteBtn.addEventListener('click', startAutoRecording);
+importGpxBtn.addEventListener('click', () => gpxFileInput.click());
+gpxFileInput.addEventListener('change', () => {
+if(gpxFileInput.files && gpxFileInput.files[0]) importGPXFile(gpxFileInput.files[0]);
+gpxFileInput.value = '';
+});
+editRouteDoneBtn.addEventListener('click', () => {
+editRouteOverlay.hidden = true;
+renderRouteList();
+routesOverlay.hidden = false;
+routesCloseBtn.focus();
+});
 markPointBtn.addEventListener('click', markPoint);
 markStraightBtn.addEventListener('click', markStraightSegment);
 finishRouteBtn.addEventListener('click', finishRecording);
