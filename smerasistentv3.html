@@ -208,7 +208,7 @@ flex:none;
 <div class="sliderrow" id="metRow" hidden>
 <label for="thresholdMet" id="lblThresholdMet">Sensitivity (meters)</label>
 <div class="sliderwrap">
-<input type="range" id="thresholdMet" min="1" max="15" step="1" value="5" aria-describedby="thresholdMetVal">
+<input type="range" id="thresholdMet" min="0.5" max="15" step="0.5" value="5" aria-describedby="thresholdMetVal">
 <button type="button" class="menubtn" id="menuBtnMet" aria-haspopup="dialog"><span id="lblMenu2">Menu</span></button>
 </div>
 <div class="rowval"><span id="lblPrecise2">Precise</span><span id="thresholdMetVal">5m</span><span id="lblLoose2">Loose</span></div>
@@ -591,7 +591,7 @@ thresholdDeg.dispatchEvent(new Event('change'));
 });
 });
 menuBtnMet.addEventListener('click', () => {
-openPicker(menuBtnMet, [1,2,3,5,8,10,15], 'm', (v) => {
+openPicker(menuBtnMet, [0.5,1,1.5,2,3,5,8,10,15], 'm', (v) => {
 thresholdMet.value = v;
 thresholdMet.dispatchEvent(new Event('input'));
 thresholdMet.dispatchEvent(new Event('change'));
