@@ -248,6 +248,10 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="routeCorrectionOn">
 <label for="routeCorrectionOn" style="margin:0;" id="lblRouteCorrection">Fine direction correction during route navigation</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="recordVoiceFeedback" checked>
+<label for="recordVoiceFeedback" style="margin:0;" id="lblRecordVoiceFeedback">Voice feedback while auto-recording</label>
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
@@ -321,6 +325,8 @@ statDriftCount: "You drifted", statTimes: "times", statNoDrift: "You stayed on t
 unitSwitched: "Units: ",
 distToggle: "Announce \"Doing good\" every X meters", distLabel: "Meters distance", doingGood: "Doing good",
 lblRouteCorrection: "Fine direction correction during route navigation",
+lblRecordVoiceFeedback: "Voice feedback while auto-recording",
+autoTurnRightLive: "You turned right.", autoTurnLeftLive: "You turned left.", autoStraightProgress: "Straight,",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
 lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
 recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute: "Finish route", lblCancelRecord: "Cancel",
@@ -374,6 +380,8 @@ statDriftCount: "Vychýlil si sa", statTimes: "krát", statNoDrift: "Celou cesto
 unitSwitched: "Jednotky: ",
 distToggle: "Oznámiť \"Ideš dobre\" každých X metrov", distLabel: "Vzdialenosť v metroch", doingGood: "Ideš dobre",
 lblRouteCorrection: "Jemná korekcia smeru počas navigácie trasy",
+lblRecordVoiceFeedback: "Hlasová spätná väzba počas automatického nahrávania",
+autoTurnRightLive: "Odbočil si doprava.", autoTurnLeftLive: "Odbočil si doľava.", autoStraightProgress: "Rovno,",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
 lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
 recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRoute: "Dokončiť trasu", lblCancelRecord: "Zrušiť",
@@ -427,6 +435,7 @@ document.getElementById('lblVibrate').textContent = t('lblVibrate');
 document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('lblDist').textContent = t('distToggle');
 document.getElementById('lblRouteCorrection').textContent = t('lblRouteCorrection');
+document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoiceFeedback');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -475,6 +484,7 @@ const vibrateOn = document.getElementById('vibrateOn');
 const statsOn = document.getElementById('statsOn');
 const distOn = document.getElementById('distOn');
 const routeCorrectionOn = document.getElementById('routeCorrectionOn');
+const recordVoiceFeedback = document.getElementById('recordVoiceFeedback');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -505,6 +515,7 @@ let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = 
 let holdingStraight = false, straightTargetHeading = null;
 let routeNextAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, autoRecording = false, recordRoute = null, recordTrack = [], recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
+let recordDistAtLastAnnounce = 0, recordDistSinceAnchor = 0, recordBearing = null, recordTurnAnchorIdx = 0;
 
 function currentUnit(){
 return document.querySelector('input[name=unit]:checked').value;
@@ -1196,6 +1207,7 @@ vibrateOn: vibrateOn.checked,
 statsOn: statsOn.checked,
 distOn: distOn.checked,
 routeCorrectionOn: routeCorrectionOn.checked,
+recordVoiceFeedback: recordVoiceFeedback.checked,
 distRange: distRange.value,
 lang: lang
 }));
@@ -1221,6 +1233,7 @@ if(typeof s.vibrateOn === 'boolean') vibrateOn.checked = s.vibrateOn;
 if(typeof s.statsOn === 'boolean') statsOn.checked = s.statsOn;
 if(typeof s.distOn === 'boolean'){ distOn.checked = s.distOn; distRange.disabled = !s.distOn; menuBtnDist.disabled = !s.distOn; }
 if(typeof s.routeCorrectionOn === 'boolean') routeCorrectionOn.checked = s.routeCorrectionOn;
+if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.recordVoiceFeedback;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
@@ -1236,6 +1249,7 @@ vibrateOn.addEventListener('change', saveSettings);
 statsOn.addEventListener('change', saveSettings);
 distOn.addEventListener('change', saveSettings);
 routeCorrectionOn.addEventListener('change', saveSettings);
+recordVoiceFeedback.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
@@ -1256,8 +1270,8 @@ const routes = loadRoutes().filter((r) => r.id !== id);
 try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
 }
 
-const PRESET_LABELS_EN = ['Entrance','Exit','Platform','Stairs','Elevator','Crossing','Bus stop','Turn'];
-const PRESET_LABELS_SK = ['Vchod','Východ','Nástupište','Schody','Výťah','Priechod pre chodcov','Zastávka','Odbočka'];
+const PRESET_LABELS_EN = ['Entrance','Exit','Platform','Stairs','Elevator','Crossing','Bus stop','Turn','Obstacle'];
+const PRESET_LABELS_SK = ['Vchod','Východ','Nástupište','Schody','Výťah','Priechod pre chodcov','Zastávka','Odbočka','Prekážka'];
 function presetLabels(){ return lang === 'sk' ? PRESET_LABELS_SK : PRESET_LABELS_EN; }
 
 function openLabelPicker(triggerEl, onPick){
@@ -1342,11 +1356,48 @@ recordStatusEl.textContent = t('recordStatusText')
 .replace('{dist}', Math.round(recordDist));
 }
 
+function processAutoRecordFeedback(d){
+if(!recordVoiceFeedback.checked) return;
+const track = recordTrack;
+const n = track.length;
+if(n < 2) return;
+
+recordDistSinceAnchor += d;
+
+const interval = parseInt(distRange.value, 10) || 10;
+if(recordDistSinceAnchor - recordDistAtLastAnnounce >= interval){
+recordDistAtLastAnnounce = recordDistSinceAnchor;
+speak(t('autoStraightProgress') + ' ' + Math.round(recordDistSinceAnchor) + 'm.');
+}
+
+const bearingHere = bearingDegrees(track[n-2].lat, track[n-2].lon, track[n-1].lat, track[n-1].lon);
+if(recordBearing === null){
+recordBearing = bearingHere;
+recordTurnAnchorIdx = n - 2;
+return;
+}
+const anchor = track[recordTurnAnchorIdx];
+const distSinceAnchor = haversineMeters(anchor.lat, anchor.lon, track[n-1].lat, track[n-1].lon);
+if(distSinceAnchor < 8) return;
+const turn = angleDiff(bearingHere, recordBearing);
+if(Math.abs(turn) > 35){
+speak(turn > 0 ? t('autoTurnRightLive') : t('autoTurnLeftLive'));
+recordBearing = bearingHere;
+recordTurnAnchorIdx = n - 1;
+recordDistSinceAnchor = 0;
+recordDistAtLastAnnounce = 0;
+}
+}
+
 function beginRecording(auto){
 if(running || recording || !navigator.geolocation) return;
 recordRoute = { waypoints: [] };
 recordTrack = [];
 recordDist = 0;
+recordDistAtLastAnnounce = 0;
+recordDistSinceAnchor = 0;
+recordBearing = null;
+recordTurnAnchorIdx = 0;
 recordLastLat = null; recordLastLon = null;
 recording = true;
 autoRecording = auto;
@@ -1363,7 +1414,10 @@ if(recordLastLat !== null){
 const d = haversineMeters(recordLastLat, recordLastLon, c.latitude, c.longitude);
 if(d > 2){
 recordDist += d;
-if(autoRecording) recordTrack.push({ lat: c.latitude, lon: c.longitude });
+if(autoRecording){
+recordTrack.push({ lat: c.latitude, lon: c.longitude });
+processAutoRecordFeedback(d);
+}
 }
 } else if(autoRecording){
 recordTrack.push({ lat: c.latitude, lon: c.longitude });
