@@ -513,7 +513,7 @@ let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime =
 let navMode = 'idle';
 let activeRoute = null, activeRouteTurns = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, routeWatchId = null;
 let holdingStraight = false, straightTargetHeading = null;
-let routeNextAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
+let lastRouteAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, autoRecording = false, recordRoute = null, recordTrack = [], recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
 let recordDistAtLastAnnounce = 0, recordDistSinceAnchor = 0, recordBearing = null, recordTurnAnchorIdx = 0;
 
@@ -864,7 +864,7 @@ lastRouteAnnounce = performance.now();
 } else {
 holdingStraight = false;
 currentBearing = null;
-routeNextAnnounceDist = null;
+lastRouteAnnounceDist = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
 offRouteFlag = false;
@@ -898,10 +898,6 @@ currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
 const talk = voiceMode.value !== 'off';
 const announceInterval = parseInt(distRange.value, 10) || 10;
 
-if(routeNextAnnounceDist === null){
-routeNextAnnounceDist = Math.max(0, Math.floor(dist / announceInterval) * announceInterval);
-}
-
 if(lastDistToTarget !== null){
 if(dist > lastDistToTarget + 2){
 offRouteStreak++;
@@ -910,11 +906,13 @@ offRouteStreak = 0;
 if(offRouteFlag){
 offRouteFlag = false;
 if(talk) speak(t('backOnRoute'));
+chimeVibrate([60, 40, 60]);
 }
 }
 if(offRouteStreak >= 3 && !offRouteFlag){
 offRouteFlag = true;
 if(talk) speak(t('offRoute'));
+chimeVibrate([200, 100, 200]);
 }
 }
 lastDistToTarget = dist;
@@ -923,7 +921,7 @@ const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
 const turnType = activeRouteTurns[routeIndex];
 const nextIndex = routeIndex + 1;
-offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; routeNextAnnounceDist = null;
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
@@ -955,12 +953,12 @@ lastRouteAnnounce = performance.now();
 return;
 }
 
-if(routeNextAnnounceDist > 0 && dist <= routeNextAnnounceDist){
+if(lastRouteAnnounceDist === null || Math.abs(dist - lastRouteAnnounceDist) >= announceInterval){
+lastRouteAnnounceDist = dist;
 const msg = Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
 if(talk) speak(msg);
 announce(wp.label, Math.round(dist) + "m");
 lastRouteAnnounce = performance.now();
-routeNextAnnounceDist -= announceInterval;
 return;
 }
 
@@ -1045,7 +1043,7 @@ activeRouteTurns = computeWaypointTurns(route.waypoints);
 routeIndex = 0;
 currentBearing = null;
 lastRouteAnnounce = 0;
-routeNextAnnounceDist = null;
+lastRouteAnnounceDist = null;
 awaitingTurnConfirm = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
