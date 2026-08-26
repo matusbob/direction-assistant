@@ -252,6 +252,10 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="recordVoiceFeedback" checked>
 <label for="recordVoiceFeedback" style="margin:0;" id="lblRecordVoiceFeedback">Voice feedback while auto-recording</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="totalDistOn" checked>
+<label for="totalDistOn" style="margin:0;" id="lblTotalDist">Announce total distance to destination</label>
 </div> </fieldset>
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
@@ -336,6 +340,7 @@ unitSwitched: "Units: ",
 distToggle: "Announce \"Doing good\" every X meters", distLabel: "Meters distance", doingGood: "Doing good",
 lblRouteCorrection: "Fine direction correction during route navigation",
 lblRecordVoiceFeedback: "Voice feedback while auto-recording",
+lblTotalDist: "Announce total distance to destination",
 autoTurnRightLive: "You turned right.", autoTurnLeftLive: "You turned left.", autoStraightProgress: "Straight,",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
 lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
@@ -398,6 +403,7 @@ unitSwitched: "Jednotky: ",
 distToggle: "Oznámiť \"Ideš dobre\" každých X metrov", distLabel: "Vzdialenosť v metroch", doingGood: "Ideš dobre",
 lblRouteCorrection: "Jemná korekcia smeru počas navigácie trasy",
 lblRecordVoiceFeedback: "Hlasová spätná väzba počas automatického nahrávania",
+lblTotalDist: "Oznámiť celkovú vzdialenosť do cieľa",
 autoTurnRightLive: "Odbočil si doprava.", autoTurnLeftLive: "Odbočil si doľava.", autoStraightProgress: "Rovno,",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
 lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
@@ -460,6 +466,7 @@ document.getElementById('lblStats').textContent = t('lblStats');
 document.getElementById('lblDist').textContent = t('distToggle');
 document.getElementById('lblRouteCorrection').textContent = t('lblRouteCorrection');
 document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoiceFeedback');
+document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -512,6 +519,7 @@ const statsOn = document.getElementById('statsOn');
 const distOn = document.getElementById('distOn');
 const routeCorrectionOn = document.getElementById('routeCorrectionOn');
 const recordVoiceFeedback = document.getElementById('recordVoiceFeedback');
+const totalDistOn = document.getElementById('totalDistOn');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -748,6 +756,7 @@ return legs;
 }
 
 function announceTotalRemaining(currentLegRemaining){
+if(!totalDistOn.checked) return;
 const now = performance.now();
 if(now - lastTotalDistAnnounce < 30000) return;
 lastTotalDistAnnounce = now;
@@ -1308,6 +1317,7 @@ statsOn: statsOn.checked,
 distOn: distOn.checked,
 routeCorrectionOn: routeCorrectionOn.checked,
 recordVoiceFeedback: recordVoiceFeedback.checked,
+totalDistOn: totalDistOn.checked,
 distRange: distRange.value,
 lang: lang
 }));
@@ -1334,6 +1344,7 @@ if(typeof s.statsOn === 'boolean') statsOn.checked = s.statsOn;
 if(typeof s.distOn === 'boolean'){ distOn.checked = s.distOn; distRange.disabled = !s.distOn; menuBtnDist.disabled = !s.distOn; }
 if(typeof s.routeCorrectionOn === 'boolean') routeCorrectionOn.checked = s.routeCorrectionOn;
 if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.recordVoiceFeedback;
+if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
@@ -1350,6 +1361,7 @@ statsOn.addEventListener('change', saveSettings);
 distOn.addEventListener('change', saveSettings);
 routeCorrectionOn.addEventListener('change', saveSettings);
 recordVoiceFeedback.addEventListener('change', saveSettings);
+totalDistOn.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
