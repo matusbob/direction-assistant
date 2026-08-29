@@ -172,7 +172,7 @@ flex:none;
 <h1 id="title">Direction Assistant</h1>
 <p class="lead" id="desc">Tool to maintain walking direction. Warns you with spatial audio, voice, or vibrations if you drift. Does not replace a white cane or guide dog.</p>
 
-<div id="status" class="status off" role="status" aria-live="polite">
+<div id="status" class="status off" role="status" aria-live="off">
 <h2 id="statusText">Ready</h2>
 <div class="sub" id="statusSub">Press the main button to begin.</div>
 </div>
@@ -491,7 +491,7 @@ document.getElementById('voiceMode').options[0].text = t('voiceOff');
 document.getElementById('voiceMode').options[1].text = t('voiceDrift');
 document.getElementById('voiceMode').options[2].text = t('voiceAlways');
 
-if (!running) announce(t('ready'), t('readySub'));
+if (!running) { announceEvent(t('ready') + '. ' + t('readySub')); announce(t('ready'), t('readySub')); }
 if (!routesOverlay.hidden) renderRouteList();
 }
 
@@ -569,7 +569,7 @@ unitRadios.forEach(r => r.addEventListener('change', () => {
 const isMeters = currentUnit() === 'meters';
 degRow.hidden = isMeters;
 metRow.hidden = !isMeters;
-speak(t('unitSwitched') + (isMeters ? t('optMet') : t('optDeg')));
+if(voiceMode.value !== 'off') speak(t('unitSwitched') + (isMeters ? t('optMet') : t('optDeg')));
 }));
 voiceMode.addEventListener('change', () => {});
 document.getElementById('langBtn').addEventListener('click', () => {
@@ -580,7 +580,7 @@ saveSettings();
 
 function speakSliderValue(text){
 clearTimeout(sliderSpeakTimer);
-sliderSpeakTimer = setTimeout(() => speak(text), 450);
+sliderSpeakTimer = setTimeout(() => { if(voiceMode.value !== 'off') speak(text); }, 450);
 }
 
 thresholdDeg.addEventListener('input', () => {
@@ -951,6 +951,7 @@ else updateRouteBearing(c.latitude, c.longitude);
 function enterWaypoint(index){
 if(index >= activeRoute.waypoints.length){
 playChime('done');
+announceEvent(t('routeDone'));
 if(voiceMode.value !== 'off') speak(t('routeDone'));
 announce(t('routeDone'), '');
 stopRouteNav(true);
@@ -1038,6 +1039,7 @@ offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnno
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
+announceEvent(t('routeDone'));
 if(voiceMode.value !== 'off') speak(t('routeDone'));
 announce(t('routeDone'), '');
 stopRouteNav(true);
@@ -1098,9 +1100,11 @@ function setTarget(){
 if(lastHeading !== null){
 targetHeading = lastHeading;
 distSinceTarget = 0;
+announceEvent(t('dirSet') + '. ' + t('dirSetSub'));
 announce(t('dirSet'), t('dirSetSub'));
 statusBox.className = 'status ok';
 } else {
+announceEvent(t('waitCompass'));
 announce(t('waitCompass'), '');
 }
 }
@@ -1132,7 +1136,7 @@ navigator.geolocation.watchPosition(handleGPS, () => {
 if(currentUnit() === 'meters' && lastLat === null){
 switchToDegreesFallback();
 permMsg.textContent = t('errNoGPS');
-speak(t('errNoGPS'));
+if(voiceMode.value !== 'off') speak(t('errNoGPS'));
 }
 }, {enableHighAccuracy:true});
 } else if(currentUnit() === 'meters'){
@@ -1147,6 +1151,7 @@ mainBtn.setAttribute('aria-label', t('stop'));
 resetBtn.disabled = false;
 demoBtn.disabled = true;
 routesBtn.disabled = true;
+announceEvent(t('scanning') + '. ' + t('scanningSub'));
 announce(t('scanning'), t('scanningSub'));
 statusBox.className = 'status off';
 
@@ -1205,10 +1210,12 @@ routesBtn.disabled = true;
 statusBox.className = 'status ok';
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
+announceEvent(t('routeNavStart') + ".");
 if(voiceMode.value !== 'off') speak(t('routeNavStart') + ".");
 announce(t('routeNavStart'), '');
 enterWaypoint(0);
 } else {
+announceEvent(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
 announce(t('routeNavStart'), t('routeNext') + " " + wp.label);
 if(voiceMode.value !== 'off') speak(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
 }
@@ -1234,6 +1241,7 @@ holdingStraight = false;
 navPaused = false;
 
 if(!finished){
+announceEvent(t('routeStopped') + '. ' + t('stoppedSub'));
 announce(t('routeStopped'), t('stoppedSub'));
 if(voiceMode.value !== 'off') speak(t('routeStopped'));
 }
@@ -1261,9 +1269,11 @@ statText += t('statDriftCount') + " " + driftEventCount + " " + t('statTimes') +
 } else {
 statText += t('statNoDrift') + ".";
 }
+announceEvent(t('stopped') + '. ' + statText);
 if(voiceMode.value !== 'off') speak(statText);
 announce(t('stopped'), statText);
 } else {
+announceEvent(t('stopped') + '. ' + t('stoppedSub'));
 announce(t('stopped'), t('stoppedSub'));
 }
 }
@@ -1279,6 +1289,7 @@ navPaused = !navPaused;
 if(navPaused){
 resetBtn.textContent = t('resumeRoute');
 if(navigator.vibrate) navigator.vibrate(0);
+announceEvent(t('routePaused'));
 announce(t('routePaused'), '');
 if(voiceMode.value !== 'off') speak(t('routePaused'));
 } else {
@@ -1286,6 +1297,7 @@ resetBtn.textContent = t('pauseRoute');
 lastRouteAnnounceDist = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
+announceEvent(t('routeResumed'));
 announce(t('routeResumed'), '');
 if(voiceMode.value !== 'off') speak(t('routeResumed'));
 }
@@ -1313,7 +1325,8 @@ routesBtn.disabled = true;
 const saved = { distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount };
 distSinceTarget = 15;
 lastAnnounceState = null;
-speak(t('demoStart'));
+announceEvent(t('demoStart'));
+if(voiceMode.value !== 'off') speak(t('demoStart'));
 await sleep(2200);
 const steps = [
 { diff: 0, hold: 1400 },
@@ -1329,8 +1342,9 @@ await sleep(step.hold);
 }
 ({ distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount } = saved);
 statusBox.className = 'status off';
+announceEvent(t('ready') + '. ' + t('readySub') + '. ' + t('demoEnd'));
 announce(t('ready'), t('readySub'));
-speak(t('demoEnd'));
+if(voiceMode.value !== 'off') speak(t('demoEnd'));
 demoBtn.disabled = false;
 mainBtn.disabled = false;
 routesBtn.disabled = false;
@@ -1526,12 +1540,13 @@ function importGPXFile(file){
 const reader = new FileReader();
 reader.onload = () => {
 const waypoints = parseGPX(String(reader.result));
-if(waypoints.length === 0){ speak(t('gpxImportFailed')); return; }
+if(waypoints.length === 0){ announceEvent(t('gpxImportFailed')); if(voiceMode.value !== 'off') speak(t('gpxImportFailed')); return; }
 const name = window.prompt(t('routeNamePrompt'), file.name.replace(/\.gpx$/i, ''));
 if(name && name.trim()){
 const route = { id: Date.now().toString(36), name: name.trim(), createdAt: Date.now(), waypoints: waypoints };
 saveRoute(route);
-speak(t('gpxImported'));
+announceEvent(t('gpxImported'));
+if(voiceMode.value !== 'off') speak(t('gpxImported'));
 renderRouteList();
 }
 };
@@ -1653,7 +1668,9 @@ recordDistSinceAnchor += d;
 const interval = parseInt(distRange.value, 10) || 10;
 if(recordDistSinceAnchor - recordDistAtLastAnnounce >= interval){
 recordDistAtLastAnnounce = recordDistSinceAnchor;
-speak(t('autoStraightProgress') + ' ' + Math.round(recordDistSinceAnchor) + 'm.');
+const progressMsg = t('autoStraightProgress') + ' ' + Math.round(recordDistSinceAnchor) + 'm.';
+announceEvent(progressMsg);
+if(voiceMode.value !== 'off') speak(progressMsg);
 }
 
 const bearingHere = bearingDegrees(track[n-2].lat, track[n-2].lon, track[n-1].lat, track[n-1].lon);
@@ -1667,7 +1684,9 @@ const distSinceAnchor = haversineMeters(anchor.lat, anchor.lon, track[n-1].lat, 
 if(distSinceAnchor < 8) return;
 const turn = angleDiff(bearingHere, recordBearing);
 if(Math.abs(turn) > 35){
-speak(turn > 0 ? t('autoTurnRightLive') : t('autoTurnLeftLive'));
+const turnMsg = turn > 0 ? t('autoTurnRightLive') : t('autoTurnLeftLive');
+announceEvent(turnMsg);
+if(voiceMode.value !== 'off') speak(turnMsg);
 recordBearing = bearingHere;
 recordTurnAnchorIdx = n - 1;
 recordDistSinceAnchor = 0;
@@ -1711,26 +1730,29 @@ recordTrack.push({ lat: c.latitude, lon: c.longitude });
 recordLastLat = c.latitude; recordLastLon = c.longitude;
 updateRecordStatus();
 }, () => { permMsg.textContent = t('errNoGPS'); }, { enableHighAccuracy: true });
-speak(t('recordStart'));
+announceEvent(t('recordStart'));
+if(voiceMode.value !== 'off') speak(t('recordStart'));
 }
 function startRecording(){ beginRecording(false); }
 function startAutoRecording(){ beginRecording(true); }
 
 function markPoint(){
-if(!recording || recordLastLat === null){ speak(t('waitGPS')); return; }
+if(!recording || recordLastLat === null){ announceEvent(t('waitGPS')); if(voiceMode.value !== 'off') speak(t('waitGPS')); return; }
 openLabelPicker(markPointBtn, (label) => {
 recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, label: label });
 updateRecordStatus();
-speak(label + " " + t('pointMarked'));
+announceEvent(label + " " + t('pointMarked'));
+if(voiceMode.value !== 'off') speak(label + " " + t('pointMarked'));
 });
 }
 
 function markStraightSegment(){
-if(!recording || recordLastLat === null){ speak(t('waitGPS')); return; }
+if(!recording || recordLastLat === null){ announceEvent(t('waitGPS')); if(voiceMode.value !== 'off') speak(t('waitGPS')); return; }
 openPicker(markStraightBtn, [1,2,3,4,5,10,20,30,50], 'm', (v) => {
 recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, type: 'straight', meters: v, label: t('straightHoldLabel') + ' ' + v + 'm' });
 updateRecordStatus();
-speak(t('straightHoldLabel') + ' ' + v + 'm ' + t('pointMarked'));
+announceEvent(t('straightHoldLabel') + ' ' + v + 'm ' + t('pointMarked'));
+if(voiceMode.value !== 'off') speak(t('straightHoldLabel') + ' ' + v + 'm ' + t('pointMarked'));
 });
 }
 
@@ -1764,7 +1786,8 @@ function finishRecording(){
 if(autoRecording){
 recordRoute.waypoints = autoDetectWaypoints(recordTrack);
 if(recordRoute.waypoints.length === 0){
-speak(t('autoTooShort'));
+announceEvent(t('autoTooShort'));
+if(voiceMode.value !== 'off') speak(t('autoTooShort'));
 if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
 recording = false;
 autoRecording = false;
@@ -1774,7 +1797,8 @@ return;
 }
 }
 if(recordRoute.waypoints.length === 0){
-speak(t('noPointsYet'));
+announceEvent(t('noPointsYet'));
+if(voiceMode.value !== 'off') speak(t('noPointsYet'));
 return;
 }
 if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
@@ -1786,7 +1810,8 @@ recordRoute.name = name.trim();
 recordRoute.id = Date.now().toString(36);
 recordRoute.createdAt = Date.now();
 saveRoute(recordRoute);
-speak(t('routeSaved'));
+announceEvent(t('routeSaved'));
+if(voiceMode.value !== 'off') speak(t('routeSaved'));
 }
 recordOverlay.hidden = true;
 renderRouteList();
