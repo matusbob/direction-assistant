@@ -858,7 +858,8 @@ lastAnnounceTime = now;
 
 const vm = voiceMode.value;
 if(vm !== 'off') {
-if(state === 'ok' && !wasOk && vm === 'drift') {
+if(state === 'ok' && !wasOk) {
+lastVoiceTime = now;
 speak(t('backOnTrack'));
 }
 else if(state !== 'ok' && now - lastVoiceTime > 3000) {
