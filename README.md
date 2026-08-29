@@ -16,6 +16,7 @@ Open it on a phone over HTTPS (required for the compass/motion sensors) and gran
 - A basic compass-reliability check: if the heading readings jump erratically, the app suggests recalibrating (figure-8 motion).
 - Practice mode ("Try at home") to learn the audio/vibration signals without needing to walk outside.
 - Settings (units, sensitivity, voice mode, language, etc.) are remembered between sessions.
+- Screen-reader friendly by design: every spoken announcement (drift alerts, back-on-track, doing-good, turn-by-turn, off-route warnings, total distance, compass warning) is also pushed through a dedicated accessible live region, so a screen reader like VoiceOver announces the exact same information even with the app's own voice output turned off — no need to run both at once.
 - Installable as a home-screen app (PWA) and works offline.
 
 ## Files

@@ -176,6 +176,7 @@ flex:none;
 <h2 id="statusText">Ready</h2>
 <div class="sub" id="statusSub">Press the main button to begin.</div>
 </div>
+<div id="eventAnnouncer" role="status" aria-live="assertive" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;"></div>
 
 <div class="btnrow">
 <button id="mainBtn" type="button" aria-label="Start">Start</button>
@@ -499,6 +500,7 @@ const resetBtn = document.getElementById('resetBtn');
 const statusBox = document.getElementById('status');
 const statusText = document.getElementById('statusText');
 const statusSub = document.getElementById('statusSub');
+const eventAnnouncer = document.getElementById('eventAnnouncer');
 const permMsg = document.getElementById('permMsg');
 const unitRadios = document.querySelectorAll('input[name=unit]');
 const degRow = document.getElementById('degRow');
@@ -703,6 +705,11 @@ statusText.textContent = main;
 statusSub.textContent = sub;
 }
 
+function announceEvent(text){
+eventAnnouncer.textContent = '';
+window.setTimeout(() => { eventAnnouncer.textContent = text; }, 30);
+}
+
 function metersOffset(diffDegrees){
 return distSinceTarget * Math.sin(diffDegrees * Math.PI / 180);
 }
@@ -762,7 +769,9 @@ if(now - lastTotalDistAnnounce < 30000) return;
 lastTotalDistAnnounce = now;
 let total = currentLegRemaining;
 for(let i = routeIndex; i < activeRouteLegDistances.length; i++) total += activeRouteLegDistances[i];
-if(voiceMode.value !== 'off') speak(t('totalRemaining') + ' ' + Math.round(total) + 'm.');
+const msg = t('totalRemaining') + ' ' + Math.round(total) + 'm.';
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
 }
 
 function turnPhrase(turnType){
@@ -781,6 +790,7 @@ if(Math.abs(angleDiff(headingHistory[i].h, headingHistory[i-1].h)) > 45) jumps++
 }
 if(jumps >= 3 && now - lastCompassWarnTime > 60000){
 lastCompassWarnTime = now;
+announceEvent(t('compassWarning'));
 speak(t('compassWarning'));
 }
 }
@@ -804,6 +814,7 @@ if(currentBearing === null) return;
 const diff = angleDiff(h, currentBearing);
 if(awaitingTurnConfirm && Math.abs(diff) < parseFloat(thresholdDeg.value)){
 const confirmMsg = awaitingTurnConfirm === 'right' ? t('turnConfirmedRight') : t('turnConfirmedLeft');
+announceEvent(confirmMsg);
 if(voiceMode.value !== 'off') speak(confirmMsg);
 awaitingTurnConfirm = null;
 }
@@ -857,22 +868,22 @@ lastAnnounceTime = now;
 }
 
 const vm = voiceMode.value;
-if(vm !== 'off') {
 if(state === 'ok' && !wasOk) {
 lastVoiceTime = now;
-speak(t('backOnTrack'));
+announceEvent(t('backOnTrack'));
+if(vm !== 'off') speak(t('backOnTrack'));
 }
 else if(state !== 'ok' && now - lastVoiceTime > 3000) {
 lastVoiceTime = now;
 const prefix = (currentVal > th*2) ? t('voiceHard') + " " : "";
 const dir = (diff > 0) ? t('voiceDriftR') : t('voiceDriftL');
 const voiceText = prefix + dir + ": " + formatDrift(diff, navMode === 'route' ? 'degrees' : undefined);
-speak(voiceText);
+announceEvent(voiceText);
+if(vm !== 'off') speak(voiceText);
 }
 else if(state === 'ok' && vm === 'always' && now - lastVoiceTime > 8000) {
 lastVoiceTime = now;
 speak(t('straight'));
-}
 }
 
 if(state === 'ok'){
@@ -923,8 +934,10 @@ totalDistMeters += segDist;
 distSinceTarget += segDist;
 lastLat = c.latitude; lastLon = c.longitude;
 
-if(navMode !== 'route' && distOn.checked && voiceMode.value !== 'off' && totalDistMeters >= nextDistAnnounce){
-speak(t('doingGood') + " " + Math.round(totalDistMeters) + "m");
+if(navMode !== 'route' && distOn.checked && totalDistMeters >= nextDistAnnounce){
+const doingGoodMsg = t('doingGood') + " " + Math.round(totalDistMeters) + "m";
+announceEvent(doingGoodMsg);
+if(voiceMode.value !== 'off') speak(doingGoodMsg);
 nextDistAnnounce += parseInt(distRange.value, 10);
 }
 }
@@ -938,7 +951,7 @@ else updateRouteBearing(c.latitude, c.longitude);
 function enterWaypoint(index){
 if(index >= activeRoute.waypoints.length){
 playChime('done');
-speak(t('routeDone'));
+if(voiceMode.value !== 'off') speak(t('routeDone'));
 announce(t('routeDone'), '');
 stopRouteNav(true);
 return;
@@ -950,9 +963,9 @@ holdingStraight = true;
 straightTargetHeading = lastHeading;
 distSinceTarget = 0;
 currentBearing = null;
-const talk = voiceMode.value !== 'off';
 const msg = t('straightHoldStart').replace('{n}', wp.meters);
-if(talk) speak(msg);
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
 announce(t('straightHoldLabel'), wp.meters + 'm');
 lastRouteAnnounce = performance.now();
 } else {
@@ -980,7 +993,9 @@ return;
 
 if(now - lastRouteAnnounce > 6000){
 lastRouteAnnounce = now;
-if(talk) speak(t('straightHoldRemaining') + " " + Math.max(0, Math.round(remaining)) + "m.");
+const msg = t('straightHoldRemaining') + " " + Math.max(0, Math.round(remaining)) + "m.";
+announceEvent(msg);
+if(talk) speak(msg);
 announce(t('straightHoldLabel'), Math.max(0, Math.round(remaining)) + 'm');
 }
 }
@@ -1001,12 +1016,14 @@ offRouteStreak++;
 offRouteStreak = 0;
 if(offRouteFlag){
 offRouteFlag = false;
+announceEvent(t('backOnRoute'));
 if(talk) speak(t('backOnRoute'));
 chimeVibrate([60, 40, 60]);
 }
 }
 if(offRouteStreak >= 3 && !offRouteFlag){
 offRouteFlag = true;
+announceEvent(t('offRoute'));
 if(talk) speak(t('offRoute'));
 chimeVibrate([200, 100, 200]);
 }
@@ -1021,7 +1038,7 @@ offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnno
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
-speak(t('routeDone'));
+if(voiceMode.value !== 'off') speak(t('routeDone'));
 announce(t('routeDone'), '');
 stopRouteNav(true);
 return;
@@ -1043,7 +1060,9 @@ if(turnType === 'right'){ msg = t('turnRightNow'); awaitingTurnConfirm = 'right'
 else if(turnType === 'left'){ msg = t('turnLeftNow'); awaitingTurnConfirm = 'left'; }
 else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
-if(talk) speak(wp.label + ". " + msg);
+const arriveMsg = wp.label + ". " + msg;
+announceEvent(arriveMsg);
+if(talk) speak(arriveMsg);
 announce(next.label, msg);
 lastRouteAnnounce = performance.now();
 return;
@@ -1052,8 +1071,9 @@ return;
 if(lastRouteAnnounceDist === null || Math.abs(dist - lastRouteAnnounceDist) >= announceInterval){
 lastRouteAnnounceDist = dist;
 const msg = Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
+announceEvent(msg);
 if(talk) speak(msg);
-announce(wp.label, Math.round(dist) + "m");
+announce(wp.label, msg);
 lastRouteAnnounce = performance.now();
 return;
 }
@@ -1061,7 +1081,9 @@ return;
 const now = performance.now();
 if(now - lastRouteAnnounce > 6000){
 lastRouteAnnounce = now;
-if(talk) speak(wp.label + ": " + Math.round(dist) + "m.");
+const msg = wp.label + ": " + Math.round(dist) + "m.";
+announceEvent(msg);
+if(talk) speak(msg);
 announce(wp.label, Math.round(dist) + "m");
 }
 }
@@ -1183,12 +1205,12 @@ routesBtn.disabled = true;
 statusBox.className = 'status ok';
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
-speak(t('routeNavStart') + ".");
+if(voiceMode.value !== 'off') speak(t('routeNavStart') + ".");
 announce(t('routeNavStart'), '');
 enterWaypoint(0);
 } else {
 announce(t('routeNavStart'), t('routeNext') + " " + wp.label);
-speak(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
+if(voiceMode.value !== 'off') speak(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
 }
 }
 
@@ -1213,7 +1235,7 @@ navPaused = false;
 
 if(!finished){
 announce(t('routeStopped'), t('stoppedSub'));
-speak(t('routeStopped'));
+if(voiceMode.value !== 'off') speak(t('routeStopped'));
 }
 }
 
@@ -1258,14 +1280,14 @@ if(navPaused){
 resetBtn.textContent = t('resumeRoute');
 if(navigator.vibrate) navigator.vibrate(0);
 announce(t('routePaused'), '');
-speak(t('routePaused'));
+if(voiceMode.value !== 'off') speak(t('routePaused'));
 } else {
 resetBtn.textContent = t('pauseRoute');
 lastRouteAnnounceDist = null;
 lastDistToTarget = null;
 offRouteStreak = 0;
 announce(t('routeResumed'), '');
-speak(t('routeResumed'));
+if(voiceMode.value !== 'off') speak(t('routeResumed'));
 }
 }
 
