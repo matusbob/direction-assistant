@@ -544,7 +544,7 @@ const finishRouteBtn = document.getElementById('finishRouteBtn');
 const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
-let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0;
+let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0, nearEdgeWarned = false;
 let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
@@ -874,7 +874,15 @@ speak(t('straight'));
 }
 }
 
-if(state !== 'ok'){
+if(state === 'ok'){
+if(currentVal >= th * 0.7 && !nearEdgeWarned){
+nearEdgeWarned = true;
+beep(diff >= 0 ? 0.5 : -0.5, 380, 0.07);
+} else if(currentVal < th * 0.5){
+nearEdgeWarned = false;
+}
+} else {
+nearEdgeWarned = false;
 const urgency = Math.min(currentVal / (th * 2.5), 1);
 const beepInterval = 700 - urgency * 480;
 if(now - lastBeepTime > beepInterval){
@@ -1094,7 +1102,7 @@ else { permMsg.textContent = t('errDenied'); return; }
 window.addEventListener('deviceorientation', handleOrientation, true);
 if(navigator.geolocation){
 navigator.geolocation.watchPosition(handleGPS, () => {
-if(currentUnit() === 'meters'){
+if(currentUnit() === 'meters' && lastLat === null){
 switchToDegreesFallback();
 permMsg.textContent = t('errNoGPS');
 speak(t('errNoGPS'));
