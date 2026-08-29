@@ -544,7 +544,7 @@ const finishRouteBtn = document.getElementById('finishRouteBtn');
 const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
 let targetHeading = null, lastHeading = null, running = false, audioCtx = null;
-let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0, nearEdgeWarned = false;
+let lastBeepTime = 0, lastAnnounceState = null, lastAnnounceTime = 0, lastVoiceTime = 0, nearEdgeWarned = false, lastOkBeepTime = 0;
 let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
@@ -881,6 +881,10 @@ beep(diff >= 0 ? 0.5 : -0.5, 380, 0.07);
 } else if(currentVal < th * 0.5){
 nearEdgeWarned = false;
 }
+if(now - lastOkBeepTime > 2500){
+lastOkBeepTime = now;
+beep(0, 220, 0.06);
+}
 } else {
 nearEdgeWarned = false;
 const urgency = Math.min(currentVal / (th * 2.5), 1);
@@ -918,7 +922,7 @@ totalDistMeters += segDist;
 distSinceTarget += segDist;
 lastLat = c.latitude; lastLon = c.longitude;
 
-if(navMode !== 'route' && distOn.checked && totalDistMeters >= nextDistAnnounce){
+if(navMode !== 'route' && distOn.checked && voiceMode.value !== 'off' && totalDistMeters >= nextDistAnnounce){
 speak(t('doingGood') + " " + Math.round(totalDistMeters) + "m");
 nextDistAnnounce += parseInt(distRange.value, 10);
 }
@@ -1234,7 +1238,7 @@ statText += t('statDriftCount') + " " + driftEventCount + " " + t('statTimes') +
 } else {
 statText += t('statNoDrift') + ".";
 }
-speak(statText);
+if(voiceMode.value !== 'off') speak(statText);
 announce(t('stopped'), statText);
 } else {
 announce(t('stopped'), t('stoppedSub'));
