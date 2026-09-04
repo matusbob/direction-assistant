@@ -261,6 +261,7 @@ flex:none;
 
 <button type="button" id="demoBtn" class="demobtn"><span id="lblDemo">Try at home (no walking needed)</span></button>
 <button type="button" id="routesBtn" class="demobtn"><span id="lblRoutes">Saved routes</span></button>
+<button type="button" id="nearbyBtn" class="demobtn"><span id="lblNearby">What's nearby?</span></button>
 </main>
 
 <div id="pickerOverlay" class="picker-overlay" hidden>
@@ -274,6 +275,7 @@ flex:none;
 <div id="routesOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routesTitle">
 <h2 id="routesTitle">Saved routes</h2>
+<button type="button" id="quickMarkBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblQuickMark">Save a point here</span></button>
 <button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblRecordRoute">Record new route</span></button>
 <button type="button" id="autoRecordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblAutoRecordRoute">Auto-record route (start / stop only)</span></button>
 <button type="button" id="importGpxBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblImportGpx">Import GPX file</span></button>
@@ -372,7 +374,10 @@ straightHoldStart: "Hold a straight line for {n}m.", straightHoldRemaining: "Str
 turnRight: "turn right", turnLeft: "turn left", continueStraight: "continue straight",
 turnRightNow: "Now turn right.", turnLeftNow: "Now turn left.",
 turnConfirmedRight: "Great, you turned right. Continue.", turnConfirmedLeft: "Great, you turned left. Continue.",
-offRoute: "You are off the route.", backOnRoute: "Back on the route."
+offRoute: "You are off the route.", backOnRoute: "Back on the route.",
+lblQuickMark: "Save a point here", pointSaved: "Point saved",
+lblNearby: "What's nearby?", nothingNearby: "Nothing saved nearby.",
+nearbyFound: "{n} saved point(s) nearby.", nearbyTitle: "Nearby points"
 },
 sk: {
 title: "Smerový Asistent", desc: "Pomáha ti udržať rovný smer a navigovať po vlastných uložených trasách pomocou kompasu, GPS, priestorového zvuku, hlasu a vibrácií. Nenahrádza bielu palicu ani psa.",
@@ -435,7 +440,10 @@ straightHoldStart: "Udržuj rovný smer na {n}m.", straightHoldRemaining: "Rovno
 turnRight: "odbočte vpravo", turnLeft: "odbočte vľavo", continueStraight: "pokračujte rovno",
 turnRightNow: "Teraz odbočte vpravo.", turnLeftNow: "Teraz odbočte vľavo.",
 turnConfirmedRight: "Výborne, odbočili ste vpravo. Pokračujte.", turnConfirmedLeft: "Výborne, odbočili ste vľavo. Pokračujte.",
-offRoute: "Nie ste na trase.", backOnRoute: "Späť na trase."
+offRoute: "Nie ste na trase.", backOnRoute: "Späť na trase.",
+lblQuickMark: "Uložiť bod tu", pointSaved: "Bod uložený",
+lblNearby: "Čo je blízko?", nothingNearby: "Nablízku nie je nič uložené.",
+nearbyFound: "Nablízku {n} uložených bodov.", nearbyTitle: "Body nablízku"
 }
 };
 
@@ -473,6 +481,8 @@ document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
 document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('lblRoutes').textContent = t('lblRoutes');
+document.getElementById('lblNearby').textContent = t('lblNearby');
+document.getElementById('lblQuickMark').textContent = t('lblQuickMark');
 document.getElementById('routesTitle').textContent = t('routesTitle');
 document.getElementById('lblRecordRoute').textContent = t('lblRecordRoute');
 document.getElementById('lblAutoRecordRoute').textContent = t('lblAutoRecordRoute');
@@ -527,8 +537,10 @@ const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
 const demoBtn = document.getElementById('demoBtn');
 const routesBtn = document.getElementById('routesBtn');
+const nearbyBtn = document.getElementById('nearbyBtn');
 const routesOverlay = document.getElementById('routesOverlay');
 const routeList = document.getElementById('routeList');
+const quickMarkBtn = document.getElementById('quickMarkBtn');
 const recordRouteBtn = document.getElementById('recordRouteBtn');
 const autoRecordRouteBtn = document.getElementById('autoRecordRouteBtn');
 const importGpxBtn = document.getElementById('importGpxBtn');
@@ -1151,6 +1163,7 @@ mainBtn.setAttribute('aria-label', t('stop'));
 resetBtn.disabled = false;
 demoBtn.disabled = true;
 routesBtn.disabled = true;
+nearbyBtn.disabled = true;
 announceEvent(t('scanning') + '. ' + t('scanningSub'));
 announce(t('scanning'), t('scanningSub'));
 statusBox.className = 'status off';
@@ -1207,6 +1220,7 @@ resetBtn.disabled = false;
 resetBtn.textContent = t('pauseRoute');
 demoBtn.disabled = true;
 routesBtn.disabled = true;
+nearbyBtn.disabled = true;
 statusBox.className = 'status ok';
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
@@ -1235,6 +1249,7 @@ resetBtn.disabled = true;
 resetBtn.textContent = t('setDir');
 demoBtn.disabled = false;
 routesBtn.disabled = false;
+nearbyBtn.disabled = false;
 statusBox.className = 'status off';
 activeRoute = null;
 holdingStraight = false;
@@ -1259,6 +1274,7 @@ mainBtn.setAttribute('aria-label', t('start'));
 resetBtn.disabled = true;
 demoBtn.disabled = false;
 routesBtn.disabled = false;
+nearbyBtn.disabled = false;
 targetHeading = null;
 statusBox.className = 'status off';
 
@@ -1322,6 +1338,7 @@ demoRunning = true;
 demoBtn.disabled = true;
 mainBtn.disabled = true;
 routesBtn.disabled = true;
+nearbyBtn.disabled = true;
 const saved = { distSinceTarget, lastAnnounceState, lastBeepTime, lastVoiceTime, lastAnnounceTime, driftEventCount };
 distSinceTarget = 15;
 lastAnnounceState = null;
@@ -1348,6 +1365,7 @@ if(voiceMode.value !== 'off') speak(t('demoEnd'));
 demoBtn.disabled = false;
 mainBtn.disabled = false;
 routesBtn.disabled = false;
+nearbyBtn.disabled = false;
 demoRunning = false;
 }
 demoBtn.addEventListener('click', runDemo);
@@ -1438,6 +1456,80 @@ if(idx !== -1){
 routes[idx] = route;
 try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
 }
+}
+
+function quickMarkPoint(){
+if(running || recording || !navigator.geolocation) return;
+permMsg.textContent = '';
+navigator.geolocation.getCurrentPosition((pos) => {
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+routesOverlay.hidden = true;
+openLabelPicker(quickMarkBtn, (label) => {
+const route = { id: Date.now().toString(36), name: label + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [{ lat: lat, lon: lon, label: label }] };
+saveRoute(route);
+const msg = t('pointSaved') + ': ' + label;
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+renderRouteList();
+routesOverlay.hidden = false;
+});
+}, () => {
+permMsg.textContent = t('errNoGPS');
+announceEvent(t('errNoGPS'));
+if(voiceMode.value !== 'off') speak(t('errNoGPS'));
+}, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function findNearbyPoints(){
+if(running || recording || !navigator.geolocation) return;
+permMsg.textContent = '';
+navigator.geolocation.getCurrentPosition((pos) => {
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+const routes = loadRoutes();
+const nearby = [];
+routes.forEach((r) => {
+if(!r.waypoints || r.waypoints.length !== 1) return;
+const wp = r.waypoints[0];
+const d = haversineMeters(lat, lon, wp.lat, wp.lon);
+if(d <= 150) nearby.push({ route: r, dist: d });
+});
+nearby.sort((a, b) => a.dist - b.dist);
+showNearbyList(nearby);
+}, () => {
+permMsg.textContent = t('errNoGPS');
+announceEvent(t('errNoGPS'));
+if(voiceMode.value !== 'off') speak(t('errNoGPS'));
+}, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function showNearbyList(nearby){
+pickerList.innerHTML = '';
+if(nearby.length === 0){
+announceEvent(t('nothingNearby'));
+if(voiceMode.value !== 'off') speak(t('nothingNearby'));
+const msg = document.createElement('div');
+msg.className = 'rowval';
+msg.textContent = t('nothingNearby');
+pickerList.appendChild(msg);
+} else {
+const summary = t('nearbyFound').replace('{n}', nearby.length);
+announceEvent(summary);
+if(voiceMode.value !== 'off') speak(summary);
+nearby.forEach(({ route, dist }) => {
+const b = document.createElement('button');
+b.type = 'button'; b.className = 'picker-item';
+b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)';
+b.addEventListener('click', () => {
+closePicker();
+startRouteNav(route);
+});
+pickerList.appendChild(b);
+});
+}
+pickerTrigger = nearbyBtn;
+pickerOverlay.hidden = false;
+document.addEventListener('keydown', pickerKeydown);
+pickerCloseBtn.focus();
 }
 
 function openEditRoute(routeId){
@@ -1841,8 +1933,10 @@ routesCloseBtn.focus();
 });
 routesCloseBtn.addEventListener('click', closeRoutesOverlay);
 routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) closeRoutesOverlay(); });
+quickMarkBtn.addEventListener('click', quickMarkPoint);
 recordRouteBtn.addEventListener('click', startRecording);
 autoRecordRouteBtn.addEventListener('click', startAutoRecording);
+nearbyBtn.addEventListener('click', findNearbyPoints);
 importGpxBtn.addEventListener('click', () => gpxFileInput.click());
 gpxFileInput.addEventListener('change', () => {
 if(gpxFileInput.files && gpxFileInput.files[0]) importGPXFile(gpxFileInput.files[0]);
