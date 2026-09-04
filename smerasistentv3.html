@@ -695,6 +695,25 @@ o.start(); o.stop(audioCtx.currentTime+dur+0.02);
 function vibrate(p){ if(!vibrateOn.checked || !running) return; try{navigator.vibrate(p);}catch(e){} }
 function chimeVibrate(p){ if(!vibrateOn.checked || !navigator.vibrate) return; try{navigator.vibrate(p);}catch(e){} }
 
+let wakeLock = null;
+async function requestWakeLock(){
+if(!('wakeLock' in navigator)) return;
+try{
+wakeLock = await navigator.wakeLock.request('screen');
+wakeLock.addEventListener('release', () => { wakeLock = null; });
+}catch(e){ wakeLock = null; }
+}
+async function releaseWakeLock(){
+if(!wakeLock) return;
+try{ await wakeLock.release(); }catch(e){}
+wakeLock = null;
+}
+document.addEventListener('visibilitychange', () => {
+if(document.visibilityState === 'visible' && (running || recording) && !wakeLock){
+requestWakeLock();
+}
+});
+
 function playChime(kind){
 if(kind === 'arrive'){
 beep(0, 660, 0.10, 'sine');
@@ -1163,6 +1182,7 @@ permMsg.textContent = t('errNoGPS');
 }
 
 running = true;
+requestWakeLock();
 mainBtn.textContent = t('stop');
 mainBtn.classList.add('stop');
 mainBtn.setAttribute('aria-label', t('stop'));
@@ -1218,6 +1238,7 @@ permMsg.textContent = t('errNoGPS');
 }, {enableHighAccuracy:true});
 
 running = true;
+requestWakeLock();
 navPaused = false;
 mainBtn.textContent = t('stop');
 mainBtn.classList.add('stop');
@@ -1243,6 +1264,7 @@ if(voiceMode.value !== 'off') speak(t('routeNavStart') + ". " + t('routeNext') +
 
 function stopRouteNav(finished){
 running = false;
+releaseWakeLock();
 navMode = 'idle';
 window.removeEventListener('deviceorientation', handleOrientation, true);
 if(routeWatchId !== null){ navigator.geolocation.clearWatch(routeWatchId); routeWatchId = null; }
@@ -1270,6 +1292,7 @@ if(voiceMode.value !== 'off') speak(t('routeStopped'));
 
 function stop(){
 running = false;
+releaseWakeLock();
 window.removeEventListener('deviceorientation', handleOrientation, true);
 clearTimeout(watchdog);
 if(navigator.vibrate) navigator.vibrate(0);
@@ -1803,6 +1826,7 @@ recordBearing = null;
 recordTurnAnchorIdx = 0;
 recordLastLat = null; recordLastLon = null;
 recording = true;
+requestWakeLock();
 autoRecording = auto;
 routesOverlay.hidden = true;
 recordOverlay.hidden = false;
@@ -1888,6 +1912,7 @@ announceEvent(t('autoTooShort'));
 if(voiceMode.value !== 'off') speak(t('autoTooShort'));
 if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
 recording = false;
+releaseWakeLock();
 autoRecording = false;
 recordOverlay.hidden = true;
 routesOverlay.hidden = false;
@@ -1901,6 +1926,7 @@ return;
 }
 if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
 recording = false;
+releaseWakeLock();
 autoRecording = false;
 const name = window.prompt(t('routeNamePrompt'), t('routeDefaultName') + ' ' + new Date().toLocaleDateString());
 if(name && name.trim()){
@@ -1919,6 +1945,7 @@ routesOverlay.hidden = false;
 function cancelRecording(){
 if(recordWatchId !== null){ navigator.geolocation.clearWatch(recordWatchId); recordWatchId = null; }
 recording = false;
+releaseWakeLock();
 autoRecording = false;
 recordOverlay.hidden = true;
 routesOverlay.hidden = false;
