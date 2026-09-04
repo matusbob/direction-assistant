@@ -17,6 +17,8 @@ Open it on a phone over HTTPS (required for the compass/motion sensors) and gran
 - Practice mode ("Try at home") to learn the audio/vibration signals without needing to walk outside.
 - Settings (units, sensitivity, voice mode, language, etc.) are remembered between sessions.
 - Screen-reader friendly by design: every spoken announcement (drift alerts, back-on-track, doing-good, turn-by-turn, off-route warnings, total distance, compass warning, route recording feedback) is also pushed through a dedicated accessible live region, so a screen reader like VoiceOver announces the exact same information even with the app's own voice output turned off — no need to run both at once. The visible status panel no longer speaks on its own (it used to, via its own live region), so with the app voice off VoiceOver announces each event exactly once, precisely and without an echoing second utterance.
+- "Save a point here" — quickly save your current GPS location with a label (entrance, platform, stairs, obstacle, or your own text) without going through the full route-recording flow. Great for things like "which side the train doors open on at this station" or "where the stairs are from this platform" — mark it once, ever after the app can navigate you straight to it.
+- "What's nearby?" — checks your current GPS position against everything you've saved and lists any saved points within about 150m, closest first; tap one to start navigating to it immediately.
 - Installable as a home-screen app (PWA) and works offline.
 
 ## Files
