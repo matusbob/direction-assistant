@@ -1988,6 +1988,11 @@ cancelRecordBtn.addEventListener('click', cancelRecording);
 
 loadSettings();
 applyLang();
+
+const launchParams = new URLSearchParams(location.search);
+if(launchParams.get('go') === '1' && !running && !recording){
+setTimeout(start, 400);
+}
 })();
 </script>
 </body>
