@@ -21,6 +21,7 @@ Open it on a phone over HTTPS (required for the compass/motion sensors) and gran
 - "Save a point here" — quickly save your current GPS location with a label (entrance, platform, stairs, obstacle, or your own text) without going through the full route-recording flow. Great for things like "which side the train doors open on at this station" or "where the stairs are from this platform" — mark it once, ever after the app can navigate you straight to it.
 - "What's nearby?" — checks your current GPS position against everything you've saved and lists any saved points within about 150m, closest first; tap one to start navigating to it immediately.
 - Requests a screen wake lock while walking, navigating a route, or recording one, so the phone's screen doesn't auto-lock and stop GPS/compass tracking mid-use (on browsers that support it). This does not fix the deeper platform limit that a web app's sensors stop entirely if it's minimized/backgrounded - keep it in the foreground while actively using it.
+- Hands-free launch: open the app with `?go=1` on the end of the URL (e.g. as a Siri Shortcut/Shortcuts.app action that opens that link) and it starts the straight-line walking assistant immediately, with no button press needed - first-run compass/location permission prompts still apply once per device.
 - Installable as a home-screen app (PWA) and works offline.
 
 ## Files
