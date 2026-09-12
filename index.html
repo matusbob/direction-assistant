@@ -767,6 +767,12 @@ beep(0, 660, 0.10, 'sine');
 setTimeout(() => beep(0, 880, 0.10, 'sine'), 110);
 setTimeout(() => beep(0, 1100, 0.18, 'sine'), 220);
 chimeVibrate([100, 60, 100]);
+} else if(kind === 'offroute'){
+beep(0, 500, 0.12, 'triangle');
+setTimeout(() => beep(0, 300, 0.16, 'triangle'), 130);
+} else if(kind === 'backonroute'){
+beep(0, 392, 0.10, 'sine');
+setTimeout(() => beep(0, 523, 0.14, 'sine'), 110);
 }
 }
 
@@ -1099,6 +1105,7 @@ offRouteStreak++;
 offRouteStreak = 0;
 if(offRouteFlag){
 offRouteFlag = false;
+playChime('backonroute');
 announceEvent(t('backOnRoute'));
 if(talk) speak(t('backOnRoute'));
 chimeVibrate([60, 40, 60]);
@@ -1106,6 +1113,7 @@ chimeVibrate([60, 40, 60]);
 }
 if(offRouteStreak >= 3 && !offRouteFlag){
 offRouteFlag = true;
+playChime('offroute');
 announceEvent(t('offRoute'));
 if(talk) speak(t('offRoute'));
 chimeVibrate([200, 100, 200]);
