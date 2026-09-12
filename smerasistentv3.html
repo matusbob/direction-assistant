@@ -281,6 +281,7 @@ flex:none;
 <h2 id="routesTitle">Saved routes</h2>
 <button type="button" id="quickMarkBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblQuickMark">Save a point here</span></button>
 <button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblRecordRoute">Record new route</span></button>
+<button type="button" id="noteListBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblNoteList">Prepare a list of notes</span></button>
 <button type="button" id="importGpxBtn" class="picker-item" style="width:100%; margin-bottom:14px;"><span id="lblImportGpx">Import GPX file</span></button>
 <input type="file" id="gpxFileInput" accept=".gpx" style="display:none;">
 <div id="routeList" class="picker-list"></div>
@@ -296,11 +297,22 @@ flex:none;
 </div>
 </div>
 
+<div id="noteListOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="noteListTitle">
+<h2 id="noteListTitle">Prepared notes</h2>
+<label for="noteListText" id="lblNoteListHint" style="display:block; margin-bottom:10px;">Paste or type your notes, one per line.</label>
+<textarea id="noteListText" rows="8" style="width:100%; min-height:160px; font:inherit; padding:10px; border-radius:10px; border:1px solid #2c3340; background:#0e1116; color:inherit; margin-bottom:12px;"></textarea>
+<button type="button" id="noteListSaveBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblNoteListSave">Save list</span></button>
+<button type="button" id="noteListCloseBtn" class="picker-close"><span id="lblNoteListClose">Close</span></button>
+</div>
+</div>
+
 <div id="recordOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
 <h2 id="recordTitle">Recording route</h2>
 <div id="recordAutoHint" class="rowval" style="margin-bottom:10px;"></div>
 <div id="recordStatus" class="rowval" style="margin-bottom:14px;"></div>
+<button type="button" id="nextNoteBtn" class="picker-item" style="width:100%; margin-bottom:10px;" hidden></button>
 <button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
 <button type="button" id="markStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStraightSegment2">Straight segment</span></button>
 <button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
@@ -355,6 +367,12 @@ recordTitle: "Recording route", lblMarkPoint: "Mark point here", lblFinishRoute:
 recordStart: "Recording started. Walk your route and mark points as you go.",
 recordStatusText: "{points} points marked, {dist} m walked",
 customLabel: "Custom name...", customLabelPrompt: "Name this point:",
+lblNoteList: "Prepare a list of notes", noteListTitle: "Prepared notes",
+lblNoteListHint: "Paste or type your notes, one per line. While recording a route you can attach them to your position in order, one tap each.",
+lblNoteListSave: "Save list", lblNoteListClose: "Close",
+noteListSaved: "Notes saved:", noteListCleared: "Note list cleared.",
+nextNotePrefix: "Next note:", noteListDone: "That was the last prepared note.",
+noteListRemaining: "notes left",
 routeNamePrompt: "Name this route:", routeDefaultName: "Route",
 routeSaved: "Route saved.", noPointsYet: "Mark at least one point before finishing.",
 noRoutes: "No saved routes yet.", deleteRoute: "Delete route", confirmDelete: "Delete route",
@@ -422,6 +440,12 @@ recordTitle: "Nahrávanie trasy", lblMarkPoint: "Označiť bod tu", lblFinishRou
 recordStart: "Nahrávanie spustené. Choď svojou trasou a priebežne označuj body.",
 recordStatusText: "Označených bodov: {points}, prejdených {dist} m",
 customLabel: "Vlastný názov...", customLabelPrompt: "Pomenuj tento bod:",
+lblNoteList: "Pripraviť zoznam poznámok", noteListTitle: "Pripravené poznámky",
+lblNoteListHint: "Vlož alebo napíš svoje poznámky, jednu na riadok. Počas nahrávania trasy ich budeš vedieť pripájať k svojej polohe v poradí, jedným ťuknutím.",
+lblNoteListSave: "Uložiť zoznam", lblNoteListClose: "Zavrieť",
+noteListSaved: "Uložených poznámok:", noteListCleared: "Zoznam poznámok vymazaný.",
+nextNotePrefix: "Ďalšia poznámka:", noteListDone: "To bola posledná pripravená poznámka.",
+noteListRemaining: "zostáva poznámok",
 routeNamePrompt: "Pomenuj túto trasu:", routeDefaultName: "Trasa",
 routeSaved: "Trasa uložená.", noPointsYet: "Pred dokončením označ aspoň jeden bod.",
 noRoutes: "Zatiaľ nemáš žiadne uložené trasy.", deleteRoute: "Zmazať trasu", confirmDelete: "Zmazať trasu",
@@ -495,6 +519,12 @@ document.getElementById('lblQuickMark').textContent = t('lblQuickMark');
 document.getElementById('routesTitle').textContent = t('routesTitle');
 document.getElementById('lblRecordRoute').textContent = t('lblRecordRoute');
 document.getElementById('lblImportGpx').textContent = t('importGpx');
+document.getElementById('lblNoteList').textContent = t('lblNoteList');
+document.getElementById('noteListTitle').textContent = t('noteListTitle');
+document.getElementById('lblNoteListHint').textContent = t('lblNoteListHint');
+document.getElementById('lblNoteListSave').textContent = t('lblNoteListSave');
+document.getElementById('lblNoteListClose').textContent = t('lblNoteListClose');
+updateNextNoteBtn();
 document.getElementById('editRouteTitle').textContent = t('editRouteTitle');
 document.getElementById('lblEditRouteDone').textContent = t('editRouteDone');
 document.getElementById('recordAutoHint').textContent = t('autoRecordHint');
@@ -552,6 +582,12 @@ const routeList = document.getElementById('routeList');
 const quickMarkBtn = document.getElementById('quickMarkBtn');
 const recordRouteBtn = document.getElementById('recordRouteBtn');
 const importGpxBtn = document.getElementById('importGpxBtn');
+const noteListBtn = document.getElementById('noteListBtn');
+const noteListOverlay = document.getElementById('noteListOverlay');
+const noteListText = document.getElementById('noteListText');
+const noteListSaveBtn = document.getElementById('noteListSaveBtn');
+const noteListCloseBtn = document.getElementById('noteListCloseBtn');
+const nextNoteBtn = document.getElementById('nextNoteBtn');
 const gpxFileInput = document.getElementById('gpxFileInput');
 const editRouteOverlay = document.getElementById('editRouteOverlay');
 const editRouteList = document.getElementById('editRouteList');
@@ -1477,6 +1513,69 @@ if('serviceWorker' in navigator){
 window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 
+const NOTES_KEY = 'directionAssistantNoteList';
+let noteListIndex = 0;
+function loadNoteList(){
+try{ return JSON.parse(localStorage.getItem(NOTES_KEY)) || []; }catch(e){ return []; }
+}
+function storeNoteList(arr){
+try{ localStorage.setItem(NOTES_KEY, JSON.stringify(arr)); }catch(e){}
+}
+
+function updateNextNoteBtn(){
+const notes = loadNoteList();
+const remaining = notes.length - noteListIndex;
+if(!recording || remaining <= 0){
+nextNoteBtn.hidden = true;
+return;
+}
+nextNoteBtn.hidden = false;
+nextNoteBtn.textContent = t('nextNotePrefix') + ' ' + notes[noteListIndex] + ' (' + remaining + ' ' + t('noteListRemaining') + ')';
+}
+
+function openNoteList(){
+noteListText.value = loadNoteList().join('\n');
+routesOverlay.hidden = true;
+noteListOverlay.hidden = false;
+noteListText.focus();
+}
+
+function closeNoteList(){
+noteListOverlay.hidden = true;
+routesOverlay.hidden = false;
+noteListBtn.focus();
+}
+
+function saveNoteListFromTextarea(){
+const arr = noteListText.value.split('\n').map((s) => s.trim()).filter((s) => s.length > 0);
+storeNoteList(arr);
+noteListIndex = 0;
+const msg = arr.length === 0 ? t('noteListCleared') : t('noteListSaved') + ' ' + arr.length;
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+updateNextNoteBtn();
+closeNoteList();
+}
+
+function useNextNote(){
+if(!recording || recordLastLat === null){ announceEvent(t('waitGPS')); if(voiceMode.value !== 'off') speak(t('waitGPS')); return; }
+const notes = loadNoteList();
+if(noteListIndex >= notes.length){
+announceEvent(t('noteListDone'));
+if(voiceMode.value !== 'off') speak(t('noteListDone'));
+updateNextNoteBtn();
+return;
+}
+const label = notes[noteListIndex];
+noteListIndex++;
+recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, label: label, trackIndex: recordTrack.length });
+updateRecordStatus();
+updateNextNoteBtn();
+const msg = label + " " + t('pointMarked');
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}
+
 const ROUTES_KEY = 'directionAssistantRoutes';
 function loadRoutes(){
 try{ return JSON.parse(localStorage.getItem(ROUTES_KEY)) || []; }catch(e){ return []; }
@@ -1694,13 +1793,6 @@ function presetLabels(){ return lang === 'sk' ? PRESET_LABELS_SK : PRESET_LABELS
 function openLabelPicker(triggerEl, onPick){
 pickerTrigger = triggerEl;
 pickerList.innerHTML = '';
-presetLabels().forEach((lbl) => {
-const b = document.createElement('button');
-b.type = 'button'; b.className = 'picker-item';
-b.textContent = lbl;
-b.addEventListener('click', () => { onPick(lbl); closePicker(); });
-pickerList.appendChild(b);
-});
 const customBtn = document.createElement('button');
 customBtn.type = 'button'; customBtn.className = 'picker-item';
 customBtn.textContent = t('customLabel');
@@ -1710,6 +1802,13 @@ const v = window.prompt(t('customLabelPrompt'), '');
 if(v && v.trim()) onPick(v.trim());
 });
 pickerList.appendChild(customBtn);
+presetLabels().forEach((lbl) => {
+const b = document.createElement('button');
+b.type = 'button'; b.className = 'picker-item';
+b.textContent = lbl;
+b.addEventListener('click', () => { onPick(lbl); closePicker(); });
+pickerList.appendChild(b);
+});
 pickerOverlay.hidden = false;
 document.addEventListener('keydown', pickerKeydown);
 pickerCloseBtn.focus();
@@ -1840,9 +1939,11 @@ recordTurnAnchorIdx = 0;
 recordLastLat = null; recordLastLon = null;
 recording = true;
 requestWakeLock();
+noteListIndex = 0;
 routesOverlay.hidden = true;
 recordOverlay.hidden = false;
 updateRecordStatus();
+updateNextNoteBtn();
 recordWatchId = navigator.geolocation.watchPosition((pos) => {
 const c = pos.coords;
 if(c.accuracy > 25) return;
@@ -1916,7 +2017,8 @@ const all = autoWps.concat(manualWps).sort((a, b) => (a.trackIndex || 0) - (b.tr
 const merged = [];
 all.forEach((wp) => {
 const last = merged[merged.length - 1];
-if(last && haversineMeters(last.lat, last.lon, wp.lat, wp.lon) < 8){
+const bothManual = last && manualSet.has(last) && manualSet.has(wp);
+if(last && !bothManual && haversineMeters(last.lat, last.lon, wp.lat, wp.lon) < 8){
 if(manualSet.has(wp)) merged[merged.length - 1] = wp;
 return;
 }
@@ -1988,6 +2090,11 @@ renderRouteList();
 routesOverlay.hidden = false;
 routesCloseBtn.focus();
 });
+noteListBtn.addEventListener('click', openNoteList);
+noteListSaveBtn.addEventListener('click', saveNoteListFromTextarea);
+noteListCloseBtn.addEventListener('click', closeNoteList);
+noteListOverlay.addEventListener('click', (e) => { if(e.target === noteListOverlay) closeNoteList(); });
+nextNoteBtn.addEventListener('click', useNextNote);
 markPointBtn.addEventListener('click', markPoint);
 markStraightBtn.addEventListener('click', markStraightSegment);
 finishRouteBtn.addEventListener('click', finishRecording);
