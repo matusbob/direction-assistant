@@ -383,6 +383,7 @@ pauseRoute: "Pause", resumeRoute: "Resume", routePaused: "Navigation paused.", r
 totalRemaining: "Total to destination:",
 compassWarning: "Compass may be unreliable, try calibrating it by waving your phone in a figure-8.",
 editRoute: "Edit", editRouteTitle: "Edit route", renamePoint: "Rename", deletePoint: "Delete",
+lblUseNote: "From list", useNoteAria: "Use next prepared note", noteAssigned: "Note assigned:",
 confirmDeletePoint: "Delete point", editRouteDone: "Done",
 exportGpx: "Export GPX", importGpx: "Import GPX file",
 gpxImportFailed: "Could not read any points from that file.", gpxImported: "Route imported.",
@@ -456,6 +457,7 @@ pauseRoute: "Pauza", resumeRoute: "Pokračovať", routePaused: "Navigácia pozas
 totalRemaining: "Celkovo do cieľa:",
 compassWarning: "Kompas môže byť nespoľahlivý, skús ho skalibrovať pohybom telefónu v tvare osmičky.",
 editRoute: "Upraviť", editRouteTitle: "Upraviť trasu", renamePoint: "Premenovať", deletePoint: "Zmazať",
+lblUseNote: "Zo zoznamu", useNoteAria: "Použiť ďalšiu pripravenú poznámku", noteAssigned: "Poznámka priradená:",
 confirmDeletePoint: "Zmazať bod", editRouteDone: "Hotovo",
 exportGpx: "Export GPX", importGpx: "Importovať GPX súbor",
 gpxImportFailed: "Z tohto súboru sa nepodarilo prečítať žiadne body.", gpxImported: "Trasa importovaná.",
@@ -1677,14 +1679,17 @@ function openEditRoute(routeId){
 const routes = loadRoutes();
 const route = routes.find((r) => r.id === routeId);
 if(!route) return;
+editNoteIndex = 0;
 renderEditRouteList(route);
 routesOverlay.hidden = true;
 editRouteOverlay.hidden = false;
 editRouteDoneBtn.focus();
 }
 
+let editNoteIndex = 0;
 function renderEditRouteList(route){
 editRouteList.innerHTML = '';
+const notes = loadNoteList();
 route.waypoints.forEach((wp, i) => {
 const row = document.createElement('div');
 row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
@@ -1719,6 +1724,24 @@ renderEditRouteList(route);
 });
 
 row.appendChild(label);
+if(editNoteIndex < notes.length){
+const useNoteBtn = document.createElement('button');
+useNoteBtn.type = 'button'; useNoteBtn.className = 'menubtn';
+useNoteBtn.textContent = t('lblUseNote');
+useNoteBtn.setAttribute('aria-label', t('useNoteAria') + ': ' + notes[editNoteIndex]);
+useNoteBtn.addEventListener('click', () => {
+const note = loadNoteList()[editNoteIndex];
+if(!note) return;
+wp.label = note;
+editNoteIndex++;
+updateRouteInStorage(route);
+renderEditRouteList(route);
+const msg = t('noteAssigned') + ' ' + note;
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+});
+row.appendChild(useNoteBtn);
+}
 row.appendChild(renameBtn);
 row.appendChild(delBtn);
 editRouteList.appendChild(row);
