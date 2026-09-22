@@ -267,6 +267,14 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="totalDistOn" checked>
 <label for="totalDistOn" style="margin:0;" id="lblTotalDist">Announce total distance to destination</label>
+</div>
+<div class="sliderrow" id="stepLengthRow">
+<label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
+<div class="sliderwrap">
+<input type="range" id="stepLength" min="0.4" max="1.2" step="0.05" value="0.7" aria-valuetext="0.7 meters">
+<button type="button" class="menubtn" id="menuBtnStep" aria-haspopup="dialog"><span id="lblMenu4">Menu</span></button>
+</div>
+<div class="rowval" aria-hidden="true"><span id="lblStepMin">0.4m</span><span id="stepLengthVal">0.7m</span><span id="lblStepMax">1.2m</span></div>
 </div> </fieldset>
 </main>
 
@@ -318,6 +326,7 @@ flex:none;
 <button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
 <button type="button" id="markStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStraightSegment2">Straight segment</span></button>
 <button type="button" id="markManualStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblManualStraight">Straight, I'll confirm the end myself</span></button>
+<button type="button" id="markStepEstimateBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStepEstimate">Straight, estimate by steps (experimental)</span></button>
 <button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
 <button type="button" id="cancelRecordBtn" class="picker-close"><span id="lblCancelRecord">Cancel</span></button>
 </div>
@@ -400,6 +409,11 @@ straightHoldStart: "Hold a straight line for {n}m.", straightHoldRemaining: "Str
 lblManualStraight: "Straight, I'll confirm the end myself", manualStraightLabel: "Straight (self-paced)",
 manualHoldStart: "Hold a straight line. Tap \"Done with this stretch\" when you reach the end of it.",
 lblManualHoldDone: "Done with this stretch",
+lblStepEstimate: "Straight, estimate by steps (experimental)",
+stepEstimateLabel: "Straight (step estimate, experimental)",
+stepEstimateStart: "Experimental: estimating {n}m by counting your steps. This may not be accurate.",
+stepEstimateRemaining: "Step estimate, remaining", lblStepLength: "Step length for step-based estimate (meters, experimental)",
+errNoMotion: "Could not access the motion sensor for step counting. Try the \"confirm the end myself\" straight segment instead.",
 turnRight: "turn right", turnLeft: "turn left", continueStraight: "continue straight",
 turnRightNow: "Now turn right.", turnLeftNow: "Now turn left.",
 turnConfirmedRight: "Great, you turned right. Continue.", turnConfirmedLeft: "Great, you turned left. Continue.",
@@ -477,6 +491,11 @@ straightHoldStart: "Udržuj rovný smer na {n}m.", straightHoldRemaining: "Rovno
 lblManualStraight: "Rovno, koniec potvrdím sám", manualStraightLabel: "Rovno (vlastné tempo)",
 manualHoldStart: "Drž rovný smer. Ťukni na \"Koniec tohto úseku\", keď naň dôjdeš.",
 lblManualHoldDone: "Koniec tohto úseku",
+lblStepEstimate: "Rovno, odhad podľa krokov (experimentálne)",
+stepEstimateLabel: "Rovno (odhad podľa krokov, experimentálne)",
+stepEstimateStart: "Experimentálne: odhadujem {n}m počítaním krokov. Nemusí to byť presné.",
+stepEstimateRemaining: "Odhad podľa krokov, zostáva", lblStepLength: "Dĺžka kroku pre odhad podľa krokov (metre, experimentálne)",
+errNoMotion: "Nepodarilo sa získať prístup k pohybovému senzoru pre počítanie krokov. Skús namiesto toho \"koniec potvrdím sám\".",
 turnRight: "odbočte vpravo", turnLeft: "odbočte vľavo", continueStraight: "pokračujte rovno",
 turnRightNow: "Teraz odbočte vpravo.", turnLeftNow: "Teraz odbočte vľavo.",
 turnConfirmedRight: "Výborne, odbočili ste vpravo. Pokračujte.", turnConfirmedLeft: "Výborne, odbočili ste vľavo. Pokračujte.",
@@ -525,6 +544,10 @@ document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
 document.getElementById('lblManualStraight').textContent = t('lblManualStraight');
 document.getElementById('lblManualHoldDone').textContent = t('lblManualHoldDone');
+document.getElementById('lblStepEstimate').textContent = t('lblStepEstimate');
+document.getElementById('lblStepLength').textContent = t('lblStepLength');
+document.getElementById('lblMenu4').textContent = t('lblMenu');
+stepLength.setAttribute('aria-valuetext', stepLength.value + ' ' + t('optMet'));
 document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('lblRoutes').textContent = t('lblRoutes');
 document.getElementById('lblNearby').textContent = t('lblNearby');
@@ -588,6 +611,9 @@ const totalDistOn = document.getElementById('totalDistOn');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
+const stepLength = document.getElementById('stepLength');
+const stepLengthVal = document.getElementById('stepLengthVal');
+const menuBtnStep = document.getElementById('menuBtnStep');
 const demoBtn = document.getElementById('demoBtn');
 const routesBtn = document.getElementById('routesBtn');
 const nearbyBtn = document.getElementById('nearbyBtn');
@@ -613,6 +639,7 @@ const recordStatusEl = document.getElementById('recordStatus');
 const markPointBtn = document.getElementById('markPointBtn');
 const markStraightBtn = document.getElementById('markStraightBtn');
 const markManualStraightBtn = document.getElementById('markManualStraightBtn');
+const markStepEstimateBtn = document.getElementById('markStepEstimateBtn');
 const finishRouteBtn = document.getElementById('finishRouteBtn');
 const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
@@ -628,6 +655,9 @@ let navPaused = false;
 let headingHistory = [], lastCompassWarnTime = -Infinity;
 let activeRoute = null, activeRouteTurns = [], activeRouteLegDistances = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, lastTotalDistAnnounce = 0, routeWatchId = null;
 let holdingStraight = false, straightTargetHeading = null;
+let stepCount = 0, lastStepTime = -Infinity, stepEstimateActive = false, motionPermissionDenied = false;
+const STEP_MAG_THRESHOLD = 11.5;
+const STEP_REFRACTORY_MS = 300;
 let lastRouteAnnounceDist = null, awaitingTurnConfirm = null, lastDistToTarget = null, offRouteStreak = 0, offRouteFlag = false;
 let recording = false, recordRoute = null, recordTrack = [], recordWatchId = null, recordLastLat = null, recordLastLon = null, recordDist = 0;
 let recordDistAtLastAnnounce = 0, recordDistSinceAnchor = 0, recordBearing = null, recordTurnAnchorIdx = 0;
@@ -671,6 +701,12 @@ distVal.textContent = distRange.value + 'm';
 distRange.setAttribute('aria-valuetext', distRange.value + ' ' + t('optMet'));
 beep(0, 500, 0.05);
 speakSliderValue(distRange.value + 'm');
+});
+stepLength.addEventListener('input', () => {
+stepLengthVal.textContent = stepLength.value + 'm';
+stepLength.setAttribute('aria-valuetext', stepLength.value + ' ' + t('optMet'));
+beep(0, 500, 0.05);
+speakSliderValue(stepLength.value + 'm');
 });
 distOn.addEventListener('change', () => {
 distRange.disabled = !distOn.checked;
@@ -720,6 +756,13 @@ openPicker(menuBtnDist, [1,2,3,4,5,6,7,8,9,10,15,20,50], 'm', (v) => {
 distRange.value = v;
 distRange.dispatchEvent(new Event('input'));
 distRange.dispatchEvent(new Event('change'));
+});
+});
+menuBtnStep.addEventListener('click', () => {
+openPicker(menuBtnStep, [0.5,0.6,0.65,0.7,0.75,0.8,0.9,1.0], 'm', (v) => {
+stepLength.value = v;
+stepLength.dispatchEvent(new Event('input'));
+stepLength.dispatchEvent(new Event('change'));
 });
 });
 
@@ -1048,6 +1091,7 @@ else updateRouteBearing(c.latitude, c.longitude);
 }
 
 function enterWaypoint(index){
+stopStepEstimate();
 if(index >= activeRoute.waypoints.length){
 playChime('done');
 const lastWp = activeRoute.waypoints[activeRoute.waypoints.length - 1];
@@ -1070,6 +1114,12 @@ manualHoldDoneBtn.hidden = false;
 announceEvent(t('manualHoldStart'));
 if(voiceMode.value !== 'off') speak(t('manualHoldStart'));
 announce(t('manualStraightLabel'), '');
+} else if(wp.stepEstimate){
+const msg = t('stepEstimateStart').replace('{n}', wp.meters);
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+announce(t('stepEstimateLabel'), wp.meters + 'm');
+startStepEstimate();
 } else {
 const msg = t('straightHoldStart').replace('{n}', wp.meters);
 announceEvent(msg);
@@ -1088,9 +1138,46 @@ offRouteFlag = false;
 }
 }
 
+function advanceFromGpsFreeSegment(){
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
+const nextIndex = routeIndex + 1;
+
+if(nextIndex >= activeRoute.waypoints.length){
+enterWaypoint(nextIndex);
+return;
+}
+const next = activeRoute.waypoints[nextIndex];
+if(next.type === 'straight'){
+enterWaypoint(nextIndex);
+return;
+}
+
+// Landed on a regular point with no GPS available to confirm arrival there on its own -
+// reaching this point (by tap or by step-estimate) IS the confirmation, so announce it
+// now instead of waiting for a GPS fix that may never come.
+holdingStraight = false;
+currentBearing = null;
+routeIndex = nextIndex;
+const afterNextIndex = nextIndex + 1;
+
+if(afterNextIndex >= activeRoute.waypoints.length){
+playChime('done');
+const doneMsg = next.label + ". " + t('routeDone');
+announceEvent(doneMsg);
+if(voiceMode.value !== 'off') speak(doneMsg);
+announce(t('routeDone'), '');
+stopRouteNav(true);
+return;
+}
+
+announceEvent(next.label);
+if(voiceMode.value !== 'off') speak(next.label);
+announce(next.label, '');
+}
+
 function checkStraightHoldProgress(){
 const wp = activeRoute.waypoints[routeIndex];
-if(wp.manual) return;
+if(wp.manual || wp.stepEstimate) return;
 const remaining = wp.meters - distSinceTarget;
 const now = performance.now();
 const talk = voiceMode.value !== 'off';
@@ -1108,6 +1195,74 @@ const msg = t('straightHoldRemaining') + " " + Math.max(0, Math.round(remaining)
 announceEvent(msg);
 if(talk) speak(msg);
 announce(t('straightHoldLabel'), Math.max(0, Math.round(remaining)) + 'm');
+}
+}
+
+async function startStepEstimate(){
+stepCount = 0;
+motionPermissionDenied = false;
+if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+try{
+const res = await Promise.race([
+DeviceMotionEvent.requestPermission(),
+new Promise((_, rej) => setTimeout(() => rej(new Error('T')), 4000))
+]);
+if(res !== 'granted'){ motionPermissionDenied = true; }
+}catch(e){ motionPermissionDenied = true; }
+}
+if(motionPermissionDenied){
+permMsg.textContent = t('errNoMotion');
+announceEvent(t('errNoMotion'));
+if(voiceMode.value !== 'off') speak(t('errNoMotion'));
+return;
+}
+stepEstimateActive = true;
+window.addEventListener('devicemotion', handleMotion, true);
+}
+
+function stopStepEstimate(){
+if(!stepEstimateActive) return;
+stepEstimateActive = false;
+window.removeEventListener('devicemotion', handleMotion, true);
+}
+
+function handleMotion(e){
+if(!stepEstimateActive || navPaused) return;
+const a = e.accelerationIncludingGravity;
+if(!a || a.x === null || a.x === undefined) return;
+const mag = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+const now = performance.now();
+if(mag > STEP_MAG_THRESHOLD && now - lastStepTime > STEP_REFRACTORY_MS){
+lastStepTime = now;
+stepCount++;
+checkStepEstimateProgress();
+}
+}
+
+function checkStepEstimateProgress(){
+if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
+const wp = activeRoute.waypoints[routeIndex];
+if(!wp.stepEstimate) return;
+const stepLen = parseFloat(stepLength.value) || 0.7;
+const estimatedDist = stepCount * stepLen;
+const remaining = wp.meters - estimatedDist;
+const now = performance.now();
+const talk = voiceMode.value !== 'off';
+announceTotalRemaining(Math.max(0, remaining));
+
+if(estimatedDist >= wp.meters){
+stopStepEstimate();
+playChime('arrive');
+advanceFromGpsFreeSegment();
+return;
+}
+
+if(!routeNotesOnly.checked && now - lastRouteAnnounce > 6000){
+lastRouteAnnounce = now;
+const msg = t('stepEstimateRemaining') + " " + Math.max(0, Math.round(remaining)) + "m.";
+announceEvent(msg);
+if(talk) speak(msg);
+announce(t('stepEstimateLabel'), Math.max(0, Math.round(remaining)) + 'm');
 }
 }
 
@@ -1343,6 +1498,7 @@ if(voiceMode.value !== 'off') speak(t('routeNavStart') + ". " + t('routeNext') +
 function stopRouteNav(finished){
 running = false;
 releaseWakeLock();
+stopStepEstimate();
 navMode = 'idle';
 window.removeEventListener('deviceorientation', handleOrientation, true);
 if(routeWatchId !== null){ navigator.geolocation.clearWatch(routeWatchId); routeWatchId = null; }
@@ -1436,40 +1592,7 @@ manualHoldDoneBtn.addEventListener('click', () => {
 if(navMode !== 'route' || navPaused || !holdingStraight) return;
 manualHoldDoneBtn.hidden = true;
 playChime('arrive');
-offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
-const nextIndex = routeIndex + 1;
-
-if(nextIndex >= activeRoute.waypoints.length){
-enterWaypoint(nextIndex);
-return;
-}
-const next = activeRoute.waypoints[nextIndex];
-if(next.type === 'straight'){
-enterWaypoint(nextIndex);
-return;
-}
-
-// Landed on a regular point with no GPS available to confirm arrival there on its own -
-// this tap IS the confirmation, so announce it now instead of waiting for a GPS fix that
-// may never come.
-holdingStraight = false;
-currentBearing = null;
-routeIndex = nextIndex;
-const afterNextIndex = nextIndex + 1;
-
-if(afterNextIndex >= activeRoute.waypoints.length){
-playChime('done');
-const doneMsg = next.label + ". " + t('routeDone');
-announceEvent(doneMsg);
-if(voiceMode.value !== 'off') speak(doneMsg);
-announce(t('routeDone'), '');
-stopRouteNav(true);
-return;
-}
-
-announceEvent(next.label);
-if(voiceMode.value !== 'off') speak(next.label);
-announce(next.label, '');
+advanceFromGpsFreeSegment();
 });
 
 if(typeof DeviceOrientationEvent === 'undefined'){
@@ -1535,6 +1658,7 @@ routeNotesOnly: routeNotesOnly.checked,
 recordVoiceFeedback: recordVoiceFeedback.checked,
 totalDistOn: totalDistOn.checked,
 distRange: distRange.value,
+stepLength: stepLength.value,
 lang: lang
 }));
 }catch(e){}
@@ -1564,6 +1688,8 @@ if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.r
 if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
+if(s.stepLength) stepLength.value = s.stepLength;
+stepLengthVal.textContent = stepLength.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
 }catch(e){}
 }
@@ -1581,6 +1707,7 @@ routeNotesOnly.addEventListener('change', saveSettings);
 recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
+stepLength.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
 window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
@@ -2088,6 +2215,17 @@ announceEvent(msg);
 if(voiceMode.value !== 'off') speak(msg);
 }
 
+function markStepEstimateSegment(){
+if(!recording || recordLastLat === null){ announceEvent(t('waitGPS')); if(voiceMode.value !== 'off') speak(t('waitGPS')); return; }
+openPicker(markStepEstimateBtn, [5,10,15,20,30,50], 'm', (v) => {
+recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, type: 'straight', stepEstimate: true, meters: v, label: t('stepEstimateLabel') + ' ' + v + 'm', trackIndex: recordTrack.length });
+updateRecordStatus();
+const msg = t('stepEstimateLabel') + ' ' + v + 'm ' + t('pointMarked');
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+});
+}
+
 function autoDetectWaypoints(track){
 if(track.length < 2) return [];
 const waypoints = [{ lat: track[0].lat, lon: track[0].lon, label: t('startPoint'), trackIndex: 0 }];
@@ -2201,6 +2339,7 @@ nextNoteBtn.addEventListener('click', useNextNote);
 markPointBtn.addEventListener('click', markPoint);
 markStraightBtn.addEventListener('click', markStraightSegment);
 markManualStraightBtn.addEventListener('click', markManualStraightSegment);
+markStepEstimateBtn.addEventListener('click', markStepEstimateSegment);
 finishRouteBtn.addEventListener('click', finishRecording);
 cancelRecordBtn.addEventListener('click', cancelRecording);
 
