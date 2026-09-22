@@ -183,6 +183,8 @@ flex:none;
 <button id="resetBtn" type="button" disabled>Set Direction</button>
 </div>
 
+<button type="button" id="manualHoldDoneBtn" class="demobtn" hidden><span id="lblManualHoldDone">Done with this stretch</span></button>
+
 <div id="permMsg" role="alert"></div>
 <div id="log" aria-hidden="true"></div>
 
@@ -315,6 +317,7 @@ flex:none;
 <button type="button" id="nextNoteBtn" class="picker-item" style="width:100%; margin-bottom:10px;" hidden></button>
 <button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
 <button type="button" id="markStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStraightSegment2">Straight segment</span></button>
+<button type="button" id="markManualStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblManualStraight">Straight, I'll confirm the end myself</span></button>
 <button type="button" id="finishRouteBtn" class="menubtn" style="width:100%; min-height:52px; margin-bottom:10px;"><span id="lblFinishRoute">Finish route</span></button>
 <button type="button" id="cancelRecordBtn" class="picker-close"><span id="lblCancelRecord">Cancel</span></button>
 </div>
@@ -394,6 +397,9 @@ autoRecordHint: "Walk your route - turns are detected automatically. You can als
 startPoint: "Start", destinationPoint: "Destination", autoTurnRight: "Turn right", autoTurnLeft: "Turn left",
 autoTooShort: "Route too short to detect - try marking points manually instead.",
 straightHoldStart: "Hold a straight line for {n}m.", straightHoldRemaining: "Straight, remaining",
+lblManualStraight: "Straight, I'll confirm the end myself", manualStraightLabel: "Straight (self-paced)",
+manualHoldStart: "Hold a straight line. Tap \"Done with this stretch\" when you reach the end of it.",
+lblManualHoldDone: "Done with this stretch",
 turnRight: "turn right", turnLeft: "turn left", continueStraight: "continue straight",
 turnRightNow: "Now turn right.", turnLeftNow: "Now turn left.",
 turnConfirmedRight: "Great, you turned right. Continue.", turnConfirmedLeft: "Great, you turned left. Continue.",
@@ -468,6 +474,9 @@ autoRecordHint: "Choď svojou trasou - odbočky sa zaznamenajú automaticky. Ked
 startPoint: "Štart", destinationPoint: "Cieľ", autoTurnRight: "Odbočka vpravo", autoTurnLeft: "Odbočka vľavo",
 autoTooShort: "Trasa je príliš krátka na rozpoznanie - skús radšej označiť body ručne.",
 straightHoldStart: "Udržuj rovný smer na {n}m.", straightHoldRemaining: "Rovno, zostáva",
+lblManualStraight: "Rovno, koniec potvrdím sám", manualStraightLabel: "Rovno (vlastné tempo)",
+manualHoldStart: "Drž rovný smer. Ťukni na \"Koniec tohto úseku\", keď naň dôjdeš.",
+lblManualHoldDone: "Koniec tohto úseku",
 turnRight: "odbočte vpravo", turnLeft: "odbočte vľavo", continueStraight: "pokračujte rovno",
 turnRightNow: "Teraz odbočte vpravo.", turnLeftNow: "Teraz odbočte vľavo.",
 turnConfirmedRight: "Výborne, odbočili ste vpravo. Pokračujte.", turnConfirmedLeft: "Výborne, odbočili ste vľavo. Pokračujte.",
@@ -514,6 +523,8 @@ document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
+document.getElementById('lblManualStraight').textContent = t('lblManualStraight');
+document.getElementById('lblManualHoldDone').textContent = t('lblManualHoldDone');
 document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('lblRoutes').textContent = t('lblRoutes');
 document.getElementById('lblNearby').textContent = t('lblNearby');
@@ -547,6 +558,7 @@ if (!routesOverlay.hidden) renderRouteList();
 
 const mainBtn = document.getElementById('mainBtn');
 const resetBtn = document.getElementById('resetBtn');
+const manualHoldDoneBtn = document.getElementById('manualHoldDoneBtn');
 const statusBox = document.getElementById('status');
 const statusText = document.getElementById('statusText');
 const statusSub = document.getElementById('statusSub');
@@ -600,6 +612,7 @@ const recordAutoHint = document.getElementById('recordAutoHint');
 const recordStatusEl = document.getElementById('recordStatus');
 const markPointBtn = document.getElementById('markPointBtn');
 const markStraightBtn = document.getElementById('markStraightBtn');
+const markManualStraightBtn = document.getElementById('markManualStraightBtn');
 const finishRouteBtn = document.getElementById('finishRouteBtn');
 const cancelRecordBtn = document.getElementById('cancelRecordBtn');
 
@@ -1052,13 +1065,21 @@ holdingStraight = true;
 straightTargetHeading = lastHeading;
 distSinceTarget = 0;
 currentBearing = null;
+if(wp.manual){
+manualHoldDoneBtn.hidden = false;
+announceEvent(t('manualHoldStart'));
+if(voiceMode.value !== 'off') speak(t('manualHoldStart'));
+announce(t('manualStraightLabel'), '');
+} else {
 const msg = t('straightHoldStart').replace('{n}', wp.meters);
 announceEvent(msg);
 if(voiceMode.value !== 'off') speak(msg);
 announce(t('straightHoldLabel'), wp.meters + 'm');
+}
 lastRouteAnnounce = performance.now();
 } else {
 holdingStraight = false;
+manualHoldDoneBtn.hidden = true;
 currentBearing = null;
 lastRouteAnnounceDist = null;
 lastDistToTarget = null;
@@ -1069,6 +1090,7 @@ offRouteFlag = false;
 
 function checkStraightHoldProgress(){
 const wp = activeRoute.waypoints[routeIndex];
+if(wp.manual) return;
 const remaining = wp.meters - distSinceTarget;
 const now = performance.now();
 const talk = voiceMode.value !== 'off';
@@ -1337,6 +1359,7 @@ nearbyBtn.disabled = false;
 statusBox.className = 'status off';
 activeRoute = null;
 holdingStraight = false;
+manualHoldDoneBtn.hidden = true;
 navPaused = false;
 
 if(!finished){
@@ -1407,6 +1430,46 @@ if(voiceMode.value !== 'off') speak(t('routeResumed'));
 resetBtn.addEventListener('click', () => {
 if(navMode === 'route'){ togglePauseRoute(); return; }
 setTarget();
+});
+
+manualHoldDoneBtn.addEventListener('click', () => {
+if(navMode !== 'route' || navPaused || !holdingStraight) return;
+manualHoldDoneBtn.hidden = true;
+playChime('arrive');
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
+const nextIndex = routeIndex + 1;
+
+if(nextIndex >= activeRoute.waypoints.length){
+enterWaypoint(nextIndex);
+return;
+}
+const next = activeRoute.waypoints[nextIndex];
+if(next.type === 'straight'){
+enterWaypoint(nextIndex);
+return;
+}
+
+// Landed on a regular point with no GPS available to confirm arrival there on its own -
+// this tap IS the confirmation, so announce it now instead of waiting for a GPS fix that
+// may never come.
+holdingStraight = false;
+currentBearing = null;
+routeIndex = nextIndex;
+const afterNextIndex = nextIndex + 1;
+
+if(afterNextIndex >= activeRoute.waypoints.length){
+playChime('done');
+const doneMsg = next.label + ". " + t('routeDone');
+announceEvent(doneMsg);
+if(voiceMode.value !== 'off') speak(doneMsg);
+announce(t('routeDone'), '');
+stopRouteNav(true);
+return;
+}
+
+announceEvent(next.label);
+if(voiceMode.value !== 'off') speak(next.label);
+announce(next.label, '');
 });
 
 if(typeof DeviceOrientationEvent === 'undefined'){
@@ -2016,6 +2079,15 @@ if(voiceMode.value !== 'off') speak(t('straightHoldLabel') + ' ' + v + 'm ' + t(
 });
 }
 
+function markManualStraightSegment(){
+if(!recording || recordLastLat === null){ announceEvent(t('waitGPS')); if(voiceMode.value !== 'off') speak(t('waitGPS')); return; }
+recordRoute.waypoints.push({ lat: recordLastLat, lon: recordLastLon, type: 'straight', manual: true, label: t('manualStraightLabel'), trackIndex: recordTrack.length });
+updateRecordStatus();
+const msg = t('manualStraightLabel') + ' ' + t('pointMarked');
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}
+
 function autoDetectWaypoints(track){
 if(track.length < 2) return [];
 const waypoints = [{ lat: track[0].lat, lon: track[0].lon, label: t('startPoint'), trackIndex: 0 }];
@@ -2128,6 +2200,7 @@ noteListOverlay.addEventListener('click', (e) => { if(e.target === noteListOverl
 nextNoteBtn.addEventListener('click', useNextNote);
 markPointBtn.addEventListener('click', markPoint);
 markStraightBtn.addEventListener('click', markStraightSegment);
+markManualStraightBtn.addEventListener('click', markManualStraightSegment);
 finishRouteBtn.addEventListener('click', finishRecording);
 cancelRecordBtn.addEventListener('click', cancelRecording);
 
