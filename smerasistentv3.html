@@ -1046,11 +1046,15 @@ const beepInterval = 700 - urgency * 480;
 if(now - lastBeepTime > beepInterval){
 lastBeepTime = now;
 const isRight = diff > 0;
+const isHard = currentVal > th*2;
 const pan = isRight ? 1 : -1;
 const baseFreq = isRight ? 500 : 280;
 const freq = baseFreq + urgency * 320;
 beep(pan, freq, 0.14 + urgency * 0.05, isRight ? 'sine' : 'triangle');
-vibrate(currentVal > th*2 ? [80, 60, 80] : [70]);
+const vibePattern = isRight
+? (isHard ? [220] : [120])
+: (isHard ? [40, 30, 40, 30, 40, 30] : [50, 50, 50, 50]);
+vibrate(vibePattern);
 }
 }
 }
