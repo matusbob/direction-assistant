@@ -28,7 +28,9 @@ Open it on a phone over HTTPS (required for the compass/motion sensors) and gran
 - "What's nearby?" — checks your current GPS position against everything you've saved and lists any saved points within about 150m, closest first; tap one to start navigating to it immediately.
 - Requests a screen wake lock while walking, navigating a route, or recording one, so the phone's screen doesn't auto-lock and stop GPS/compass tracking mid-use (on browsers that support it). This does not fix the deeper platform limit that a web app's sensors stop entirely if it's minimized/backgrounded - keep it in the foreground while actively using it.
 - Hands-free launch: open the app with `?go=1` on the end of the URL (e.g. as a Siri Shortcut/Shortcuts.app action that opens that link) and it starts the straight-line walking assistant immediately, with no button press needed - first-run compass/location permission prompts still apply once per device.
+- Optional auto-start (off by default): a setting that starts the straight-line walking assistant as soon as the app opens - the same as `?go=1`, but it also works when you open the home-screen icon (which ignores URL tricks). If the phone refuses the compass permission without a tap (iOS can do this), the app says so out loud and on screen ("Press Start once") instead of silently waiting.
 - Installable as a home-screen app (PWA) and works offline.
+- Note for iPhone: Safari and the home-screen icon keep separate saved routes and settings, and Safari may clear a website's data if it isn't opened for about a week - the home-screen icon doesn't. Use the home-screen icon as your main way in, and export routes as GPX now and then as a backup. The icon always loads the latest version; right after an update the first launch can still show the previous one, so close and reopen it.
 
 ## Files
 - `index.html` — the current app (same as `smerasistentv3.html`, kept in sync so the link above always shows the latest version).
