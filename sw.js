@@ -1,4 +1,4 @@
-const CACHE = 'direction-assistant-v31';
+const CACHE = 'direction-assistant-v32';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
