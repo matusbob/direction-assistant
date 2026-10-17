@@ -285,6 +285,10 @@ flex:none;
 <input type="checkbox" id="autoStartOn">
 <label for="autoStartOn" style="margin:0;" id="lblAutoStart">Start the straight-line assistant automatically when the app opens</label>
 </div>
+<div class="toggle">
+<input type="checkbox" id="pauseOnLeave">
+<label for="pauseOnLeave" style="margin:0;" id="lblPauseOnLeave">Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back</label>
+</div>
 <div class="sliderrow" id="stepLengthRow">
 <label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
 <div class="sliderwrap">
@@ -393,6 +397,7 @@ lblRouteNotesOnly: "Skip automatic distance countdown during route navigation - 
 lblRecordVoiceFeedback: "Voice feedback while auto-recording",
 lblTotalDist: "Announce total distance to destination",
 lblAutoStart: "Start the straight-line assistant automatically when the app opens",
+lblPauseOnLeave: "Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back",
 autoStartNeedsTap: "Automatic start was not allowed by the phone. Press Start once.",
 autoTurnRightLive: "You turned right.", autoTurnLeftLive: "You turned left.", autoStraightProgress: "Straight,",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
@@ -480,6 +485,7 @@ lblRouteNotesOnly: "Počas navigácie trasy vynechať automatické odpočítavan
 lblRecordVoiceFeedback: "Hlasová spätná väzba počas automatického nahrávania",
 lblTotalDist: "Oznámiť celkovú vzdialenosť do cieľa",
 lblAutoStart: "Po otvorení aplikácie hneď spustiť asistenta rovného smeru",
+lblPauseOnLeave: "Vypnúť asistenta rovného smeru, keď odídem z aplikácie alebo zamknem telefón, a znova ho spustiť, keď sa vrátim",
 autoStartNeedsTap: "Telefón nepovolil automatické spustenie. Stlač raz Štart.",
 autoTurnRightLive: "Odbočil si doprava.", autoTurnLeftLive: "Odbočil si doľava.", autoStraightProgress: "Rovno,",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
@@ -567,6 +573,7 @@ document.getElementById('lblRouteNotesOnly').textContent = t('lblRouteNotesOnly'
 document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoiceFeedback');
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
+document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -641,6 +648,7 @@ const routeNotesOnly = document.getElementById('routeNotesOnly');
 const recordVoiceFeedback = document.getElementById('recordVoiceFeedback');
 const totalDistOn = document.getElementById('totalDistOn');
 const autoStartOn = document.getElementById('autoStartOn');
+const pauseOnLeave = document.getElementById('pauseOnLeave');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -689,6 +697,7 @@ let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime =
 let lastAcceptedGPSTime = -Infinity, lastPoorAccuracyWarnTime = -Infinity;
 
 let navMode = 'idle';
+let straightWatchId = null, resumeOnReturn = false;
 let navPaused = false;
 let headingHistory = [], lastCompassWarnTime = -Infinity;
 let driftSamples = [], driftSampleStart = 0, driftRefKey = null;
@@ -1501,7 +1510,7 @@ else { permMsg.textContent = t('errDenied'); return; }
 
 window.addEventListener('deviceorientation', handleOrientation, true);
 if(navigator.geolocation){
-navigator.geolocation.watchPosition(handleGPS, () => {
+straightWatchId = navigator.geolocation.watchPosition(handleGPS, () => {
 if(currentUnit() === 'meters' && lastLat === null){
 switchToDegreesFallback();
 permMsg.textContent = t('errNoGPS');
@@ -1625,9 +1634,32 @@ if(voiceMode.value !== 'off') speak(t('routeStopped'));
 }
 }
 
+// Used when the app starts the straight-line assistant without a button press
+// (auto-start, ?go=1, returning to the app). iOS may refuse the compass permission without a tap.
+async function autoStartStraight(){
+if(running || recording || navMode === 'route' || demoRunning) return;
+await start();
+if(!running){ permMsg.textContent = t('autoStartNeedsTap'); announceEvent(t('autoStartNeedsTap')); }
+}
+document.addEventListener('visibilitychange', () => {
+if(!pauseOnLeave.checked) return;
+if(document.visibilityState === 'hidden'){
+if(running && navMode !== 'route' && !recording && !demoRunning){
+resumeOnReturn = true;
+stop();
+// The stop summary would otherwise be spoken late, once the app is back in front
+if(window.speechSynthesis) speechSynthesis.cancel();
+}
+} else if(document.visibilityState === 'visible' && resumeOnReturn){
+resumeOnReturn = false;
+setTimeout(autoStartStraight, 400);
+}
+});
+
 function stop(){
 running = false;
 releaseWakeLock();
+if(straightWatchId !== null){ navigator.geolocation.clearWatch(straightWatchId); straightWatchId = null; }
 window.removeEventListener('deviceorientation', handleOrientation, true);
 clearTimeout(watchdog);
 if(navigator.vibrate) navigator.vibrate(0);
@@ -1758,6 +1790,7 @@ routeNotesOnly: routeNotesOnly.checked,
 recordVoiceFeedback: recordVoiceFeedback.checked,
 totalDistOn: totalDistOn.checked,
 autoStartOn: autoStartOn.checked,
+pauseOnLeave: pauseOnLeave.checked,
 distRange: distRange.value,
 stepLength: stepLength.value,
 obstacleMode: obstacleMode.checked,
@@ -1790,6 +1823,7 @@ if(typeof s.routeNotesOnly === 'boolean') routeNotesOnly.checked = s.routeNotesO
 if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.recordVoiceFeedback;
 if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
+if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.stepLength) stepLength.value = s.stepLength;
@@ -1816,6 +1850,7 @@ routeNotesOnly.addEventListener('change', saveSettings);
 recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
 autoStartOn.addEventListener('change', saveSettings);
+pauseOnLeave.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
 obstacleMode.addEventListener('change', saveSettings);
@@ -2461,10 +2496,7 @@ applyLang();
 const launchParams = new URLSearchParams(location.search);
 if((launchParams.get('go') === '1' || autoStartOn.checked) && !running && !recording){
 // iOS may refuse the compass permission without a tap; say so instead of silently sitting there
-setTimeout(async () => {
-await start();
-if(!running){ permMsg.textContent = t('autoStartNeedsTap'); announceEvent(t('autoStartNeedsTap')); }
-}, 400);
+setTimeout(autoStartStraight, 400);
 }
 })();
 </script>
