@@ -281,6 +281,10 @@ flex:none;
 <input type="checkbox" id="totalDistOn" checked>
 <label for="totalDistOn" style="margin:0;" id="lblTotalDist">Announce total distance to destination</label>
 </div>
+<div class="toggle">
+<input type="checkbox" id="autoStartOn">
+<label for="autoStartOn" style="margin:0;" id="lblAutoStart">Start the straight-line assistant automatically when the app opens</label>
+</div>
 <div class="sliderrow" id="stepLengthRow">
 <label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
 <div class="sliderwrap">
@@ -388,6 +392,8 @@ lblRouteCorrection: "Fine direction correction during route navigation",
 lblRouteNotesOnly: "Skip automatic distance countdown during route navigation - rely on my own point notes instead",
 lblRecordVoiceFeedback: "Voice feedback while auto-recording",
 lblTotalDist: "Announce total distance to destination",
+lblAutoStart: "Start the straight-line assistant automatically when the app opens",
+autoStartNeedsTap: "Automatic start was not allowed by the phone. Press Start once.",
 autoTurnRightLive: "You turned right.", autoTurnLeftLive: "You turned left.", autoStraightProgress: "Straight,",
 lblDemo: "Try at home (no walking needed)", demoStart: "Demo starting. Listen to the sounds and feel the vibrations for each direction.", demoEnd: "Demo finished.",
 lblRoutes: "Saved routes", routesTitle: "Saved routes", lblRecordRoute: "Record new route", lblRoutesClose: "Close",
@@ -473,6 +479,8 @@ lblRouteCorrection: "Jemná korekcia smeru počas navigácie trasy",
 lblRouteNotesOnly: "Počas navigácie trasy vynechať automatické odpočítavanie vzdialenosti - spoliehať sa na moje vlastné poznámky pri bodoch",
 lblRecordVoiceFeedback: "Hlasová spätná väzba počas automatického nahrávania",
 lblTotalDist: "Oznámiť celkovú vzdialenosť do cieľa",
+lblAutoStart: "Po otvorení aplikácie hneď spustiť asistenta rovného smeru",
+autoStartNeedsTap: "Telefón nepovolil automatické spustenie. Stlač raz Štart.",
 autoTurnRightLive: "Odbočil si doprava.", autoTurnLeftLive: "Odbočil si doľava.", autoStraightProgress: "Rovno,",
 lblDemo: "Vyskúšať doma (bez chôdze)", demoStart: "Spúšťam ukážku. Počúvaj zvuky a cíť vibrácie pre každý smer.", demoEnd: "Ukážka skončila.",
 lblRoutes: "Uložené trasy", routesTitle: "Uložené trasy", lblRecordRoute: "Nahrať novú trasu", lblRoutesClose: "Zavrieť",
@@ -558,6 +566,7 @@ document.getElementById('lblRouteCorrection').textContent = t('lblRouteCorrectio
 document.getElementById('lblRouteNotesOnly').textContent = t('lblRouteNotesOnly');
 document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoiceFeedback');
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
+document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -631,6 +640,7 @@ const routeCorrectionOn = document.getElementById('routeCorrectionOn');
 const routeNotesOnly = document.getElementById('routeNotesOnly');
 const recordVoiceFeedback = document.getElementById('recordVoiceFeedback');
 const totalDistOn = document.getElementById('totalDistOn');
+const autoStartOn = document.getElementById('autoStartOn');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -1747,6 +1757,7 @@ routeCorrectionOn: routeCorrectionOn.checked,
 routeNotesOnly: routeNotesOnly.checked,
 recordVoiceFeedback: recordVoiceFeedback.checked,
 totalDistOn: totalDistOn.checked,
+autoStartOn: autoStartOn.checked,
 distRange: distRange.value,
 stepLength: stepLength.value,
 obstacleMode: obstacleMode.checked,
@@ -1778,6 +1789,7 @@ if(typeof s.routeCorrectionOn === 'boolean') routeCorrectionOn.checked = s.route
 if(typeof s.routeNotesOnly === 'boolean') routeNotesOnly.checked = s.routeNotesOnly;
 if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.recordVoiceFeedback;
 if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
+if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.stepLength) stepLength.value = s.stepLength;
@@ -1803,6 +1815,7 @@ routeCorrectionOn.addEventListener('change', saveSettings);
 routeNotesOnly.addEventListener('change', saveSettings);
 recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
+autoStartOn.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
 obstacleMode.addEventListener('change', saveSettings);
@@ -2446,8 +2459,12 @@ loadSettings();
 applyLang();
 
 const launchParams = new URLSearchParams(location.search);
-if(launchParams.get('go') === '1' && !running && !recording){
-setTimeout(start, 400);
+if((launchParams.get('go') === '1' || autoStartOn.checked) && !running && !recording){
+// iOS may refuse the compass permission without a tap; say so instead of silently sitting there
+setTimeout(async () => {
+await start();
+if(!running){ permMsg.textContent = t('autoStartNeedsTap'); announceEvent(t('autoStartNeedsTap')); }
+}, 400);
 }
 })();
 </script>
