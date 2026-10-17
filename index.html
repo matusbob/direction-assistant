@@ -362,6 +362,7 @@ errNoSecure: "ERROR: Missing HTTPS lock. Compass blocked.",
 errPerm: "Requesting permission...", errGranted: "Permission granted.", errDenied: "Permission denied.",
 errTimeout: "Error: Browser not responding.", errNoData: "Failed to read compass. Check permissions.", errNoSensor: "Browser does not support compass.",
 errNoGPS: "GPS unavailable. Switched to degrees mode.",
+poorGpsAccuracy: "GPS signal is weak here, so distance tracking may be unreliable or stuck. If this keeps happening, try switching to degrees mode.",
 langBtn: "Slovenčina",
 voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
@@ -444,6 +445,7 @@ lblSound: "Pípanie pri vybočení", lblVibrate: "Vibrácie pri vybočení", lbl
 errNoSecure: "CHYBA: Chýba HTTPS zámok.", errPerm: "Žiadam o povolenie...", errGranted: "Povolenie udelené.", errDenied: "Povolenie zamietnuté.",
 errTimeout: "Chyba: Prehliadač neodpovedá.", errNoData: "Kompas sa nepodarilo prečítať.", errNoSensor: "Prehliadač nepodporuje kompas.",
 errNoGPS: "GPS nedostupné. Prepnuté na stupne.",
+poorGpsAccuracy: "GPS signál je tu slabý, odhad vzdialenosti môže byť nespoľahlivý alebo zaseknutý. Ak sa to opakuje, skús prepnúť na stupne.",
 langBtn: "English",
 voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard: "Silné",
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
@@ -649,6 +651,7 @@ let headingSupported = false, watchdog = null;
 let sliderSpeakTimer = null, pickerTrigger = null;
 
 let totalDistMeters = 0, distSinceTarget = 0, driftEventCount = 0, lastGPSTime = -Infinity, lastLat = null, lastLon = null, nextDistAnnounce = 0;
+let lastAcceptedGPSTime = -Infinity, lastPoorAccuracyWarnTime = -Infinity;
 
 let navMode = 'idle';
 let navPaused = false;
@@ -1065,7 +1068,17 @@ const now = performance.now();
 if(now - lastGPSTime < 3000) return;
 lastGPSTime = now;
 const c = pos.coords;
-if(c.accuracy > 20) return;
+if(c.accuracy > 20){
+const needsGPSDistance = navMode === 'route' || currentUnit() === 'meters';
+if(needsGPSDistance && now - lastAcceptedGPSTime > 15000 && now - lastPoorAccuracyWarnTime > 30000){
+lastPoorAccuracyWarnTime = now;
+permMsg.textContent = t('poorGpsAccuracy');
+announceEvent(t('poorGpsAccuracy'));
+if(voiceMode.value !== 'off') speak(t('poorGpsAccuracy'));
+}
+return;
+}
+lastAcceptedGPSTime = now;
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
@@ -1388,6 +1401,7 @@ permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
 totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = -Infinity;
+lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 nextDistAnnounce = parseInt(distRange.value, 10);
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); return; }
@@ -1453,6 +1467,7 @@ holdingStraight = false;
 straightTargetHeading = null;
 navMode = 'route';
 totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = -Infinity;
+lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 permMsg.textContent = '';
 
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); navMode = 'idle'; return; }
