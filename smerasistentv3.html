@@ -221,6 +221,19 @@ flex:none;
 <div class="rowval" aria-hidden="true"><span id="lblPrecise2">Precise</span><span id="thresholdMetVal">5m</span><span id="lblLoose2">Loose</span></div>
 </div>
 
+<div class="toggle">
+<input type="checkbox" id="obstacleMode">
+<label for="obstacleMode" style="margin:0;" id="lblObstacleMode">Obstacle mode: ignore short sidesteps (e.g. walking around parked cars) and only warn if your average direction stays off</label>
+</div>
+<div class="sliderrow" id="obstacleWindowRow">
+<label for="obstacleWindow" id="lblObstacleWindow">How long a drift must last before warning (seconds)</label>
+<div class="sliderwrap">
+<input type="range" id="obstacleWindow" min="2" max="10" step="1" value="5" disabled aria-valuetext="5 seconds">
+<button type="button" class="menubtn" id="menuBtnObstacle" aria-haspopup="dialog" disabled><span id="lblMenu5">Menu</span></button>
+</div>
+<div class="rowval" aria-hidden="true"><span>2s</span><span id="obstacleWindowVal">5s</span><span>10s</span></div>
+</div>
+
 <label for="voiceMode" id="lblVoice">Voice output mode ("Teta")</label>
 <select id="voiceMode">
 <option value="off">Off</option>
@@ -363,6 +376,8 @@ errPerm: "Requesting permission...", errGranted: "Permission granted.", errDenie
 errTimeout: "Error: Browser not responding.", errNoData: "Failed to read compass. Check permissions.", errNoSensor: "Browser does not support compass.",
 errNoGPS: "GPS unavailable. Switched to degrees mode.",
 poorGpsAccuracy: "GPS signal is weak here, so distance tracking may be unreliable or stuck. If this keeps happening, try switching to degrees mode.",
+lblObstacleMode: "Obstacle mode: ignore short sidesteps (e.g. walking around parked cars) and only warn if your average direction stays off",
+lblObstacleWindow: "How long a drift must last before warning (seconds)", secondsWord: "seconds",
 langBtn: "Slovenčina",
 voiceDriftR: "Drift right", voiceDriftL: "Drift left", voiceHard: "Hard",
 statDist: "Distance walked", statAvg: "Average drift", statMeters: "meters",
@@ -446,6 +461,8 @@ errNoSecure: "CHYBA: Chýba HTTPS zámok.", errPerm: "Žiadam o povolenie...", e
 errTimeout: "Chyba: Prehliadač neodpovedá.", errNoData: "Kompas sa nepodarilo prečítať.", errNoSensor: "Prehliadač nepodporuje kompas.",
 errNoGPS: "GPS nedostupné. Prepnuté na stupne.",
 poorGpsAccuracy: "GPS signál je tu slabý, odhad vzdialenosti môže byť nespoľahlivý alebo zaseknutý. Ak sa to opakuje, skús prepnúť na stupne.",
+lblObstacleMode: "Režim medzi prekážkami: ignorovať krátke uhnutia (napr. obchádzanie áut) a upozorniť, len keď sa tvoj priemerný smer dlhšie odkláňa",
+lblObstacleWindow: "Ako dlho musí vybočenie trvať, kým upozorním (sekundy)", secondsWord: "sekúnd",
 langBtn: "English",
 voiceDriftR: "Vybočenie doprava", voiceDriftL: "Vybočenie doľava", voiceHard: "Silné",
 statDist: "Prejdenej vzdialenosti", statAvg: "Priemerné vybočenie", statMeters: "metrov",
@@ -549,6 +566,10 @@ document.getElementById('lblManualHoldDone').textContent = t('lblManualHoldDone'
 document.getElementById('lblStepEstimate').textContent = t('lblStepEstimate');
 document.getElementById('lblStepLength').textContent = t('lblStepLength');
 document.getElementById('lblMenu4').textContent = t('lblMenu');
+document.getElementById('lblObstacleMode').textContent = t('lblObstacleMode');
+document.getElementById('lblObstacleWindow').textContent = t('lblObstacleWindow');
+document.getElementById('lblMenu5').textContent = t('lblMenu');
+obstacleWindow.setAttribute('aria-valuetext', obstacleWindow.value + ' ' + t('secondsWord'));
 stepLength.setAttribute('aria-valuetext', stepLength.value + ' ' + t('optMet'));
 document.getElementById('lblDemo').textContent = t('lblDemo');
 document.getElementById('lblRoutes').textContent = t('lblRoutes');
@@ -616,6 +637,10 @@ const menuBtnDist = document.getElementById('menuBtnDist');
 const stepLength = document.getElementById('stepLength');
 const stepLengthVal = document.getElementById('stepLengthVal');
 const menuBtnStep = document.getElementById('menuBtnStep');
+const obstacleMode = document.getElementById('obstacleMode');
+const obstacleWindow = document.getElementById('obstacleWindow');
+const obstacleWindowVal = document.getElementById('obstacleWindowVal');
+const menuBtnObstacle = document.getElementById('menuBtnObstacle');
 const demoBtn = document.getElementById('demoBtn');
 const routesBtn = document.getElementById('routesBtn');
 const nearbyBtn = document.getElementById('nearbyBtn');
@@ -656,6 +681,7 @@ let lastAcceptedGPSTime = -Infinity, lastPoorAccuracyWarnTime = -Infinity;
 let navMode = 'idle';
 let navPaused = false;
 let headingHistory = [], lastCompassWarnTime = -Infinity;
+let driftSamples = [], driftSampleStart = 0, driftRefKey = null;
 let activeRoute = null, activeRouteTurns = [], activeRouteLegDistances = [], routeIndex = 0, currentBearing = null, lastRouteAnnounce = 0, lastTotalDistAnnounce = 0, routeWatchId = null;
 let holdingStraight = false, straightTargetHeading = null;
 let stepCount = 0, lastStepTime = -Infinity, stepEstimateActive = false, motionPermissionDenied = false;
@@ -704,6 +730,16 @@ distVal.textContent = distRange.value + 'm';
 distRange.setAttribute('aria-valuetext', distRange.value + ' ' + t('optMet'));
 beep(0, 500, 0.05);
 speakSliderValue(distRange.value + 'm');
+});
+obstacleWindow.addEventListener('input', () => {
+obstacleWindowVal.textContent = obstacleWindow.value + 's';
+obstacleWindow.setAttribute('aria-valuetext', obstacleWindow.value + ' ' + t('secondsWord'));
+beep(0, 500, 0.05);
+speakSliderValue(obstacleWindow.value + ' ' + t('secondsWord'));
+});
+obstacleMode.addEventListener('change', () => {
+obstacleWindow.disabled = !obstacleMode.checked;
+menuBtnObstacle.disabled = !obstacleMode.checked;
 });
 stepLength.addEventListener('input', () => {
 stepLengthVal.textContent = stepLength.value + 'm';
@@ -759,6 +795,13 @@ openPicker(menuBtnDist, [1,2,3,4,5,6,7,8,9,10,15,20,50], 'm', (v) => {
 distRange.value = v;
 distRange.dispatchEvent(new Event('input'));
 distRange.dispatchEvent(new Event('change'));
+});
+});
+menuBtnObstacle.addEventListener('click', () => {
+openPicker(menuBtnObstacle, [2,3,4,5,6,8,10], 's', (v) => {
+obstacleWindow.value = v;
+obstacleWindow.dispatchEvent(new Event('input'));
+obstacleWindow.dispatchEvent(new Event('change'));
 });
 });
 menuBtnStep.addEventListener('click', () => {
@@ -973,7 +1016,35 @@ const diff = angleDiff(h, targetHeading);
 processDrift(diff);
 }
 
+function smoothDriftForObstacles(diff){
+const now = performance.now();
+const refKey = navMode === 'route' ? ('r' + routeIndex + (holdingStraight ? 's' + straightTargetHeading : '')) : ('t' + targetHeading);
+if(refKey !== driftRefKey){
+driftRefKey = refKey;
+driftSamples = [];
+driftSampleStart = now;
+}
+const ignoreMs = (parseInt(obstacleWindow.value, 10) || 5) * 1000;
+// Median over a 2x window: a sidestep shorter than ignoreMs can never be the majority of
+// the window, so it's ignored outright; a drift lasting longer always wins. (A mean would
+// only dilute a short sharp sidestep, which can still cross the threshold.)
+const windowMs = ignoreMs * 2;
+driftSamples.push({ d: diff, t: now });
+while(driftSamples.length && now - driftSamples[0].t > windowMs) driftSamples.shift();
+if(now - driftSampleStart < ignoreMs) return 0;
+// Center on the circular mean first so readings straddling +/-180 (facing backwards)
+// can't median out to "on track".
+let sn = 0, cs = 0;
+driftSamples.forEach((x) => { sn += Math.sin(x.d * Math.PI / 180); cs += Math.cos(x.d * Math.PI / 180); });
+const mean = Math.atan2(sn, cs) * 180 / Math.PI;
+const devs = driftSamples.map((x) => angleDiff(x.d, mean)).sort((a, b) => a - b);
+const mid = devs.length >> 1;
+const med = devs.length % 2 ? devs[mid] : (devs[mid - 1] + devs[mid]) / 2;
+return angleDiff(mean + med, 0);
+}
+
 function processDrift(diff){
+if(obstacleMode.checked && !demoRunning) diff = smoothDriftForObstacles(diff);
 const absDiff = Math.abs(diff);
 const now = performance.now();
 const mode = navMode === 'route' ? 'degrees' : currentUnit();
@@ -1400,7 +1471,7 @@ async function start(){
 permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
-totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = -Infinity;
+totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = -Infinity; driftRefKey = null;
 lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 nextDistAnnounce = parseInt(distRange.value, 10);
 
@@ -1466,7 +1537,7 @@ offRouteFlag = false;
 holdingStraight = false;
 straightTargetHeading = null;
 navMode = 'route';
-totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = -Infinity;
+totalDistMeters = 0; distSinceTarget = 0; lastLat = null; lastGPSTime = -Infinity; driftRefKey = null;
 lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 permMsg.textContent = '';
 
@@ -1678,6 +1749,8 @@ recordVoiceFeedback: recordVoiceFeedback.checked,
 totalDistOn: totalDistOn.checked,
 distRange: distRange.value,
 stepLength: stepLength.value,
+obstacleMode: obstacleMode.checked,
+obstacleWindow: obstacleWindow.value,
 lang: lang
 }));
 }catch(e){}
@@ -1708,6 +1781,11 @@ if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.stepLength) stepLength.value = s.stepLength;
+if(typeof s.obstacleMode === 'boolean') obstacleMode.checked = s.obstacleMode;
+if(s.obstacleWindow) obstacleWindow.value = s.obstacleWindow;
+obstacleWindow.disabled = !obstacleMode.checked;
+menuBtnObstacle.disabled = !obstacleMode.checked;
+obstacleWindowVal.textContent = obstacleWindow.value + 's';
 stepLengthVal.textContent = stepLength.value + 'm';
 if(s.lang === 'sk' || s.lang === 'en') lang = s.lang;
 }catch(e){}
@@ -1727,6 +1805,8 @@ recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
+obstacleMode.addEventListener('change', saveSettings);
+obstacleWindow.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
 window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
