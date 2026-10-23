@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="app-id" content="direction-assistant">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Direction Assistant</title>
 <link rel="manifest" href="manifest.json">
@@ -421,11 +422,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 38</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
+// Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
+const APP_VERSION = 38;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -470,7 +473,7 @@ optOffRouteAuto: "Automatically (as before)",
 quickBarTitle: "Quick actions", lblWhereAmI: "Where am I?", lblRepeatLast: "Repeat last announcement",
 lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share my location",
 lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
-lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
+versionWord: "Version", lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
 lblLiveLocation: "Keep \"My location\" updated even when I'm not walking or navigating (uses GPS and internet)",
 myLocationPrefix: "My location:", myLocationUnknown: "My location: not known yet. Press Where am I?",
@@ -580,7 +583,7 @@ optOffRouteAuto: "Automaticky (ako doteraz)",
 quickBarTitle: "Rýchle akcie", lblWhereAmI: "Kde som?", lblRepeatLast: "Zopakovať posledné hlásenie",
 lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať moju polohu",
 lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
-lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
+versionWord: "Verzia", lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
 lblLiveLocation: "Priebežne aktualizovať „Moja poloha“, aj keď práve nekráčam ani nenavigujem (používa GPS a internet)",
 myLocationPrefix: "Moja poloha:", myLocationUnknown: "Moja poloha: zatiaľ neznáma. Stlačte Kde som?",
@@ -686,6 +689,7 @@ document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
 ['lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblWhereAmI','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
 document.getElementById('historyTitle').textContent = t('lblHistory');
@@ -2414,7 +2418,11 @@ obstacleMode.addEventListener('change', saveSettings);
 obstacleWindow.addEventListener('change', saveSettings);
 
 if('serviceWorker' in navigator){
-window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+// Check for a new version on every launch and each time the app comes back to the front
+reg.update().catch(() => {});
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') reg.update().catch(() => {}); });
+}).catch(() => {}); });
 }
 
 const NOTES_KEY = 'directionAssistantNoteList';
