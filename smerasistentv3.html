@@ -146,6 +146,17 @@ font-size:1rem; font-weight:600; cursor:pointer;
 }
 .demobtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
 .demobtn:disabled{opacity:0.4; cursor:not-allowed;}
+.quickbar{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 20px;}
+.quickbar[hidden], .quickbtn[hidden]{display:none;}
+.quickbar-title{grid-column:1 / -1; font-size:0.95rem; color:var(--muted); margin:0;}
+.quickbtn{min-height:52px; background:var(--panel); color:var(--text); border:1px solid #2c3340; border-radius:12px; font-size:0.95rem; font-weight:600; padding:8px;}
+.quickbtn[aria-pressed="true"]{border-color:var(--ok); color:var(--ok);}
+.quickbtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+.quickbtn:disabled{opacity:0.4;}
+#quickResult{font-size:0.95rem; margin:-12px 0 20px; line-height:1.4;}
+.history-item{font-size:1rem; font-weight:400; margin:0 0 10px; padding:10px; border:1px solid #2c3340; border-radius:10px;}
+#osmAttrib{font-size:0.75rem; color:var(--muted); margin-top:6px;}
+#osmAttrib a{color:var(--muted);}
 #permMsg{font-size:0.85rem; color:var(--warn); margin-top:10px;}
 #log{font-size:0.8rem; color:var(--muted); margin-top:10px; line-height:1.5;}
 footer{
@@ -184,6 +195,18 @@ flex:none;
 </div>
 
 <button type="button" id="manualHoldDoneBtn" class="demobtn" hidden><span id="lblManualHoldDone">Done with this stretch</span></button>
+
+<div id="quickBar" class="quickbar" role="group" aria-labelledby="quickBarTitle">
+<h2 id="quickBarTitle" class="quickbar-title">Quick actions</h2>
+<button type="button" id="whereAmIBtn" class="quickbtn"><span id="lblWhereAmI">Where am I?</span></button>
+<button type="button" id="repeatLastBtn" class="quickbtn"><span id="lblRepeatLast">Repeat last announcement</span></button>
+<button type="button" id="historyBtn" class="quickbtn"><span id="lblHistory">Announcement history</span></button>
+<button type="button" id="compassBtn" class="quickbtn" aria-pressed="false"><span id="lblCompass">Compass</span></button>
+<button type="button" id="shareLocBtn" class="quickbtn"><span id="lblShareLoc">Share my location</span></button>
+<button type="button" id="savePlaceBtn" class="quickbtn"><span id="lblSavePlace">Save this place</span></button>
+<button type="button" id="routePointsBtn" class="quickbtn" hidden><span id="lblRoutePoints">Route points</span></button>
+</div>
+<div id="quickResult"></div>
 
 <div id="permMsg" role="alert"></div>
 <div id="log" aria-hidden="true"></div>
@@ -274,6 +297,19 @@ flex:none;
 <label for="routeNotesOnly" style="margin:0;" id="lblRouteNotesOnly">Skip automatic distance countdown during route navigation - rely on my own point notes instead</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="fastGps">
+<label for="fastGps" style="margin:0;" id="lblFastGps">Faster position updates (every second instead of every 3 seconds, uses more battery)</label>
+</div>
+<label for="offRouteDist" id="lblOffRouteDist">Warn that I'm leaving the route once I've walked away from the next point by</label>
+<select id="offRouteDist">
+<option value="auto" selected>Automatically (as before)</option>
+<option value="5">5 m</option>
+<option value="10">10 m</option>
+<option value="15">15 m</option>
+<option value="20">20 m</option>
+<option value="30">30 m</option>
+</select>
+<div class="toggle">
 <input type="checkbox" id="recordVoiceFeedback" checked>
 <label for="recordVoiceFeedback" style="margin:0;" id="lblRecordVoiceFeedback">Voice feedback while auto-recording</label>
 </div>
@@ -288,6 +324,10 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="pauseOnLeave">
 <label for="pauseOnLeave" style="margin:0;" id="lblPauseOnLeave">Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="showQuickBar" checked>
+<label for="showQuickBar" style="margin:0;" id="lblShowQuickBar">Show quick action buttons on the main screen (where am I, repeat, compass, share...)</label>
 </div>
 <div class="sliderrow" id="stepLengthRow">
 <label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
@@ -343,6 +383,10 @@ flex:none;
 <h2 id="recordTitle">Recording route</h2>
 <div id="recordAutoHint" class="rowval" style="margin-bottom:10px;"></div>
 <div id="recordStatus" class="rowval" style="margin-bottom:14px;"></div>
+<div class="quickbar">
+<button type="button" id="recWhereAmIBtn" class="quickbtn"><span id="lblRecWhereAmI">Where am I?</span></button>
+<button type="button" id="recRepeatBtn" class="quickbtn"><span id="lblRecRepeat">Repeat last announcement</span></button>
+</div>
 <button type="button" id="nextNoteBtn" class="picker-item" style="width:100%; margin-bottom:10px;" hidden></button>
 <button type="button" id="markPointBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblMarkPoint">Mark point here</span></button>
 <button type="button" id="markStraightBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblStraightSegment2">Straight segment</span></button>
@@ -353,8 +397,25 @@ flex:none;
 </div>
 </div>
 
+<div id="historyOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+<h2 id="historyTitle" tabindex="-1">Announcement history</h2>
+<div id="historyList" class="picker-list"></div>
+<button type="button" id="historyCloseBtn" class="picker-close"><span id="lblHistoryClose">Close</span></button>
+</div>
+</div>
+
+<div id="routePointsOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routePointsTitle">
+<h2 id="routePointsTitle" tabindex="-1">Route points</h2>
+<div id="routePointsList" class="picker-list"></div>
+<button type="button" id="routePointsCloseBtn" class="picker-close"><span id="lblRoutePointsClose">Close</span></button>
+</div>
+</div>
+
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
+<div id="osmAttrib"><span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
@@ -396,6 +457,24 @@ lblRouteCorrection: "Fine direction correction during route navigation",
 lblRouteNotesOnly: "Skip automatic distance countdown during route navigation - rely on my own point notes instead",
 lblRecordVoiceFeedback: "Voice feedback while auto-recording",
 lblTotalDist: "Announce total distance to destination",
+lblShowQuickBar: "Show quick action buttons on the main screen (where am I, repeat, compass, share...)",
+lblFastGps: "Faster position updates (every second instead of every 3 seconds, uses more battery)",
+lblOffRouteDist: "Warn that I'm leaving the route once I've walked away from the next point by",
+optOffRouteAuto: "Automatically (as before)",
+quickBarTitle: "Quick actions", lblWhereAmI: "Where am I?", lblRepeatLast: "Repeat last announcement",
+lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share my location",
+lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
+lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
+noAnnouncementsYet: "No announcements yet.",
+compassOn: "Compass on. Turn the phone and I'll tell you the direction.", compassOff: "Compass off.",
+dirN: "North", dirNE: "North-east", dirE: "East", dirSE: "South-east", dirS: "South", dirSW: "South-west", dirW: "West", dirNW: "North-west",
+locating: "Finding your location...", placePrefix: "Location:", facing: "Facing",
+gpsAccuracy: "Location accuracy about {n} m.", addressUnavailable: "Couldn't look up the address (maybe no internet).",
+nearestSaved: "Nearest saved point: {label}, {n} m.",
+locationReadyShare: "Location found. Press Share my location again to send it.",
+shareTitle: "My location", linkCopied: "Location link copied. Paste it into a message.",
+shareUnavailable: "Sharing isn't available here. The link is shown on screen.",
+pointOf: "Point {i} of {n}", pointPassed: "passed", pointCurrent: "current target", targetChanged: "New target:",
 lblAutoStart: "Start the straight-line assistant automatically when the app opens",
 lblPauseOnLeave: "Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back",
 autoStartNeedsTap: "Automatic start was not allowed by the phone. Press Start once.",
@@ -484,6 +563,24 @@ lblRouteCorrection: "Jemná korekcia smeru počas navigácie trasy",
 lblRouteNotesOnly: "Počas navigácie trasy vynechať automatické odpočítavanie vzdialenosti - spoliehať sa na moje vlastné poznámky pri bodoch",
 lblRecordVoiceFeedback: "Hlasová spätná väzba počas automatického nahrávania",
 lblTotalDist: "Oznámiť celkovú vzdialenosť do cieľa",
+lblShowQuickBar: "Zobraziť rýchle tlačidlá na hlavnej obrazovke (kde som, zopakovať, kompas, zdieľať…)",
+lblFastGps: "Rýchlejšie aktualizácie polohy (každú sekundu namiesto každé 3 sekundy, viac míňa batériu)",
+lblOffRouteDist: "Upozorniť, že sa vzďaľujem od trasy, keď sa od ďalšieho bodu vzdialim o",
+optOffRouteAuto: "Automaticky (ako doteraz)",
+quickBarTitle: "Rýchle akcie", lblWhereAmI: "Kde som?", lblRepeatLast: "Zopakovať posledné hlásenie",
+lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať moju polohu",
+lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
+lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
+noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
+compassOn: "Kompas zapnutý. Otáčajte telefónom a poviem vám smer.", compassOff: "Kompas vypnutý.",
+dirN: "Sever", dirNE: "Severovýchod", dirE: "Východ", dirSE: "Juhovýchod", dirS: "Juh", dirSW: "Juhozápad", dirW: "Západ", dirNW: "Severozápad",
+locating: "Zisťujem polohu...", placePrefix: "Poloha:", facing: "Smerujete na",
+gpsAccuracy: "Presnosť polohy asi {n} m.", addressUnavailable: "Adresu sa nepodarilo zistiť (možno nie je internet).",
+nearestSaved: "Najbližší uložený bod: {label}, {n} m.",
+locationReadyShare: "Poloha zistená. Stlačte ešte raz Zdieľať moju polohu a pošlite ju.",
+shareTitle: "Moja poloha", linkCopied: "Odkaz na polohu je skopírovaný. Vložte ho do správy.",
+shareUnavailable: "Zdieľanie tu nie je dostupné. Odkaz je zobrazený na obrazovke.",
+pointOf: "Bod {i} z {n}", pointPassed: "prejdený", pointCurrent: "aktuálny cieľ", targetChanged: "Nový cieľ:",
 lblAutoStart: "Po otvorení aplikácie hneď spustiť asistenta rovného smeru",
 lblPauseOnLeave: "Vypnúť asistenta rovného smeru, keď odídem z aplikácie alebo zamknem telefón, a znova ho spustiť, keď sa vrátim",
 autoStartNeedsTap: "Telefón nepovolil automatické spustenie. Stlač raz Štart.",
@@ -574,6 +671,15 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
+['lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblWhereAmI','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
+document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
+document.getElementById('historyTitle').textContent = t('lblHistory');
+document.getElementById('routePointsTitle').textContent = t('lblRoutePoints');
+document.getElementById('lblHistoryClose').textContent = t('close');
+document.getElementById('lblRoutePointsClose').textContent = t('close');
+document.querySelector('#osmAttrib a').textContent = t('osmContrib');
+offRouteDist.options[0].text = t('optOffRouteAuto');
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -649,6 +755,26 @@ const recordVoiceFeedback = document.getElementById('recordVoiceFeedback');
 const totalDistOn = document.getElementById('totalDistOn');
 const autoStartOn = document.getElementById('autoStartOn');
 const pauseOnLeave = document.getElementById('pauseOnLeave');
+const showQuickBar = document.getElementById('showQuickBar');
+const fastGps = document.getElementById('fastGps');
+const offRouteDist = document.getElementById('offRouteDist');
+const quickBar = document.getElementById('quickBar');
+const quickResult = document.getElementById('quickResult');
+const whereAmIBtn = document.getElementById('whereAmIBtn');
+const repeatLastBtn = document.getElementById('repeatLastBtn');
+const historyBtn = document.getElementById('historyBtn');
+const compassBtn = document.getElementById('compassBtn');
+const shareLocBtn = document.getElementById('shareLocBtn');
+const savePlaceBtn = document.getElementById('savePlaceBtn');
+const routePointsBtn = document.getElementById('routePointsBtn');
+const recWhereAmIBtn = document.getElementById('recWhereAmIBtn');
+const recRepeatBtn = document.getElementById('recRepeatBtn');
+const historyOverlay = document.getElementById('historyOverlay');
+const historyList = document.getElementById('historyList');
+const historyCloseBtn = document.getElementById('historyCloseBtn');
+const routePointsOverlay = document.getElementById('routePointsOverlay');
+const routePointsList = document.getElementById('routePointsList');
+const routePointsCloseBtn = document.getElementById('routePointsCloseBtn');
 const distRange = document.getElementById('distRange');
 const distVal = document.getElementById('distVal');
 const menuBtnDist = document.getElementById('menuBtnDist');
@@ -698,6 +824,10 @@ let lastAcceptedGPSTime = -Infinity, lastPoorAccuracyWarnTime = -Infinity;
 
 let navMode = 'idle';
 let straightWatchId = null, resumeOnReturn = false;
+const announceHistory = [];
+let lastFix = null, quickBusy = false;
+let compassOn = false, compassHeading = null, compassSector = null, compassPending = null, compassTimer = null;
+let minDistToTarget = null, offRoutePeak = 0;
 let navPaused = false;
 let headingHistory = [], lastCompassWarnTime = -Infinity;
 let driftSamples = [], driftSampleStart = 0, driftRefKey = null;
@@ -912,7 +1042,11 @@ statusText.textContent = main;
 statusSub.textContent = sub;
 }
 
-function announceEvent(text){
+function announceEvent(text, skipHistory){
+if(text && !skipHistory){
+announceHistory.push({ text: text, time: new Date() });
+if(announceHistory.length > 100) announceHistory.shift();
+}
 eventAnnouncer.textContent = '';
 window.setTimeout(() => { eventAnnouncer.textContent = text; }, 30);
 }
@@ -1155,7 +1289,7 @@ vibrate(vibePattern);
 function handleGPS(pos){
 if(!running) return;
 const now = performance.now();
-if(now - lastGPSTime < 3000) return;
+if(now - lastGPSTime < (fastGps.checked ? 900 : 3000)) return;
 lastGPSTime = now;
 const c = pos.coords;
 if(c.accuracy > 20){
@@ -1169,6 +1303,7 @@ if(voiceMode.value !== 'off') speak(t('poorGpsAccuracy'));
 return;
 }
 lastAcceptedGPSTime = now;
+lastFix = { lat: c.latitude, lon: c.longitude, acc: c.accuracy, time: now, address: null };
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
@@ -1239,14 +1374,14 @@ holdingStraight = false;
 manualHoldDoneBtn.hidden = true;
 currentBearing = null;
 lastRouteAnnounceDist = null;
-lastDistToTarget = null;
+lastDistToTarget = null; minDistToTarget = null;
 offRouteStreak = 0;
 offRouteFlag = false;
 }
 }
 
 function advanceFromGpsFreeSegment(){
-offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; minDistToTarget = null; lastRouteAnnounceDist = null;
 const nextIndex = routeIndex + 1;
 
 if(nextIndex >= activeRoute.waypoints.length){
@@ -1382,7 +1517,29 @@ const talk = voiceMode.value !== 'off';
 const announceInterval = parseInt(distRange.value, 10) || 10;
 announceTotalRemaining(dist);
 
-if(lastDistToTarget !== null){
+const offRouteMeters = offRouteDist.value !== 'auto' ? parseInt(offRouteDist.value, 10) : (fastGps.checked ? 8 : 0);
+if(offRouteMeters){
+// Distance-based: warn once you're this many meters further from the next point than the closest you've been
+if(minDistToTarget === null || dist < minDistToTarget) minDistToTarget = dist;
+if(!offRouteFlag && dist - minDistToTarget >= offRouteMeters){
+offRouteFlag = true;
+offRoutePeak = dist;
+playChime('offroute');
+announceEvent(t('offRoute'));
+if(talk) speak(t('offRoute'));
+chimeVibrate([200, 100, 200]);
+} else if(offRouteFlag){
+if(dist > offRoutePeak) offRoutePeak = dist;
+if(dist <= offRoutePeak - Math.max(2, offRouteMeters / 2)){
+offRouteFlag = false;
+minDistToTarget = dist;
+playChime('backonroute');
+announceEvent(t('backOnRoute'));
+if(talk) speak(t('backOnRoute'));
+chimeVibrate([60, 40, 60]);
+}
+}
+} else if(lastDistToTarget !== null){
 if(dist > lastDistToTarget + 2){
 offRouteStreak++;
 } else {
@@ -1409,7 +1566,7 @@ const ARRIVE_THRESHOLD = 10;
 if(dist <= ARRIVE_THRESHOLD){
 const turnType = activeRouteTurns[routeIndex];
 const nextIndex = routeIndex + 1;
-offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; lastRouteAnnounceDist = null;
+offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; minDistToTarget = null; lastRouteAnnounceDist = null;
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
@@ -1449,7 +1606,9 @@ if(routeNotesOnly.checked) return;
 
 if(lastRouteAnnounceDist === null || Math.abs(dist - lastRouteAnnounceDist) >= announceInterval){
 lastRouteAnnounceDist = dist;
-const msg = Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
+// With fast updates and a 1-4 m interval, say just the number between the 10 m marks so speech keeps up
+const shortForm = fastGps.checked && announceInterval < 5 && Math.round(dist) % 10 !== 0;
+const msg = shortForm ? Math.round(dist) + "m" : Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
 announceEvent(msg);
 if(talk) speak(msg);
 announce(wp.label, msg);
@@ -1550,7 +1709,7 @@ currentBearing = null;
 lastRouteAnnounce = 0;
 lastRouteAnnounceDist = null;
 awaitingTurnConfirm = null;
-lastDistToTarget = null;
+lastDistToTarget = null; minDistToTarget = null;
 offRouteStreak = 0;
 offRouteFlag = false;
 holdingStraight = false;
@@ -1591,6 +1750,7 @@ demoBtn.disabled = true;
 routesBtn.disabled = true;
 nearbyBtn.disabled = true;
 statusBox.className = 'status ok';
+routePointsBtn.hidden = false;
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
 announceEvent(t('routeNavStart') + ".");
@@ -1625,6 +1785,8 @@ statusBox.className = 'status off';
 activeRoute = null;
 holdingStraight = false;
 manualHoldDoneBtn.hidden = true;
+routePointsBtn.hidden = true;
+if(!routePointsOverlay.hidden) closeRoutePoints();
 navPaused = false;
 
 if(!finished){
@@ -1632,6 +1794,272 @@ announceEvent(t('routeStopped') + '. ' + t('stoppedSub'));
 announce(t('routeStopped'), t('stoppedSub'));
 if(voiceMode.value !== 'off') speak(t('routeStopped'));
 }
+}
+
+
+// ---------- Quick actions: repeat / history ----------
+function repeatLastAnnouncement(){
+const last = announceHistory[announceHistory.length - 1];
+const text = last ? last.text : t('noAnnouncementsYet');
+announceEvent(text, true);
+if(voiceMode.value !== 'off') speak(text);
+}
+let historyTrigger = null;
+function openHistory(trigger){
+historyTrigger = trigger || historyBtn;
+historyList.innerHTML = '';
+if(!announceHistory.length){
+const p = document.createElement('div');
+p.className = 'rowval';
+p.textContent = t('noAnnouncementsYet');
+historyList.appendChild(p);
+}
+// Newest first; each entry is a heading so the VoiceOver rotor (Headings) can step through them
+for(let i = announceHistory.length - 1; i >= 0; i--){
+const item = announceHistory[i];
+const h = document.createElement('h3');
+h.className = 'history-item';
+h.textContent = item.time.toLocaleTimeString(lang === 'sk' ? 'sk-SK' : 'en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' - ' + item.text;
+historyList.appendChild(h);
+}
+historyOverlay.hidden = false;
+document.getElementById('historyTitle').focus();
+}
+function closeHistory(){
+historyOverlay.hidden = true;
+if(historyTrigger) historyTrigger.focus();
+}
+
+// ---------- Compass ----------
+const DIR_KEYS = ['dirN', 'dirNE', 'dirE', 'dirSE', 'dirS', 'dirSW', 'dirW', 'dirNW'];
+function headingToSector(h){ return Math.round(((h % 360) + 360) % 360 / 45) % 8; }
+function directionWord(h){ return t(DIR_KEYS[headingToSector(h)]); }
+function currentKnownHeading(){
+if(compassOn && compassHeading !== null) return compassHeading;
+if(running && lastHeading !== null) return lastHeading;
+return null;
+}
+function handleCompass(e){
+const h = getHeading(e);
+if(h === null) return;
+compassHeading = h;
+let sector = headingToSector(h);
+// Hysteresis: stay in the current direction until clearly past its edge, so it doesn't flip-flop on a boundary
+if(compassSector !== null && sector !== compassSector && Math.abs(angleDiff(h, compassSector * 45)) < 22.5 + 8) sector = compassSector;
+if(sector === compassSector){
+if(compassPending !== null){ clearTimeout(compassTimer); compassPending = null; }
+return;
+}
+if(sector === compassPending) return;
+compassPending = sector;
+clearTimeout(compassTimer);
+// Announce only once the phone settles, not every direction swept past while turning
+compassTimer = setTimeout(() => {
+compassSector = compassPending;
+compassPending = null;
+const w = t(DIR_KEYS[compassSector]);
+announceEvent(w, true);
+if(voiceMode.value !== 'off') speak(w);
+}, 350);
+}
+async function toggleCompass(){
+if(compassOn){
+compassOn = false;
+window.removeEventListener('deviceorientation', handleCompass, true);
+clearTimeout(compassTimer);
+compassSector = null; compassPending = null; compassHeading = null;
+compassBtn.setAttribute('aria-pressed', 'false');
+announceEvent(t('compassOff'));
+if(voiceMode.value !== 'off') speak(t('compassOff'));
+return;
+}
+if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+try{
+const res = await DeviceOrientationEvent.requestPermission();
+if(res !== 'granted'){ announceEvent(t('errDenied')); permMsg.textContent = t('errDenied'); return; }
+}catch(e){ announceEvent(t('errTimeout')); permMsg.textContent = t('errTimeout'); return; }
+}
+compassOn = true;
+compassSector = null; compassPending = null;
+compassBtn.setAttribute('aria-pressed', 'true');
+announceEvent(t('compassOn'));
+if(voiceMode.value !== 'off') speak(t('compassOn'));
+// Give the "compass on" message time to be heard before the first direction
+setTimeout(() => { if(compassOn) window.addEventListener('deviceorientation', handleCompass, true); }, 1200);
+}
+
+// ---------- Where am I / share / save ----------
+function getPosition(){
+return new Promise((resolve, reject) => {
+if(!navigator.geolocation){ reject(new Error('nogeo')); return; }
+navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
+});
+}
+function formatAddress(j){
+if(!j) return null;
+const a = j.address;
+if(!a) return j.display_name || null;
+const street = a.road || a.pedestrian || a.footway || a.path || a.cycleway || a.square || a.place || '';
+const num = a.house_number ? ' ' + a.house_number : '';
+const town = a.city || a.town || a.village || a.municipality || '';
+const parts = [];
+if(j.name && j.name !== street) parts.push(j.name);
+if(street) parts.push(street + num);
+if(town) parts.push(town);
+return parts.length ? parts.join(', ') : (j.display_name || null);
+}
+async function reverseGeocode(lat, lon){
+// OpenStreetMap Nominatim; used only on a button press (well within its 1 request/second usage policy)
+const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+const timer = setTimeout(() => { if(ctrl) ctrl.abort(); }, 8000);
+try{
+const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=' + lat + '&lon=' + lon + '&accept-language=' + lang;
+const r = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+if(!r.ok) return null;
+return formatAddress(await r.json());
+}catch(e){
+return null;
+}finally{
+clearTimeout(timer);
+}
+}
+function nearestSavedPoint(lat, lon){
+let best = null;
+loadRoutes().forEach((r) => {
+if(!r.waypoints || r.waypoints.length !== 1) return;
+const wp = r.waypoints[0];
+const d = haversineMeters(lat, lon, wp.lat, wp.lon);
+if(d <= 300 && (!best || d < best.dist)) best = { label: wp.label, dist: d };
+});
+return best;
+}
+function quickError(){
+announceEvent(t('errNoGPS'));
+if(voiceMode.value !== 'off') speak(t('errNoGPS'));
+quickResult.textContent = t('errNoGPS');
+}
+async function whereAmI(){
+if(quickBusy) return;
+quickBusy = true;
+announceEvent(t('locating'), true);
+quickResult.textContent = t('locating');
+try{
+let pos;
+try{ pos = await getPosition(); }catch(e){ quickError(); return; }
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+const addr = await reverseGeocode(lat, lon);
+lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: addr };
+let msg = addr ? t('placePrefix') + ' ' + addr + '.' : t('addressUnavailable');
+const h = currentKnownHeading();
+if(h !== null) msg += ' ' + t('facing') + ' ' + directionWord(h).toLowerCase() + '.';
+msg += ' ' + t('gpsAccuracy').replace('{n}', Math.round(pos.coords.accuracy));
+const near = nearestSavedPoint(lat, lon);
+if(near) msg += ' ' + t('nearestSaved').replace('{label}', near.label).replace('{n}', Math.round(near.dist));
+quickResult.textContent = msg;
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}finally{
+quickBusy = false;
+}
+}
+function locationLink(lat, lon){
+return 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
+}
+async function shareFix(fix){
+const url = locationLink(fix.lat, fix.lon);
+const text = t('shareTitle') + (fix.address ? ': ' + fix.address : '');
+if(navigator.share){
+try{
+await navigator.share({ title: t('shareTitle'), text: text, url: url });
+return;
+}catch(e){
+if(e && e.name === 'AbortError') return;
+// iOS refuses share() once the button press is too long ago; a second press shares immediately
+if(e && e.name === 'NotAllowedError'){ announceEvent(t('locationReadyShare')); quickResult.textContent = t('locationReadyShare'); return; }
+}
+}
+try{
+await navigator.clipboard.writeText(text + ' ' + url);
+quickResult.textContent = t('linkCopied') + ' ' + url;
+announceEvent(t('linkCopied'));
+if(voiceMode.value !== 'off') speak(t('linkCopied'));
+}catch(e){
+quickResult.textContent = t('shareUnavailable') + ' ' + text + ' ' + url;
+announceEvent(t('shareUnavailable'));
+}
+}
+async function shareLocation(){
+if(quickBusy) return;
+// A fix from the last 30 s can be shared straight away, while the button press still counts as a user gesture
+if(lastFix && performance.now() - lastFix.time < 30000){ shareFix(lastFix); return; }
+quickBusy = true;
+announceEvent(t('locating'), true);
+quickResult.textContent = t('locating');
+try{
+let pos;
+try{ pos = await getPosition(); }catch(e){ quickError(); return; }
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+const addr = await reverseGeocode(lat, lon);
+lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: addr };
+announceEvent(t('locationReadyShare'));
+quickResult.textContent = t('locationReadyShare');
+if(voiceMode.value !== 'off') speak(t('locationReadyShare'));
+}finally{
+quickBusy = false;
+}
+}
+async function savePlaceHere(){
+if(quickBusy) return;
+quickBusy = true;
+announceEvent(t('locating'), true);
+let pos;
+try{ pos = await getPosition(); }catch(e){ quickBusy = false; quickError(); return; }
+quickBusy = false;
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+openLabelPicker(savePlaceBtn, (label) => {
+saveRoute({ id: Date.now().toString(36), name: label + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [{ lat: lat, lon: lon, label: label }] });
+const msg = t('pointSaved') + ': ' + label;
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+quickResult.textContent = msg;
+});
+}
+
+// ---------- Route points during navigation ----------
+function openRoutePoints(){
+if(navMode !== 'route' || !activeRoute) return;
+routePointsList.innerHTML = '';
+const n = activeRoute.waypoints.length;
+activeRoute.waypoints.forEach((wp, i) => {
+const b = document.createElement('button');
+b.type = 'button'; b.className = 'picker-item';
+let text = t('pointOf').replace('{i}', i + 1).replace('{n}', n) + ': ' + wp.label;
+if(i < routeIndex) text += ', ' + t('pointPassed');
+if(i === routeIndex) text += ', ' + t('pointCurrent');
+if(wp.type !== 'straight' && lastLat !== null) text += ', ' + Math.round(haversineMeters(lastLat, lastLon, wp.lat, wp.lon)) + ' m';
+b.textContent = text;
+if(i === routeIndex) b.setAttribute('aria-current', 'step');
+b.addEventListener('click', () => {
+closeRoutePoints();
+if(i !== routeIndex) jumpToWaypoint(i);
+});
+routePointsList.appendChild(b);
+});
+routePointsOverlay.hidden = false;
+document.getElementById('routePointsTitle').focus();
+}
+function closeRoutePoints(){
+routePointsOverlay.hidden = true;
+if(!routePointsBtn.hidden) routePointsBtn.focus();
+}
+function jumpToWaypoint(i){
+awaitingTurnConfirm = null;
+const msg = t('targetChanged') + ' ' + activeRoute.waypoints[i].label + '.';
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+announce(activeRoute.waypoints[i].label, '');
+enterWaypoint(i);
+if(!holdingStraight && lastLat !== null && !navPaused) updateRouteBearing(lastLat, lastLon);
 }
 
 // Used when the app starts the straight-line assistant without a button press
@@ -1707,7 +2135,7 @@ if(voiceMode.value !== 'off') speak(t('routePaused'));
 } else {
 resetBtn.textContent = t('pauseRoute');
 lastRouteAnnounceDist = null;
-lastDistToTarget = null;
+lastDistToTarget = null; minDistToTarget = null;
 offRouteStreak = 0;
 announceEvent(t('routeResumed'));
 announce(t('routeResumed'), '');
@@ -1791,6 +2219,9 @@ recordVoiceFeedback: recordVoiceFeedback.checked,
 totalDistOn: totalDistOn.checked,
 autoStartOn: autoStartOn.checked,
 pauseOnLeave: pauseOnLeave.checked,
+showQuickBar: showQuickBar.checked,
+fastGps: fastGps.checked,
+offRouteDist: offRouteDist.value,
 distRange: distRange.value,
 stepLength: stepLength.value,
 obstacleMode: obstacleMode.checked,
@@ -1824,6 +2255,9 @@ if(typeof s.recordVoiceFeedback === 'boolean') recordVoiceFeedback.checked = s.r
 if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
+if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
+if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
+if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
 if(s.stepLength) stepLength.value = s.stepLength;
@@ -1851,6 +2285,9 @@ recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
 autoStartOn.addEventListener('change', saveSettings);
 pauseOnLeave.addEventListener('change', saveSettings);
+showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); });
+fastGps.addEventListener('change', saveSettings);
+offRouteDist.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
 obstacleMode.addEventListener('change', saveSettings);
@@ -2467,6 +2904,19 @@ routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) 
 quickMarkBtn.addEventListener('click', quickMarkPoint);
 recordRouteBtn.addEventListener('click', startRecording);
 nearbyBtn.addEventListener('click', findNearbyPoints);
+whereAmIBtn.addEventListener('click', whereAmI);
+recWhereAmIBtn.addEventListener('click', whereAmI);
+repeatLastBtn.addEventListener('click', repeatLastAnnouncement);
+recRepeatBtn.addEventListener('click', repeatLastAnnouncement);
+historyBtn.addEventListener('click', () => openHistory(historyBtn));
+historyCloseBtn.addEventListener('click', closeHistory);
+historyOverlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeHistory(); });
+compassBtn.addEventListener('click', toggleCompass);
+shareLocBtn.addEventListener('click', shareLocation);
+savePlaceBtn.addEventListener('click', savePlaceHere);
+routePointsBtn.addEventListener('click', openRoutePoints);
+routePointsCloseBtn.addEventListener('click', closeRoutePoints);
+routePointsOverlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeRoutePoints(); });
 importGpxBtn.addEventListener('click', () => gpxFileInput.click());
 gpxFileInput.addEventListener('change', () => {
 if(gpxFileInput.files && gpxFileInput.files[0]) importGPXFile(gpxFileInput.files[0]);
@@ -2492,6 +2942,8 @@ cancelRecordBtn.addEventListener('click', cancelRecording);
 
 loadSettings();
 applyLang();
+quickBar.hidden = !showQuickBar.checked;
+quickResult.hidden = !showQuickBar.checked;
 
 const launchParams = new URLSearchParams(location.search);
 if((launchParams.get('go') === '1' || autoStartOn.checked) && !running && !recording){
