@@ -149,6 +149,7 @@ font-size:1rem; font-weight:600; cursor:pointer;
 .quickbar{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 20px;}
 .quickbar[hidden], .quickbtn[hidden]{display:none;}
 .quickbar-title{grid-column:1 / -1; font-size:0.95rem; color:var(--muted); margin:0;}
+.mylocation{grid-column:1 / -1; margin:0 0 4px; font-size:1rem; line-height:1.4;}
 .quickbtn{min-height:52px; background:var(--panel); color:var(--text); border:1px solid #2c3340; border-radius:12px; font-size:0.95rem; font-weight:600; padding:8px;}
 .quickbtn[aria-pressed="true"]{border-color:var(--ok); color:var(--ok);}
 .quickbtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
@@ -198,6 +199,7 @@ flex:none;
 
 <div id="quickBar" class="quickbar" role="group" aria-labelledby="quickBarTitle">
 <h2 id="quickBarTitle" class="quickbar-title">Quick actions</h2>
+<p id="myLocation" class="mylocation">My location: not known yet. Press Where am I?</p>
 <button type="button" id="whereAmIBtn" class="quickbtn"><span id="lblWhereAmI">Where am I?</span></button>
 <button type="button" id="repeatLastBtn" class="quickbtn"><span id="lblRepeatLast">Repeat last announcement</span></button>
 <button type="button" id="historyBtn" class="quickbtn"><span id="lblHistory">Announcement history</span></button>
@@ -328,6 +330,10 @@ flex:none;
 <div class="toggle">
 <input type="checkbox" id="showQuickBar" checked>
 <label for="showQuickBar" style="margin:0;" id="lblShowQuickBar">Show quick action buttons on the main screen (where am I, repeat, compass, share...)</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="liveLocation">
+<label for="liveLocation" style="margin:0;" id="lblLiveLocation">Keep "My location" updated even when I'm not walking or navigating (uses GPS and internet)</label>
 </div>
 <div class="sliderrow" id="stepLengthRow">
 <label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
@@ -466,9 +472,13 @@ lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share m
 lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
 lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
+lblLiveLocation: "Keep \"My location\" updated even when I'm not walking or navigating (uses GPS and internet)",
+myLocationPrefix: "My location:", myLocationUnknown: "My location: not known yet. Press Where am I?",
+addressUnknownShort: "address unknown", intersection: "Intersection {streets}, {n} m", andWord: "and",
+relAhead: "ahead", relRight: "to the right", relBehind: "behind you", relLeft: "to the left",
 compassOn: "Compass on. Turn the phone and I'll tell you the direction.", compassOff: "Compass off.",
 dirN: "North", dirNE: "North-east", dirE: "East", dirSE: "South-east", dirS: "South", dirSW: "South-west", dirW: "West", dirNW: "North-west",
-locating: "Finding your location...", placePrefix: "Location:", facing: "Facing",
+locating: "Finding your location...", facing: "Facing",
 gpsAccuracy: "Location accuracy about {n} m.", addressUnavailable: "Couldn't look up the address (maybe no internet).",
 nearestSaved: "Nearest saved point: {label}, {n} m.",
 locationReadyShare: "Location found. Press Share my location again to send it.",
@@ -572,9 +582,13 @@ lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať
 lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
 lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
+lblLiveLocation: "Priebežne aktualizovať „Moja poloha“, aj keď práve nekráčam ani nenavigujem (používa GPS a internet)",
+myLocationPrefix: "Moja poloha:", myLocationUnknown: "Moja poloha: zatiaľ neznáma. Stlačte Kde som?",
+addressUnknownShort: "adresa neznáma", intersection: "Križovatka {streets}, {n} m", andWord: "a",
+relAhead: "vpredu", relRight: "vpravo", relBehind: "vzadu", relLeft: "vľavo",
 compassOn: "Kompas zapnutý. Otáčajte telefónom a poviem vám smer.", compassOff: "Kompas vypnutý.",
 dirN: "Sever", dirNE: "Severovýchod", dirE: "Východ", dirSE: "Juhovýchod", dirS: "Juh", dirSW: "Juhozápad", dirW: "Západ", dirNW: "Severozápad",
-locating: "Zisťujem polohu...", placePrefix: "Poloha:", facing: "Smerujete na",
+locating: "Zisťujem polohu...", facing: "Smerujete na",
 gpsAccuracy: "Presnosť polohy asi {n} m.", addressUnavailable: "Adresu sa nepodarilo zistiť (možno nie je internet).",
 nearestSaved: "Najbližší uložený bod: {label}, {n} m.",
 locationReadyShare: "Poloha zistená. Stlačte ešte raz Zdieľať moju polohu a pošlite ju.",
@@ -671,7 +685,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblWhereAmI','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblWhereAmI','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
 document.getElementById('historyTitle').textContent = t('lblHistory');
@@ -680,6 +694,7 @@ document.getElementById('lblHistoryClose').textContent = t('close');
 document.getElementById('lblRoutePointsClose').textContent = t('close');
 document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
+renderMyLocation();
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -756,6 +771,8 @@ const totalDistOn = document.getElementById('totalDistOn');
 const autoStartOn = document.getElementById('autoStartOn');
 const pauseOnLeave = document.getElementById('pauseOnLeave');
 const showQuickBar = document.getElementById('showQuickBar');
+const liveLocation = document.getElementById('liveLocation');
+const myLocationEl = document.getElementById('myLocation');
 const fastGps = document.getElementById('fastGps');
 const offRouteDist = document.getElementById('offRouteDist');
 const quickBar = document.getElementById('quickBar');
@@ -826,6 +843,7 @@ let navMode = 'idle';
 let straightWatchId = null, resumeOnReturn = false;
 const announceHistory = [];
 let lastFix = null, quickBusy = false;
+let myPlace = null, placeLookup = { lat: null, lon: null, time: -Infinity, busy: false }, liveWatchId = null;
 let compassOn = false, compassHeading = null, compassSector = null, compassPending = null, compassTimer = null;
 let minDistToTarget = null, offRoutePeak = 0;
 let navPaused = false;
@@ -1304,6 +1322,7 @@ return;
 }
 lastAcceptedGPSTime = now;
 lastFix = { lat: c.latitude, lon: c.longitude, acc: c.accuracy, time: now, address: null };
+maybeRefreshMyLocation(c.latitude, c.longitude, c.accuracy);
 
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
@@ -1898,7 +1917,7 @@ navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: 
 function formatAddress(j){
 if(!j) return null;
 const a = j.address;
-if(!a) return j.display_name || null;
+if(!a) return j.display_name ? { text: j.display_name, road: '' } : null;
 const street = a.road || a.pedestrian || a.footway || a.path || a.cycleway || a.square || a.place || '';
 const num = a.house_number ? ' ' + a.house_number : '';
 const town = a.city || a.town || a.village || a.municipality || '';
@@ -1906,10 +1925,11 @@ const parts = [];
 if(j.name && j.name !== street) parts.push(j.name);
 if(street) parts.push(street + num);
 if(town) parts.push(town);
-return parts.length ? parts.join(', ') : (j.display_name || null);
+const text = parts.length ? parts.join(', ') : (j.display_name || null);
+return text ? { text: text, road: street } : null;
 }
 async function reverseGeocode(lat, lon){
-// OpenStreetMap Nominatim; used only on a button press (well within its 1 request/second usage policy)
+// OpenStreetMap Nominatim: on a button press, or at most every 15 s while moving (well within its 1 request/second policy)
 const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
 const timer = setTimeout(() => { if(ctrl) ctrl.abort(); }, 8000);
 try{
@@ -1921,6 +1941,97 @@ return formatAddress(await r.json());
 return null;
 }finally{
 clearTimeout(timer);
+}
+}
+async function fetchJson(url, ms){
+const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+const timer = setTimeout(() => { if(ctrl) ctrl.abort(); }, ms);
+try{
+const r = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+return r.ok ? await r.json() : null;
+}catch(e){
+return null;
+}finally{
+clearTimeout(timer);
+}
+}
+// Nearest point where two or more differently named streets meet, from OpenStreetMap (Overpass API)
+const STREET_TYPES = '^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|pedestrian|road)(_link)?$';
+const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+async function nearestIntersection(lat, lon){
+const q = '[out:json][timeout:10];way(around:100,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
+for(const base of OVERPASS_URLS){
+const d = await fetchJson(base + '?data=' + encodeURIComponent(q), 10000);
+if(!d || !Array.isArray(d.elements)) continue;
+const nodes = {}, names = {};
+d.elements.forEach((e) => { if(e.type === 'node') nodes[e.id] = e; });
+d.elements.forEach((e) => {
+if(e.type !== 'way' || !e.tags || !e.tags.name || !Array.isArray(e.nodes)) return;
+e.nodes.forEach((id) => { (names[id] = names[id] || new Set()).add(e.tags.name); });
+});
+let best = null;
+Object.keys(names).forEach((id) => {
+const n = nodes[id];
+if(names[id].size < 2 || !n) return;
+const dist = haversineMeters(lat, lon, n.lat, n.lon);
+if(dist <= 150 && (!best || dist < best.dist)) best = { names: Array.from(names[id]), dist: dist, lat: n.lat, lon: n.lon };
+});
+return best;
+}
+return undefined;
+}
+function relativeDirection(bearing, heading){
+const d = angleDiff(bearing, heading);
+if(Math.abs(d) <= 45) return t('relAhead');
+if(d > 45 && d <= 135) return t('relRight');
+if(d < -45 && d >= -135) return t('relLeft');
+return t('relBehind');
+}
+function intersectionText(ix, road, lat, lon, heading){
+// The street you're on first, then the cross streets
+const names = ix.names.slice().sort((a, b) => (a === road ? -1 : b === road ? 1 : a.localeCompare(b)));
+const streets = names.length > 1 ? names.slice(0, -1).join(', ') + ' ' + t('andWord') + ' ' + names[names.length - 1] : names[0];
+let txt = t('intersection').replace('{streets}', streets).replace('{n}', Math.round(ix.dist));
+if(heading !== null && heading !== undefined && ix.dist > 5) txt += ' ' + relativeDirection(bearingDegrees(lat, lon, ix.lat, ix.lon), heading);
+return txt;
+}
+async function describePlace(lat, lon){
+const [addr, ix] = await Promise.all([reverseGeocode(lat, lon), nearestIntersection(lat, lon)]);
+return { lat: lat, lon: lon, addr: addr, ix: ix || null };
+}
+function placeLine(place, heading){
+let line = t('myLocationPrefix') + ' ' + (place.addr ? place.addr.text : t('addressUnknownShort')) + '.';
+if(place.ix) line += ' ' + intersectionText(place.ix, place.addr ? place.addr.road : '', place.lat, place.lon, heading) + '.';
+return line;
+}
+function renderMyLocation(){
+myLocationEl.textContent = myPlace ? placeLine(myPlace, null) : t('myLocationUnknown');
+}
+async function maybeRefreshMyLocation(lat, lon, acc){
+if(!showQuickBar.checked || document.visibilityState !== 'visible' || placeLookup.busy || acc > 30) return;
+const now = performance.now();
+if(now - placeLookup.time < 15000) return;
+if(placeLookup.lat !== null && haversineMeters(lat, lon, placeLookup.lat, placeLookup.lon) < 25) return;
+placeLookup.busy = true;
+placeLookup.time = now;
+try{
+const place = await describePlace(lat, lon);
+if(place.addr || place.ix){
+myPlace = place;
+placeLookup.lat = lat; placeLookup.lon = lon;
+renderMyLocation();
+}
+}finally{
+placeLookup.busy = false;
+}
+}
+function updateLiveWatcher(){
+const want = liveLocation.checked && showQuickBar.checked && document.visibilityState === 'visible' && !!navigator.geolocation;
+if(want && liveWatchId === null){
+liveWatchId = navigator.geolocation.watchPosition((p) => maybeRefreshMyLocation(p.coords.latitude, p.coords.longitude, p.coords.accuracy), () => {}, { enableHighAccuracy: true });
+} else if(!want && liveWatchId !== null){
+navigator.geolocation.clearWatch(liveWatchId);
+liveWatchId = null;
 }
 }
 function nearestSavedPoint(lat, lon){
@@ -1947,10 +2058,15 @@ try{
 let pos;
 try{ pos = await getPosition(); }catch(e){ quickError(); return; }
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
-const addr = await reverseGeocode(lat, lon);
-lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: addr };
-let msg = addr ? t('placePrefix') + ' ' + addr + '.' : t('addressUnavailable');
+const place = await describePlace(lat, lon);
+lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: place.addr ? place.addr.text : null };
+if(place.addr || place.ix){
+myPlace = place;
+placeLookup.lat = lat; placeLookup.lon = lon; placeLookup.time = performance.now();
+renderMyLocation();
+}
 const h = currentKnownHeading();
+let msg = place.addr ? placeLine(place, h) : t('addressUnavailable') + (place.ix ? ' ' + intersectionText(place.ix, '', lat, lon, h) + '.' : '');
 if(h !== null) msg += ' ' + t('facing') + ' ' + directionWord(h).toLowerCase() + '.';
 msg += ' ' + t('gpsAccuracy').replace('{n}', Math.round(pos.coords.accuracy));
 const near = nearestSavedPoint(lat, lon);
@@ -2000,7 +2116,7 @@ let pos;
 try{ pos = await getPosition(); }catch(e){ quickError(); return; }
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
 const addr = await reverseGeocode(lat, lon);
-lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: addr };
+lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: addr ? addr.text : null };
 announceEvent(t('locationReadyShare'));
 quickResult.textContent = t('locationReadyShare');
 if(voiceMode.value !== 'off') speak(t('locationReadyShare'));
@@ -2220,6 +2336,7 @@ totalDistOn: totalDistOn.checked,
 autoStartOn: autoStartOn.checked,
 pauseOnLeave: pauseOnLeave.checked,
 showQuickBar: showQuickBar.checked,
+liveLocation: liveLocation.checked,
 fastGps: fastGps.checked,
 offRouteDist: offRouteDist.value,
 distRange: distRange.value,
@@ -2256,6 +2373,7 @@ if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
+if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
 if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
 if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
 if(s.distRange) distRange.value = s.distRange;
@@ -2285,7 +2403,9 @@ recordVoiceFeedback.addEventListener('change', saveSettings);
 totalDistOn.addEventListener('change', saveSettings);
 autoStartOn.addEventListener('change', saveSettings);
 pauseOnLeave.addEventListener('change', saveSettings);
-showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); });
+showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); updateLiveWatcher(); });
+liveLocation.addEventListener('change', () => { saveSettings(); updateLiveWatcher(); });
+document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
@@ -2752,6 +2872,7 @@ updateNextNoteBtn();
 recordWatchId = navigator.geolocation.watchPosition((pos) => {
 const c = pos.coords;
 if(c.accuracy > 25) return;
+maybeRefreshMyLocation(c.latitude, c.longitude, c.accuracy);
 if(recordLastLat !== null){
 const d = haversineMeters(recordLastLat, recordLastLon, c.latitude, c.longitude);
 if(d > 2){
@@ -2944,6 +3065,7 @@ loadSettings();
 applyLang();
 quickBar.hidden = !showQuickBar.checked;
 quickResult.hidden = !showQuickBar.checked;
+updateLiveWatcher();
 
 const launchParams = new URLSearchParams(location.search);
 if((launchParams.get('go') === '1' || autoStartOn.checked) && !running && !recording){
