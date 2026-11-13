@@ -150,7 +150,15 @@ font-size:1rem; font-weight:600; cursor:pointer;
 .quickbar{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 20px;}
 .quickbar[hidden], .quickbtn[hidden]{display:none;}
 .quickbar-title{grid-column:1 / -1; font-size:0.95rem; color:var(--muted); margin:0;}
-.mylocation{grid-column:1 / -1; margin:0 0 4px; font-size:1rem; line-height:1.4;}
+.mylocation{grid-column:1 / -1; text-align:left; font-weight:400; font-size:1rem; line-height:1.4; padding:10px 12px;}
+.quickbtn.wide{grid-column:1 / -1;}
+.sheet-text{font-size:1rem; line-height:1.45; margin:0 0 12px;}
+.sheet-h{font-size:1rem; margin:14px 0 8px; color:var(--muted);}
+.sheet-btn{display:block; width:100%; min-height:52px; margin-bottom:8px; text-align:left; padding:10px 12px; font-size:1rem; font-weight:600; background:var(--bg); color:var(--text); border:1px solid #2c3340; border-radius:10px; cursor:pointer; text-decoration:none; box-sizing:border-box;}
+.sheet-btn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+.sheet-btn.primary{border-color:var(--ok); color:var(--ok);}
+.sheet-input{width:100%; min-height:48px; font:inherit; padding:10px; border-radius:10px; border:1px solid #2c3340; background:#0e1116; color:inherit; margin-bottom:10px; box-sizing:border-box;}
+.sheet-list{margin:0 0 12px; padding-left:22px; line-height:1.5;}
 .quickbtn{min-height:52px; background:var(--panel); color:var(--text); border:1px solid #2c3340; border-radius:12px; font-size:0.95rem; font-weight:600; padding:8px;}
 .quickbtn[aria-pressed="true"]{border-color:var(--ok); color:var(--ok);}
 .quickbtn:focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
@@ -200,13 +208,15 @@ flex:none;
 
 <div id="quickBar" class="quickbar" role="group" aria-labelledby="quickBarTitle">
 <h2 id="quickBarTitle" class="quickbar-title">Quick actions</h2>
-<p id="myLocation" class="mylocation">My location: not known yet. Press Where am I?</p>
-<button type="button" id="whereAmIBtn" class="quickbtn"><span id="lblWhereAmI">Where am I?</span></button>
+<button type="button" id="myLocationBtn" class="quickbtn mylocation" aria-haspopup="dialog"><span id="myLocation">My location: press to find out.</span></button>
+<button type="button" id="compassBtn" class="quickbtn" aria-pressed="false"><span id="lblCompass">Compass</span></button>
+<button type="button" id="savePlaceBtn" class="quickbtn"><span id="lblSavePlace">Save this place</span></button>
+<button type="button" id="placesBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblPlaces">Places nearby (map)</span></button>
+<button type="button" id="searchBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblSearch">Search for a place</span></button>
+<button type="button" id="trackStopBtn" class="quickbtn wide" hidden></button>
 <button type="button" id="repeatLastBtn" class="quickbtn"><span id="lblRepeatLast">Repeat last announcement</span></button>
 <button type="button" id="historyBtn" class="quickbtn"><span id="lblHistory">Announcement history</span></button>
-<button type="button" id="compassBtn" class="quickbtn" aria-pressed="false"><span id="lblCompass">Compass</span></button>
 <button type="button" id="shareLocBtn" class="quickbtn"><span id="lblShareLoc">Share my location</span></button>
-<button type="button" id="savePlaceBtn" class="quickbtn"><span id="lblSavePlace">Save this place</span></button>
 <button type="button" id="routePointsBtn" class="quickbtn" hidden><span id="lblRoutePoints">Route points</span></button>
 </div>
 <div id="quickResult"></div>
@@ -332,6 +342,12 @@ flex:none;
 <input type="checkbox" id="showQuickBar" checked>
 <label for="showQuickBar" style="margin:0;" id="lblShowQuickBar">Show quick action buttons on the main screen (where am I, repeat, compass, share...)</label>
 </div>
+<label for="dirStyle" id="lblDirStyle">How to say where a place is</label>
+<select id="dirStyle">
+<option value="sides" selected>Left / right / ahead / behind</option>
+<option value="clock">Clock face (at 2 o'clock)</option>
+<option value="compass">Compass directions (north-east)</option>
+</select>
 <div class="toggle">
 <input type="checkbox" id="liveLocation">
 <label for="liveLocation" style="margin:0;" id="lblLiveLocation">Keep "My location" updated even when I'm not walking or navigating (uses GPS and internet)</label>
@@ -404,6 +420,14 @@ flex:none;
 </div>
 </div>
 
+<div id="sheetOverlay" class="picker-overlay" hidden>
+<div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+<h2 id="sheetTitle" tabindex="-1"></h2>
+<div id="sheetBody"></div>
+<button type="button" id="sheetCloseBtn" class="picker-close"><span id="lblSheetClose">Close</span></button>
+</div>
+</div>
+
 <div id="historyOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
 <h2 id="historyTitle" tabindex="-1">Announcement history</h2>
@@ -422,13 +446,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 38</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 39</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 38;
+const APP_VERSION = 39;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -475,8 +499,9 @@ lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share m
 lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
 versionWord: "Version", lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
+locUnavailable: "Couldn't get your location. Check that location is turned on and allowed for this app.",
 lblLiveLocation: "Keep \"My location\" updated even when I'm not walking or navigating (uses GPS and internet)",
-myLocationPrefix: "My location:", myLocationUnknown: "My location: not known yet. Press Where am I?",
+myLocationPrefix: "My location:",
 addressUnknownShort: "address unknown", intersection: "Intersection {streets}, {n} m", andWord: "and",
 relAhead: "ahead", relRight: "to the right", relBehind: "behind you", relLeft: "to the left",
 compassOn: "Compass on. Turn the phone and I'll tell you the direction.", compassOff: "Compass off.",
@@ -488,6 +513,35 @@ locationReadyShare: "Location found. Press Share my location again to send it.",
 shareTitle: "My location", linkCopied: "Location link copied. Paste it into a message.",
 shareUnavailable: "Sharing isn't available here. The link is shown on screen.",
 pointOf: "Point {i} of {n}", pointPassed: "passed", pointCurrent: "current target", targetChanged: "New target:",
+lblPlaces: "Places nearby (map)", lblSearch: "Search for a place", lblDirStyle: "How to say where a place is",
+optDirSides: "Left / right / ahead / behind", optDirClock: "Clock face (at 2 o'clock)", optDirCompass: "Compass directions (north-east)",
+back: "Back", refresh: "Refresh", loading: "Loading...", meters: "m", kilometers: "km",
+myLocationPress: "My location: press to find out.", myLocTitle: "My location", readNearestAddress: "Read the nearest address",
+intersectionsNearby: "Intersections nearby", noIntersections: "No named intersections found nearby.", intersectionOf: "Intersection {streets}",
+savedPointNear: "Saved point: {label}, {n} m.",
+relAheadRight: "ahead to the right", relBehindRight: "behind to the right", relBehindLeft: "behind to the left", relAheadLeft: "ahead to the left",
+atClock: "at {n} o'clock", towards: "to the {dir}",
+placesTitle: "Places nearby", placesRadius: "Search within", placesCategories: "Categories",
+catMine: "My saved points", catAll: "Everything nearby", catFood: "Food and drink", catGroceries: "Groceries", catShops: "Shops",
+catTransport: "Public transport stops and stations", catCrossings: "Pedestrian crossings", catHealth: "Health care", catPharmacy: "Pharmacies",
+catEducation: "Schools and universities", catMoney: "Banks and cash machines", catOffices: "Post office and authorities", catToilets: "Toilets",
+catAccommodation: "Accommodation", catCulture: "Culture and sights", catParks: "Parks and sport",
+placesFound: "{n} places found.", placesFoundMore: "{n} places found, showing the {m} nearest.", placesNone: "Nothing found within {r}.",
+placesError: "Couldn't load places from the map (no internet, or the map service is busy). Try again in a moment.",
+searchTitle: "Search for a place", searchLabel: "Name of a place or an address", searchGo: "Search", searchEmpty: "Type what you're looking for.",
+searchNone: "Nothing found for {q}.", searchError: "Search failed (no internet, or the service is busy).",
+actNavigate: "Navigate straight to it (direction and distance)", actPlan: "Plan a walking route along streets (experimental)",
+actTrack: "Track this place", actSavePoint: "Save to my points", actGoogleTransit: "Open public transport directions in Google Maps",
+detAddress: "Address: {v}.", detHours: "Opening hours: {v}.", detPlatform: "Platform {v}.", detLines: "Lines: {v}.",
+crossSignals: "with traffic lights", crossNoSignals: "without traffic lights", crossSound: "sound signal", crossNoSound: "no sound signal",
+crossTactile: "tactile paving", crossNoTactile: "no tactile paving", crossIsland: "with a refuge island",
+stopFirst: "Stop the current walk or navigation first.",
+trackStart: "Tracking {name}.", trackStop: "Stop tracking: {name}", trackStopped: "Tracking stopped.", trackNear: "You are at {name}.",
+planTitle: "Route to {name}", planLoading: "Planning the route...", planError: "Couldn't plan a route (no internet, the service is busy, or no walking route exists).",
+planRecommended: "Recommended route", planShortest: "Shortest route", planSummary: "{d}, about {min} min, {n} instructions",
+planWarning: "The route comes from the map. It doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off. Use your cane and your own judgement.",
+planStart: "Start navigation", planSteps: "Instructions", startWord: "Start", viaWord: "Way point", thenWord: "Then", thatIs: "That is {dir}.",
+routeTo: "Route to {name}",
 lblAutoStart: "Start the straight-line assistant automatically when the app opens",
 lblPauseOnLeave: "Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back",
 autoStartNeedsTap: "Automatic start was not allowed by the phone. Press Start once.",
@@ -585,8 +639,9 @@ lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať
 lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
 versionWord: "Verzia", lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
+locUnavailable: "Polohu sa nepodarilo zistiť. Skontrolujte, či je zapnutá poloha a povolená pre túto aplikáciu.",
 lblLiveLocation: "Priebežne aktualizovať „Moja poloha“, aj keď práve nekráčam ani nenavigujem (používa GPS a internet)",
-myLocationPrefix: "Moja poloha:", myLocationUnknown: "Moja poloha: zatiaľ neznáma. Stlačte Kde som?",
+myLocationPrefix: "Moja poloha:",
 addressUnknownShort: "adresa neznáma", intersection: "Križovatka {streets}, {n} m", andWord: "a",
 relAhead: "vpredu", relRight: "vpravo", relBehind: "vzadu", relLeft: "vľavo",
 compassOn: "Kompas zapnutý. Otáčajte telefónom a poviem vám smer.", compassOff: "Kompas vypnutý.",
@@ -598,6 +653,35 @@ locationReadyShare: "Poloha zistená. Stlačte ešte raz Zdieľať moju polohu a
 shareTitle: "Moja poloha", linkCopied: "Odkaz na polohu je skopírovaný. Vložte ho do správy.",
 shareUnavailable: "Zdieľanie tu nie je dostupné. Odkaz je zobrazený na obrazovke.",
 pointOf: "Bod {i} z {n}", pointPassed: "prejdený", pointCurrent: "aktuálny cieľ", targetChanged: "Nový cieľ:",
+lblPlaces: "Okolie z mapy", lblSearch: "Hľadať miesto", lblDirStyle: "Ako hovoriť, kde sa miesto nachádza",
+optDirSides: "Vľavo / vpravo / vpredu / vzadu", optDirClock: "Hodinový ciferník (na 2 hodinách)", optDirCompass: "Svetové strany (severovýchod)",
+back: "Späť", refresh: "Obnoviť", loading: "Načítavam...", meters: "m", kilometers: "km",
+myLocationPress: "Moja poloha: stlačte pre zistenie.", myLocTitle: "Moja poloha", readNearestAddress: "Prečítať najbližšiu adresu",
+intersectionsNearby: "Križovatky v okolí", noIntersections: "V okolí sa nenašli žiadne pomenované križovatky.", intersectionOf: "Križovatka {streets}",
+savedPointNear: "Uložený bod: {label}, {n} m.",
+relAheadRight: "vpravo vpredu", relBehindRight: "vpravo vzadu", relBehindLeft: "vľavo vzadu", relAheadLeft: "vľavo vpredu",
+atClock: "na {n} hodinách", atClockOne: "na 1 hodine", towards: "smerom na {dir}",
+placesTitle: "Okolie", placesRadius: "Hľadať v okruhu", placesCategories: "Kategórie",
+catMine: "Moje uložené body", catAll: "Všetko v okolí", catFood: "Jedlo a pitie", catGroceries: "Potraviny", catShops: "Obchody",
+catTransport: "Zastávky MHD a stanice", catCrossings: "Priechody pre chodcov", catHealth: "Zdravotníctvo", catPharmacy: "Lekárne",
+catEducation: "Školy a univerzity", catMoney: "Banky a bankomaty", catOffices: "Pošta a úrady", catToilets: "Toalety",
+catAccommodation: "Ubytovanie", catCulture: "Kultúra a zaujímavosti", catParks: "Parky a šport",
+placesFound: "Nájdených miest: {n}.", placesFoundMore: "Nájdených miest: {n}, zobrazujem {m} najbližších.", placesNone: "V okruhu {r} sa nič nenašlo.",
+placesError: "Miesta z mapy sa nepodarilo načítať (nie je internet alebo je mapová služba vyťažená). Skúste to o chvíľu znova.",
+searchTitle: "Hľadať miesto", searchLabel: "Názov miesta alebo adresa", searchGo: "Hľadať", searchEmpty: "Napíšte, čo hľadáte.",
+searchNone: "Pre {q} sa nič nenašlo.", searchError: "Hľadanie zlyhalo (nie je internet alebo je služba vyťažená).",
+actNavigate: "Navigovať priamo (smer a vzdialenosť)", actPlan: "Naplánovať pešiu trasu po uliciach (skúšobné)",
+actTrack: "Sledovať toto miesto", actSavePoint: "Uložiť medzi moje body", actGoogleTransit: "Otvoriť spojenie MHD v Google Mapách",
+detAddress: "Adresa: {v}.", detHours: "Otváracie hodiny: {v}.", detPlatform: "Nástupište {v}.", detLines: "Linky: {v}.",
+crossSignals: "so semaforom", crossNoSignals: "bez semaforu", crossSound: "zvuková signalizácia", crossNoSound: "bez zvukovej signalizácie",
+crossTactile: "vodiaci pás", crossNoTactile: "bez vodiaceho pásu", crossIsland: "s ostrovčekom",
+stopFirst: "Najprv zastavte prebiehajúcu chôdzu alebo navigáciu.",
+trackStart: "Sledujem {name}.", trackStop: "Zastaviť sledovanie: {name}", trackStopped: "Sledovanie zastavené.", trackNear: "Ste pri mieste {name}.",
+planTitle: "Trasa do {name}", planLoading: "Plánujem trasu...", planError: "Trasu sa nepodarilo naplánovať (nie je internet, služba je vyťažená alebo pešia trasa neexistuje).",
+planRecommended: "Odporúčaná trasa", planShortest: "Najkratšia trasa", planSummary: "{d}, asi {min} min, pokynov: {n}",
+planWarning: "Trasa je z mapy. Nevie o prekážkach, rozkopávkach ani o tom, ktoré priechody sú bezpečné, a GPS sa môže mýliť o niekoľko metrov. Používajte palicu a vlastný úsudok.",
+planStart: "Spustiť navigáciu", planSteps: "Pokyny", startWord: "Štart", viaWord: "Priebežný bod", thenWord: "Potom", thatIs: "To je {dir}.",
+routeTo: "Trasa do {name}",
 lblAutoStart: "Po otvorení aplikácie hneď spustiť asistenta rovného smeru",
 lblPauseOnLeave: "Vypnúť asistenta rovného smeru, keď odídem z aplikácie alebo zamknem telefón, a znova ho spustiť, keď sa vrátim",
 autoStartNeedsTap: "Telefón nepovolil automatické spustenie. Stlač raz Štart.",
@@ -688,7 +772,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblWhereAmI','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -698,7 +782,10 @@ document.getElementById('lblHistoryClose').textContent = t('close');
 document.getElementById('lblRoutePointsClose').textContent = t('close');
 document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
+dirStyle.options[0].text = t('optDirSides'); dirStyle.options[1].text = t('optDirClock'); dirStyle.options[2].text = t('optDirCompass');
 renderMyLocation();
+updateTrackButton();
+if(sheetStack.length) renderSheet();
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
 document.getElementById('lblStraightSegment2').textContent = t('lblStraightSegment');
@@ -781,7 +868,15 @@ const fastGps = document.getElementById('fastGps');
 const offRouteDist = document.getElementById('offRouteDist');
 const quickBar = document.getElementById('quickBar');
 const quickResult = document.getElementById('quickResult');
-const whereAmIBtn = document.getElementById('whereAmIBtn');
+const myLocationBtn = document.getElementById('myLocationBtn');
+const placesBtn = document.getElementById('placesBtn');
+const searchBtn = document.getElementById('searchBtn');
+const trackStopBtn = document.getElementById('trackStopBtn');
+const dirStyle = document.getElementById('dirStyle');
+const sheetOverlay = document.getElementById('sheetOverlay');
+const sheetTitle = document.getElementById('sheetTitle');
+const sheetBody = document.getElementById('sheetBody');
+const sheetCloseBtn = document.getElementById('sheetCloseBtn');
 const repeatLastBtn = document.getElementById('repeatLastBtn');
 const historyBtn = document.getElementById('historyBtn');
 const compassBtn = document.getElementById('compassBtn');
@@ -847,6 +942,10 @@ let navMode = 'idle';
 let straightWatchId = null, resumeOnReturn = false;
 const announceHistory = [];
 let lastFix = null, quickBusy = false;
+const PLACES_RADII = [200, 500, 1000, 2000, 5000, 10000, 30000];
+let placesRadius = 500, liveSession = false, trackTarget = null, passiveHeading = null, passiveHeadingOn = false;
+const sheetStack = [];
+let latestPos = null;
 let myPlace = null, placeLookup = { lat: null, lon: null, time: -Infinity, busy: false }, liveWatchId = null;
 let compassOn = false, compassHeading = null, compassSector = null, compassPending = null, compassTimer = null;
 let minDistToTarget = null, offRoutePeak = 0;
@@ -1020,12 +1119,12 @@ wakeLock.addEventListener('release', () => { wakeLock = null; });
 }catch(e){ wakeLock = null; }
 }
 async function releaseWakeLock(){
-if(!wakeLock) return;
+if(!wakeLock || trackTarget) return;
 try{ await wakeLock.release(); }catch(e){}
 wakeLock = null;
 }
 document.addEventListener('visibilitychange', () => {
-if(document.visibilityState === 'visible' && (running || recording) && !wakeLock){
+if(document.visibilityState === 'visible' && (running || recording || trackTarget) && !wakeLock){
 requestWakeLock();
 }
 });
@@ -1104,6 +1203,7 @@ return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 function computeWaypointTurns(waypoints){
 return waypoints.map((wp, i) => {
 if(i === 0 || i === waypoints.length - 1 || wp.type === 'straight') return null;
+if(wp.turn) return wp.turn;
 const incoming = bearingDegrees(waypoints[i-1].lat, waypoints[i-1].lon, wp.lat, wp.lon);
 const outgoing = bearingDegrees(wp.lat, wp.lon, waypoints[i+1].lat, waypoints[i+1].lon);
 const turn = angleDiff(outgoing, incoming);
@@ -1309,6 +1409,7 @@ vibrate(vibePattern);
 }
 
 function handleGPS(pos){
+rememberFix(pos.coords);
 if(!running) return;
 const now = performance.now();
 if(now - lastGPSTime < (fastGps.checked ? 900 : 3000)) return;
@@ -1535,10 +1636,25 @@ function updateRouteBearing(lat, lon){
 if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
 const wp = activeRoute.waypoints[routeIndex];
 const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
+if(wp.via && routeIndex + 1 < activeRoute.waypoints.length){
+// Silent shape point of a planned route: move on once reached or passed, without any announcement
+const nx = activeRoute.waypoints[routeIndex + 1];
+const passed = haversineMeters(lat, lon, nx.lat, nx.lon) < haversineMeters(wp.lat, wp.lon, nx.lat, nx.lon) - 3;
+if(dist <= 12 || passed){
+routeIndex++;
+offRouteStreak = 0; lastDistToTarget = null; minDistToTarget = null;
+updateRouteBearing(lat, lon);
+return;
+}
+}
 currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
 const talk = voiceMode.value !== 'off';
 const announceInterval = parseInt(distRange.value, 10) || 10;
 announceTotalRemaining(dist);
+// What to count down to: the next point that has something to say (skipping silent way points)
+let annIndex = routeIndex, annDist = dist;
+while(activeRoute.waypoints[annIndex].via && annIndex + 1 < activeRoute.waypoints.length){ annDist += activeRouteLegDistances[annIndex]; annIndex++; }
+const annWp = activeRoute.waypoints[annIndex];
 
 const offRouteMeters = offRouteDist.value !== 'auto' ? parseInt(offRouteDist.value, 10) : (fastGps.checked ? 8 : 0);
 if(offRouteMeters){
@@ -1617,7 +1733,12 @@ if(turnType === 'right'){ msg = t('turnRightNow'); awaitingTurnConfirm = 'right'
 else if(turnType === 'left'){ msg = t('turnLeftNow'); awaitingTurnConfirm = 'left'; }
 else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
-const arriveMsg = wp.label + ". " + msg;
+let arriveMsg = wp.label + ". " + msg;
+if(wp.instruction){
+arriveMsg = wp.instruction;
+// At the very start of a planned route, also say which way that is from where the phone is pointing
+if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
+}
 announceEvent(arriveMsg);
 if(talk) speak(arriveMsg);
 announce(next.label, msg);
@@ -1627,14 +1748,14 @@ return;
 
 if(routeNotesOnly.checked) return;
 
-if(lastRouteAnnounceDist === null || Math.abs(dist - lastRouteAnnounceDist) >= announceInterval){
-lastRouteAnnounceDist = dist;
+if(lastRouteAnnounceDist === null || Math.abs(annDist - lastRouteAnnounceDist) >= announceInterval){
+lastRouteAnnounceDist = annDist;
 // With fast updates and a 1-4 m interval, say just the number between the 10 m marks so speech keeps up
-const shortForm = fastGps.checked && announceInterval < 5 && Math.round(dist) % 10 !== 0;
-const msg = shortForm ? Math.round(dist) + "m" : Math.round(dist) + "m, " + turnPhrase(activeRouteTurns[routeIndex]);
+const shortForm = fastGps.checked && announceInterval < 5 && Math.round(annDist) % 10 !== 0;
+const msg = shortForm ? Math.round(annDist) + "m" : Math.round(annDist) + "m, " + (annWp.instruction || (annWp.dest ? annWp.label : turnPhrase(activeRouteTurns[annIndex])));
 announceEvent(msg);
 if(talk) speak(msg);
-announce(wp.label, msg);
+announce(annWp.label, msg);
 lastRouteAnnounce = performance.now();
 return;
 }
@@ -1642,10 +1763,10 @@ return;
 const now = performance.now();
 if(now - lastRouteAnnounce > 6000){
 lastRouteAnnounce = now;
-const msg = wp.label + ": " + Math.round(dist) + "m.";
+const msg = annWp.label + ": " + Math.round(annDist) + "m.";
 announceEvent(msg);
 if(talk) speak(msg);
-announce(wp.label, Math.round(dist) + "m");
+announce(annWp.label, Math.round(annDist) + "m");
 }
 }
 
@@ -1860,7 +1981,25 @@ function directionWord(h){ return t(DIR_KEYS[headingToSector(h)]); }
 function currentKnownHeading(){
 if(compassOn && compassHeading !== null) return compassHeading;
 if(running && lastHeading !== null) return lastHeading;
+if(passiveHeading !== null && performance.now() - passiveHeading.time < 3000) return passiveHeading.h;
 return null;
+}
+// A quiet compass reading for "where is that place from me". Must be called from a button press
+// (iOS only grants the sensor permission on a tap). Without it, directions fall back to north/south/...
+async function ensureHeadingSensor(){
+if(passiveHeadingOn) return;
+if(typeof DeviceOrientationEvent === 'undefined') return;
+if(typeof DeviceOrientationEvent.requestPermission === 'function'){
+try{
+const res = await Promise.race([DeviceOrientationEvent.requestPermission(), new Promise((_, rej) => setTimeout(() => rej(new Error('T')), 4000))]);
+if(res !== 'granted') return;
+}catch(e){ return; }
+}
+passiveHeadingOn = true;
+window.addEventListener('deviceorientation', (e) => {
+const h = getHeading(e);
+if(h !== null) passiveHeading = { h: h, time: performance.now() };
+}, true);
 }
 function handleCompass(e){
 const h = getHeading(e);
@@ -1912,13 +2051,28 @@ setTimeout(() => { if(compassOn) window.addEventListener('deviceorientation', ha
 }
 
 // ---------- Where am I / share / save ----------
-function getPosition(){
+// Every position any of the app's GPS watchers receives, so a button press doesn't have to wait for a new fix
+function rememberFix(c){
+if(c && c.accuracy <= 50) latestPos = { coords: { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy }, time: performance.now() };
+}
+function getPosition(maxWaitMs){
 return new Promise((resolve, reject) => {
 if(!navigator.geolocation){ reject(new Error('nogeo')); return; }
-navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
+const age = latestPos ? performance.now() - latestPos.time : Infinity;
+const watching = liveWatchId !== null || running || recording || !!trackTarget;
+if(age < (watching ? 30000 : 10000)){ resolve(latestPos); return; }
+let done = false;
+const finish = (fn, v) => { if(!done){ done = true; clearTimeout(fallback); clearTimeout(giveUp); fn(v); } };
+// The browser's own timeout doesn't cover an unanswered permission question, so never wait forever
+const giveUp = setTimeout(() => finish(reject, new Error('timeout')), maxWaitMs || 15000);
+// While a watcher is running, a phone standing still may not deliver a new fix: use the last one (up to 2 minutes old)
+const fallback = setTimeout(() => { if(latestPos && performance.now() - latestPos.time < 120000) finish(resolve, latestPos); }, 3000);
+navigator.geolocation.getCurrentPosition((p) => { rememberFix(p.coords); finish(resolve, p); }, (e) => {
+if(latestPos && performance.now() - latestPos.time < 120000) finish(resolve, latestPos); else finish(reject, e);
+}, { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
 });
 }
-function formatAddress(j){
+function formatAddress(j, noName){
 if(!j) return null;
 const a = j.address;
 if(!a) return j.display_name ? { text: j.display_name, road: '' } : null;
@@ -1926,7 +2080,7 @@ const street = a.road || a.pedestrian || a.footway || a.path || a.cycleway || a.
 const num = a.house_number ? ' ' + a.house_number : '';
 const town = a.city || a.town || a.village || a.municipality || '';
 const parts = [];
-if(j.name && j.name !== street) parts.push(j.name);
+if(!noName && j.name && j.name !== street) parts.push(j.name);
 if(street) parts.push(street + num);
 if(town) parts.push(town);
 const text = parts.length ? parts.join(', ') : (j.display_name || null);
@@ -1959,49 +2113,70 @@ return null;
 clearTimeout(timer);
 }
 }
-// Nearest point where two or more differently named streets meet, from OpenStreetMap (Overpass API)
+// Named streets meeting near a position, from OpenStreetMap (Overpass API), nearest first
 const STREET_TYPES = '^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|pedestrian|road)(_link)?$';
-const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
-async function nearestIntersection(lat, lon){
-const q = '[out:json][timeout:10];way(around:100,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
-for(const base of OVERPASS_URLS){
-const d = await fetchJson(base + '?data=' + encodeURIComponent(q), 10000);
-if(!d || !Array.isArray(d.elements)) continue;
+const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+let overpassFirst = 0;
+async function overpassQuery(q, ms){
+// Start with the server that answered last time, so a busy one doesn't slow every request down
+for(let k = 0; k < OVERPASS_URLS.length; k++){
+const i = (overpassFirst + k) % OVERPASS_URLS.length;
+const d = await fetchJson(OVERPASS_URLS[i] + '?data=' + encodeURIComponent(q), ms);
+if(d && Array.isArray(d.elements)){ overpassFirst = i; return d.elements; }
+}
+return null;
+}
+async function nearbyIntersections(lat, lon){
+const q = '[out:json][timeout:10];way(around:200,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
+const els = await overpassQuery(q, 10000);
+if(!els) return undefined;
 const nodes = {}, names = {};
-d.elements.forEach((e) => { if(e.type === 'node') nodes[e.id] = e; });
-d.elements.forEach((e) => {
+els.forEach((e) => { if(e.type === 'node') nodes[e.id] = e; });
+els.forEach((e) => {
 if(e.type !== 'way' || !e.tags || !e.tags.name || !Array.isArray(e.nodes)) return;
 e.nodes.forEach((id) => { (names[id] = names[id] || new Set()).add(e.tags.name); });
 });
-let best = null;
+const byStreets = {};
 Object.keys(names).forEach((id) => {
 const n = nodes[id];
 if(names[id].size < 2 || !n) return;
 const dist = haversineMeters(lat, lon, n.lat, n.lon);
-if(dist <= 150 && (!best || dist < best.dist)) best = { names: Array.from(names[id]), dist: dist, lat: n.lat, lon: n.lon };
+if(dist > 200) return;
+const key = Array.from(names[id]).sort().join('|');
+if(!byStreets[key] || dist < byStreets[key].dist) byStreets[key] = { names: Array.from(names[id]), dist: dist, lat: n.lat, lon: n.lon };
 });
-return best;
+return Object.keys(byStreets).map((k) => byStreets[k]).sort((x, y) => x.dist - y.dist);
 }
-return undefined;
+// "ahead to the right" / "at 2 o'clock" / "to the north-east", depending on the setting.
+// Without a known heading only the compass direction can be given.
+const REL_KEYS = ['relAhead', 'relAheadRight', 'relRight', 'relBehindRight', 'relBehind', 'relBehindLeft', 'relLeft', 'relAheadLeft'];
+function describeDirection(bearing, heading){
+if(dirStyle.value === 'compass' || heading === null || heading === undefined) return t('towards').replace('{dir}', directionWord(bearing).toLowerCase());
+const d = (angleDiff(bearing, heading) + 360) % 360;
+if(dirStyle.value === 'clock'){
+const h = Math.round(d / 30) % 12 || 12;
+return (h === 1 && T[lang].atClockOne) ? t('atClockOne') : t('atClock').replace('{n}', h);
 }
-function relativeDirection(bearing, heading){
-const d = angleDiff(bearing, heading);
-if(Math.abs(d) <= 45) return t('relAhead');
-if(d > 45 && d <= 135) return t('relRight');
-if(d < -45 && d >= -135) return t('relLeft');
-return t('relBehind');
+return t(REL_KEYS[Math.round(d / 45) % 8]);
 }
-function intersectionText(ix, road, lat, lon, heading){
+function formatDist(m){
+if(m < 1000) return Math.round(m) + ' ' + t('meters');
+const km = Math.round(m / 100) / 10;
+return (lang === 'sk' ? String(km).replace('.', ',') : String(km)) + ' ' + t('kilometers');
+}
+function streetList(ix, road){
 // The street you're on first, then the cross streets
 const names = ix.names.slice().sort((a, b) => (a === road ? -1 : b === road ? 1 : a.localeCompare(b)));
-const streets = names.length > 1 ? names.slice(0, -1).join(', ') + ' ' + t('andWord') + ' ' + names[names.length - 1] : names[0];
-let txt = t('intersection').replace('{streets}', streets).replace('{n}', Math.round(ix.dist));
-if(heading !== null && heading !== undefined && ix.dist > 5) txt += ' ' + relativeDirection(bearingDegrees(lat, lon, ix.lat, ix.lon), heading);
+return names.length > 1 ? names.slice(0, -1).join(', ') + ' ' + t('andWord') + ' ' + names[names.length - 1] : names[0];
+}
+function intersectionText(ix, road, lat, lon, heading){
+let txt = t('intersection').replace('{streets}', streetList(ix, road)).replace('{n}', Math.round(ix.dist));
+if(heading !== null && heading !== undefined && ix.dist > 5) txt += ' ' + describeDirection(bearingDegrees(lat, lon, ix.lat, ix.lon), heading);
 return txt;
 }
 async function describePlace(lat, lon){
-const [addr, ix] = await Promise.all([reverseGeocode(lat, lon), nearestIntersection(lat, lon)]);
-return { lat: lat, lon: lon, addr: addr, ix: ix || null };
+const [addr, ixs] = await Promise.all([reverseGeocode(lat, lon), nearbyIntersections(lat, lon)]);
+return { lat: lat, lon: lon, addr: addr, ixs: ixs || [], ix: (ixs && ixs[0] && ixs[0].dist <= 150) ? ixs[0] : null };
 }
 function placeLine(place, heading){
 let line = t('myLocationPrefix') + ' ' + (place.addr ? place.addr.text : t('addressUnknownShort')) + '.';
@@ -2009,7 +2184,11 @@ if(place.ix) line += ' ' + intersectionText(place.ix, place.addr ? place.addr.ro
 return line;
 }
 function renderMyLocation(){
-myLocationEl.textContent = myPlace ? placeLine(myPlace, null) : t('myLocationUnknown');
+if(!myPlace){ myLocationEl.textContent = t('myLocationPress'); return; }
+let line = placeLine(myPlace, null);
+const near = nearestSavedPoint(myPlace.lat, myPlace.lon);
+if(near && near.dist <= 50) line += ' ' + t('savedPointNear').replace('{label}', near.label).replace('{n}', Math.round(near.dist));
+myLocationEl.textContent = line;
 }
 async function maybeRefreshMyLocation(lat, lon, acc){
 if(!showQuickBar.checked || document.visibilityState !== 'visible' || placeLookup.busy || acc > 30) return;
@@ -2030,9 +2209,10 @@ placeLookup.busy = false;
 }
 }
 function updateLiveWatcher(){
-const want = liveLocation.checked && showQuickBar.checked && document.visibilityState === 'visible' && !!navigator.geolocation;
+// Live either by the setting, or for the rest of this session once you've asked for your location
+const want = (liveLocation.checked || liveSession) && showQuickBar.checked && document.visibilityState === 'visible' && !!navigator.geolocation;
 if(want && liveWatchId === null){
-liveWatchId = navigator.geolocation.watchPosition((p) => maybeRefreshMyLocation(p.coords.latitude, p.coords.longitude, p.coords.accuracy), () => {}, { enableHighAccuracy: true });
+liveWatchId = navigator.geolocation.watchPosition((p) => { rememberFix(p.coords); maybeRefreshMyLocation(p.coords.latitude, p.coords.longitude, p.coords.accuracy); }, () => {}, { enableHighAccuracy: true });
 } else if(!want && liveWatchId !== null){
 navigator.geolocation.clearWatch(liveWatchId);
 liveWatchId = null;
@@ -2049,18 +2229,14 @@ if(d <= 300 && (!best || d < best.dist)) best = { label: wp.label, dist: d };
 return best;
 }
 function quickError(){
-announceEvent(t('errNoGPS'));
-if(voiceMode.value !== 'off') speak(t('errNoGPS'));
-quickResult.textContent = t('errNoGPS');
+announceEvent(t('locUnavailable'));
+if(voiceMode.value !== 'off') speak(t('locUnavailable'));
+quickResult.textContent = t('locUnavailable');
 }
-async function whereAmI(){
-if(quickBusy) return;
-quickBusy = true;
-announceEvent(t('locating'), true);
-quickResult.textContent = t('locating');
-try{
+// Looks up the current position and builds the full spoken description. Returns null if GPS failed.
+async function lookupWhereAmI(){
 let pos;
-try{ pos = await getPosition(); }catch(e){ quickError(); return; }
+try{ pos = await getPosition(); }catch(e){ return null; }
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
 const place = await describePlace(lat, lon);
 lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: place.addr ? place.addr.text : null };
@@ -2075,9 +2251,19 @@ if(h !== null) msg += ' ' + t('facing') + ' ' + directionWord(h).toLowerCase() +
 msg += ' ' + t('gpsAccuracy').replace('{n}', Math.round(pos.coords.accuracy));
 const near = nearestSavedPoint(lat, lon);
 if(near) msg += ' ' + t('nearestSaved').replace('{label}', near.label).replace('{n}', Math.round(near.dist));
-quickResult.textContent = msg;
-announceEvent(msg);
-if(voiceMode.value !== 'off') speak(msg);
+return { msg: msg, place: place, lat: lat, lon: lon, heading: h };
+}
+async function whereAmI(){
+if(quickBusy) return;
+quickBusy = true;
+announceEvent(t('locating'), true);
+quickResult.textContent = t('locating');
+try{
+const res = await lookupWhereAmI();
+if(!res){ quickError(); return; }
+quickResult.textContent = res.msg;
+announceEvent(res.msg);
+if(voiceMode.value !== 'off') speak(res.msg);
 }finally{
 quickBusy = false;
 }
@@ -2137,7 +2323,9 @@ try{ pos = await getPosition(); }catch(e){ quickBusy = false; quickError(); retu
 quickBusy = false;
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
 openLabelPicker(savePlaceBtn, (label) => {
-saveRoute({ id: Date.now().toString(36), name: label + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [{ lat: lat, lon: lon, label: label }] });
+const id = Date.now().toString(36);
+saveRoute({ id: id, name: label + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [{ lat: lat, lon: lon, label: label }] });
+attachAddress(id, lat, lon);
 const msg = t('pointSaved') + ': ' + label;
 announceEvent(msg);
 if(voiceMode.value !== 'off') speak(msg);
@@ -2145,23 +2333,634 @@ quickResult.textContent = msg;
 });
 }
 
+// ---------- Address of a saved point ----------
+async function attachAddress(routeId, lat, lon){
+const addr = await reverseGeocode(lat, lon);
+if(!addr) return;
+const routes = loadRoutes();
+const r = routes.find((x) => x.id === routeId);
+if(!r || !r.waypoints || r.waypoints.length !== 1) return;
+r.waypoints[0].address = addr.text;
+try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
+if(!routesOverlay.hidden) renderRouteList();
+}
+
+// ---------- Sheets: one dialog whose content is built per screen, with Back between screens ----------
+function sheetEl(tag, cls, text){
+const e = document.createElement(tag);
+if(cls) e.className = cls;
+if(text !== undefined) e.textContent = text;
+return e;
+}
+function sheetButton(body, text, onClick, primary){
+const b = sheetEl('button', 'sheet-btn' + (primary ? ' primary' : ''), text);
+b.type = 'button';
+b.addEventListener('click', onClick);
+body.appendChild(b);
+return b;
+}
+function topSheet(){ return sheetStack[sheetStack.length - 1]; }
+function renderSheet(){
+const sh = topSheet();
+if(!sh) return;
+sheetTitle.textContent = typeof sh.title === 'function' ? sh.title() : sh.title;
+sheetBody.innerHTML = '';
+sh.render(sheetBody);
+document.getElementById('lblSheetClose').textContent = sheetStack.length > 1 ? t('back') : t('close');
+sheetOverlay.hidden = false;
+sheetTitle.focus();
+}
+function openSheet(sheet){ sheetStack.push(sheet); renderSheet(); }
+function closeSheet(all){
+const first = sheetStack[0];
+if(all) sheetStack.length = 0; else sheetStack.pop();
+if(sheetStack.length){ renderSheet(); return; }
+sheetOverlay.hidden = true;
+if(first && first.trigger && !first.trigger.hidden) first.trigger.focus();
+}
+function sayEvent(msg){
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}
+
+// ---------- My location: details and actions ----------
+function openMyLocation(){
+ensureHeadingSensor();
+// The lookup below covers this moment; don't let the live watcher's first fix repeat it
+placeLookup.time = performance.now();
+liveSession = true;
+updateLiveWatcher();
+const st = { text: t('locating'), res: null, busy: false };
+const sheet = {
+title: () => t('myLocTitle'), trigger: myLocationBtn,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', st.text)).id = 'myLocInfo';
+sheetButton(body, t('readNearestAddress'), load).id = 'myLocReadBtn';
+if(st.res){
+body.appendChild(sheetEl('h3', 'sheet-h', t('intersectionsNearby')));
+const ixs = st.res.place.ixs.slice(0, 8);
+if(!ixs.length) body.appendChild(sheetEl('p', 'sheet-text', t('noIntersections')));
+const road = st.res.place.addr ? st.res.place.addr.road : '';
+ixs.forEach((ix) => {
+const name = t('intersectionOf').replace('{streets}', streetList(ix, road));
+const dir = describeDirection(bearingDegrees(st.res.lat, st.res.lon, ix.lat, ix.lon), st.res.heading);
+sheetButton(body, name + ', ' + formatDist(ix.dist) + ', ' + dir, () => openPlaceActions({ name: name, kind: '', lat: ix.lat, lon: ix.lon, tags: {} }));
+});
+}
+sheetButton(body, t('lblShareLoc'), shareLocation);
+sheetButton(body, t('lblSavePlace'), () => { closeSheet(true); savePlaceHere(); });
+}
+};
+async function load(){
+if(st.busy) return;
+st.busy = true;
+announceEvent(t('locating'), true);
+const res = await lookupWhereAmI();
+st.busy = false;
+st.res = res;
+st.text = res ? res.msg : t('locUnavailable');
+if(topSheet() === sheet) renderSheet();
+sayEvent(st.text);
+}
+openSheet(sheet);
+load();
+}
+
+// ---------- Places from OpenStreetMap ----------
+const KINDS = {
+'amenity=restaurant': ['Restaurant', 'Reštaurácia'], 'amenity=cafe': ['Café', 'Kaviareň'], 'amenity=fast_food': ['Fast food', 'Rýchle občerstvenie'],
+'amenity=bar': ['Bar', 'Bar'], 'amenity=pub': ['Pub', 'Krčma'], 'amenity=food_court': ['Food court', 'Stravovacia zóna'], 'amenity=ice_cream': ['Ice cream', 'Zmrzlina'],
+'amenity=biergarten': ['Beer garden', 'Pivná záhrada'], 'amenity=pharmacy': ['Pharmacy', 'Lekáreň'], 'amenity=hospital': ['Hospital', 'Nemocnica'],
+'amenity=clinic': ['Clinic', 'Poliklinika'], 'amenity=doctors': ['Doctor', 'Lekár'], 'amenity=dentist': ['Dentist', 'Zubár'], 'amenity=veterinary': ['Vet', 'Veterinár'],
+'amenity=bank': ['Bank', 'Banka'], 'amenity=atm': ['Cash machine', 'Bankomat'], 'amenity=bureau_de_change': ['Currency exchange', 'Zmenáreň'],
+'amenity=post_office': ['Post office', 'Pošta'], 'amenity=post_box': ['Post box', 'Poštová schránka'], 'amenity=parcel_locker': ['Parcel locker', 'Balíkomat'],
+'amenity=police': ['Police', 'Polícia'], 'amenity=fire_station': ['Fire station', 'Hasiči'], 'amenity=townhall': ['Town hall', 'Mestský úrad'],
+'amenity=courthouse': ['Court', 'Súd'], 'amenity=embassy': ['Embassy', 'Veľvyslanectvo'], 'amenity=library': ['Library', 'Knižnica'],
+'amenity=school': ['School', 'Škola'], 'amenity=kindergarten': ['Kindergarten', 'Materská škola'], 'amenity=university': ['University', 'Univerzita'],
+'amenity=college': ['College', 'Vysoká škola'], 'amenity=theatre': ['Theatre', 'Divadlo'], 'amenity=cinema': ['Cinema', 'Kino'],
+'amenity=arts_centre': ['Arts centre', 'Kultúrne centrum'], 'amenity=place_of_worship': ['Place of worship', 'Kostol alebo modlitebňa'],
+'amenity=toilets': ['Toilets', 'Toalety'], 'amenity=drinking_water': ['Drinking water', 'Pitná voda'], 'amenity=fountain': ['Fountain', 'Fontána'],
+'amenity=bench': ['Bench', 'Lavička'], 'amenity=parking': ['Car park', 'Parkovisko'], 'amenity=bicycle_parking': ['Bicycle parking', 'Stojan na bicykle'],
+'amenity=bicycle_rental': ['Bicycle rental', 'Požičovňa bicyklov'], 'amenity=taxi': ['Taxi rank', 'Stanovište taxi'], 'amenity=bus_station': ['Bus station', 'Autobusová stanica'],
+'amenity=fuel': ['Petrol station', 'Čerpacia stanica'], 'amenity=marketplace': ['Marketplace', 'Trhovisko'], 'amenity=community_centre': ['Community centre', 'Komunitné centrum'],
+'amenity=social_facility': ['Social facility', 'Sociálne zariadenie'], 'amenity=nightclub': ['Nightclub', 'Nočný klub'], 'amenity=charging_station': ['Charging station', 'Nabíjacia stanica'],
+'amenity=vending_machine': ['Vending machine', 'Automat'], 'amenity=car_rental': ['Car rental', 'Požičovňa áut'],
+'shop=supermarket': ['Supermarket', 'Supermarket'], 'shop=convenience': ['Grocery shop', 'Potraviny'], 'shop=bakery': ['Bakery', 'Pekáreň'], 'shop=butcher': ['Butcher', 'Mäsiarstvo'],
+'shop=greengrocer': ['Greengrocer', 'Ovocie a zelenina'], 'shop=deli': ['Delicatessen', 'Lahôdky'], 'shop=clothes': ['Clothes shop', 'Oblečenie'], 'shop=shoes': ['Shoe shop', 'Obuv'],
+'shop=books': ['Bookshop', 'Kníhkupectvo'], 'shop=chemist': ['Drugstore', 'Drogéria'], 'shop=hairdresser': ['Hairdresser', 'Kaderníctvo'], 'shop=beauty': ['Beauty salon', 'Kozmetický salón'],
+'shop=optician': ['Optician', 'Optika'], 'shop=florist': ['Florist', 'Kvetinárstvo'], 'shop=jewelry': ['Jeweller', 'Klenotníctvo'], 'shop=gift': ['Gift shop', 'Darčeky'],
+'shop=kiosk': ['Kiosk', 'Stánok'], 'shop=mall': ['Shopping centre', 'Nákupné centrum'], 'shop=department_store': ['Department store', 'Obchodný dom'],
+'shop=electronics': ['Electronics shop', 'Elektronika'], 'shop=mobile_phone': ['Mobile phone shop', 'Mobilné telefóny'], 'shop=alcohol': ['Off-licence', 'Alkohol'],
+'shop=wine': ['Wine shop', 'Vinotéka'], 'shop=confectionery': ['Sweet shop', 'Cukrovinky'], 'shop=pastry': ['Pastry shop', 'Cukráreň'], 'shop=tobacco': ['Tobacconist', 'Trafika'],
+'shop=newsagent': ['Newsagent', 'Noviny a časopisy'], 'shop=toys': ['Toy shop', 'Hračky'], 'shop=sports': ['Sports shop', 'Športové potreby'], 'shop=furniture': ['Furniture shop', 'Nábytok'],
+'shop=hardware': ['Hardware shop', 'Železiarstvo'], 'shop=doityourself': ['DIY store', 'Hobby market'], 'shop=pet': ['Pet shop', 'Chovateľské potreby'],
+'shop=travel_agency': ['Travel agency', 'Cestovná kancelária'], 'shop=laundry': ['Laundry', 'Práčovňa'], 'shop=dry_cleaning': ['Dry cleaning', 'Čistiareň'],
+'shop=cosmetics': ['Cosmetics shop', 'Kozmetika'], 'shop=medical_supply': ['Medical supplies', 'Zdravotnícke potreby'], 'shop=bicycle': ['Bicycle shop', 'Bicykle'],
+'shop=ticket': ['Ticket office', 'Predaj lístkov'], 'shop=stationery': ['Stationery shop', 'Papiernictvo'],
+'tourism=hotel': ['Hotel', 'Hotel'], 'tourism=hostel': ['Hostel', 'Hostel'], 'tourism=guest_house': ['Guest house', 'Penzión'], 'tourism=apartment': ['Holiday apartment', 'Apartmán'],
+'tourism=motel': ['Motel', 'Motel'], 'tourism=museum': ['Museum', 'Múzeum'], 'tourism=gallery': ['Gallery', 'Galéria'], 'tourism=attraction': ['Attraction', 'Zaujímavosť'],
+'tourism=viewpoint': ['Viewpoint', 'Vyhliadka'], 'tourism=information': ['Tourist information', 'Turistické informácie'], 'tourism=artwork': ['Artwork', 'Umelecké dielo'],
+'leisure=park': ['Park', 'Park'], 'leisure=playground': ['Playground', 'Detské ihrisko'], 'leisure=sports_centre': ['Sports centre', 'Športové centrum'],
+'leisure=fitness_centre': ['Gym', 'Fitness centrum'], 'leisure=swimming_pool': ['Swimming pool', 'Plaváreň'], 'leisure=stadium': ['Stadium', 'Štadión'], 'leisure=garden': ['Garden', 'Záhrada'],
+'historic=memorial': ['Memorial', 'Pamätník'], 'historic=monument': ['Monument', 'Pomník'], 'historic=castle': ['Castle', 'Hrad'],
+'office=government': ['Government office', 'Úrad'],
+'highway=bus_stop': ['Bus stop', 'Autobusová zastávka'], 'highway=crossing': ['Pedestrian crossing', 'Priechod pre chodcov'],
+'railway=tram_stop': ['Tram stop', 'Zastávka električky'], 'railway=station': ['Railway station', 'Železničná stanica'], 'railway=halt': ['Railway stop', 'Železničná zastávka'],
+'railway=subway_entrance': ['Subway entrance', 'Vstup do metra']
+};
+const KIND_KEYS = { shop: ['Shop', 'Obchod'], office: ['Office', 'Kancelária'], historic: ['Historic site', 'Pamiatka'], tourism: ['Tourism', 'Turistika'], leisure: ['Leisure', 'Voľný čas'],
+place: ['Place', 'Miesto'], highway: ['Street', 'Ulica'], building: ['Building', 'Budova'], boundary: ['Area', 'Oblasť'], railway: ['Railway', 'Železnica'] };
+function kindName(key, value){
+const i = lang === 'sk' ? 1 : 0;
+const k = KINDS[key + '=' + value];
+if(k) return k[i];
+if(key === 'place' || key === 'highway' || key === 'building' || key === 'boundary') return KIND_KEYS[key][i];
+const pretty = String(value || '').replace(/_/g, ' ');
+if(KIND_KEYS[key]) return KIND_KEYS[key][i] + (pretty && pretty !== 'yes' ? ': ' + pretty : '');
+return pretty.charAt(0).toUpperCase() + pretty.slice(1);
+}
+const KIND_TAGS = ['amenity', 'shop', 'tourism', 'leisure', 'historic', 'office', 'railway', 'highway'];
+const PLACE_CATS = [
+{ key: 'mine', label: 'catMine' },
+{ key: 'all', label: 'catAll', start: 150, f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
+{ key: 'food', label: 'catFood', f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
+{ key: 'groceries', label: 'catGroceries', f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
+{ key: 'shops', label: 'catShops', f: ['nwr{A}["shop"]'] },
+{ key: 'transport', label: 'catTransport', f: ['node{A}["highway"="bus_stop"]', 'node{A}["railway"~"^(tram_stop|station|halt|subway_entrance)$"]', 'nwr{A}["amenity"="bus_station"]', 'way{A}["railway"="station"]', 'relation{A}["railway"="station"]'] },
+{ key: 'crossings', label: 'catCrossings', start: 200, f: ['node{A}["highway"="crossing"]'] },
+{ key: 'health', label: 'catHealth', f: ['nwr{A}["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'] },
+{ key: 'pharmacy', label: 'catPharmacy', f: ['nwr{A}["amenity"="pharmacy"]'] },
+{ key: 'education', label: 'catEducation', f: ['nwr{A}["amenity"~"^(school|university|college|kindergarten|library)$"]'] },
+{ key: 'money', label: 'catMoney', f: ['nwr{A}["amenity"~"^(bank|atm)$"]'] },
+{ key: 'offices', label: 'catOffices', f: ['nwr{A}["amenity"~"^(post_office|townhall|police|courthouse|embassy)$"]', 'nwr{A}["office"="government"]'] },
+{ key: 'toilets', label: 'catToilets', f: ['nwr{A}["amenity"="toilets"]'] },
+{ key: 'accommodation', label: 'catAccommodation', f: ['nwr{A}["tourism"~"^(hotel|hostel|guest_house|motel|apartment)$"]'] },
+{ key: 'culture', label: 'catCulture', f: ['nwr{A}["tourism"~"^(museum|gallery|attraction|viewpoint)$"]', 'nwr{A}["amenity"~"^(theatre|cinema|arts_centre|place_of_worship)$"]', 'nwr{A}["historic"~"^(memorial|monument|castle)$"]'] },
+{ key: 'parks', label: 'catParks', f: ['nwr{A}["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium)$"]'] }
+];
+// What you might type into search that really means "one of these nearby" (compared without accents)
+const CAT_WORDS = {
+transport: ['zastavka', 'zastavky', 'zastavka mhd', 'zastavky mhd', 'mhd', 'bus stop', 'bus stops', 'stop', 'stops', 'tram stop'],
+pharmacy: ['lekaren', 'lekarne', 'pharmacy', 'pharmacies'], food: ['jedlo', 'restauracia', 'restauracie', 'kaviaren', 'food', 'restaurant', 'restaurants', 'cafe'],
+groceries: ['potraviny', 'groceries', 'supermarket'], shops: ['obchod', 'obchody', 'shop', 'shops'], money: ['bankomat', 'bankomaty', 'banka', 'atm', 'bank'],
+toilets: ['wc', 'toaleta', 'toalety', 'zachod', 'toilet', 'toilets'], crossings: ['priechod', 'priechody', 'priechod pre chodcov', 'crossing', 'crossings'],
+health: ['nemocnica', 'lekar', 'doktor', 'hospital', 'doctor'], education: ['skola', 'skoly', 'univerzita', 'school', 'university'],
+accommodation: ['hotel', 'hotely', 'ubytovanie', 'hotels'], offices: ['posta', 'urad', 'policia', 'post office', 'police'], parks: ['park', 'parky', 'ihrisko', 'playground']
+};
+function plainText(str){ return String(str).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim(); }
+function categoryForQuery(q){
+const p = plainText(q);
+const key = Object.keys(CAT_WORDS).find((k) => CAT_WORDS[k].indexOf(p) !== -1);
+return key ? PLACE_CATS.find((c) => c.key === key) : null;
+}
+function crossingInfo(tags){
+const parts = [];
+const signals = tags.crossing === 'traffic_signals' || tags['crossing:signals'] === 'yes';
+const noSignals = tags['crossing:signals'] === 'no' || ['uncontrolled', 'marked', 'zebra', 'unmarked'].indexOf(tags.crossing) !== -1;
+if(signals) parts.push(t('crossSignals')); else if(noSignals) parts.push(t('crossNoSignals'));
+if(tags['traffic_signals:sound'] === 'yes') parts.push(t('crossSound')); else if(signals && tags['traffic_signals:sound'] === 'no') parts.push(t('crossNoSound'));
+if(tags.tactile_paving === 'yes') parts.push(t('crossTactile')); else if(tags.tactile_paving === 'no') parts.push(t('crossNoTactile'));
+if(tags['crossing:island'] === 'yes') parts.push(t('crossIsland'));
+return parts;
+}
+function elementToPlace(e, lat, lon){
+const plat = typeof e.lat === 'number' ? e.lat : (e.center ? e.center.lat : null);
+const plon = typeof e.lon === 'number' ? e.lon : (e.center ? e.center.lon : null);
+if(plat === null || plon === null) return null;
+const tags = e.tags || {};
+const key = KIND_TAGS.find((k) => tags[k]);
+const kind = key ? kindName(key, tags[key]) : '';
+const isCrossing = tags.highway === 'crossing';
+const addr = tags['addr:street'] ? tags['addr:street'] + (tags['addr:housenumber'] ? ' ' + tags['addr:housenumber'] : '') : '';
+return { id: e.type + e.id, name: tags.name || kind, named: !!tags.name, kind: kind, kindKey: key ? key + '=' + tags[key] : '', lat: plat, lon: plon, tags: tags,
+address: addr, extra: isCrossing ? crossingInfo(tags).join(', ') : '', dist: haversineMeters(lat, lon, plat, plon) };
+}
+function dedupePlaces(list){
+// Stops are often mapped twice (stop position + platform); keep the nearest of same-named neighbours
+const out = [];
+list.sort((a, b) => a.dist - b.dist).forEach((pl) => {
+const dup = pl.named && out.some((o) => o.named && o.name === pl.name && o.kindKey === pl.kindKey && (o.tags.local_ref || '') === (pl.tags.local_ref || '') && haversineMeters(o.lat, o.lon, pl.lat, pl.lon) < 80);
+if(!dup) out.push(pl);
+});
+return out;
+}
+function placesQuery(cat, lat, lon, r){
+const around = '(around:' + r + ',' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')';
+return '[out:json][timeout:20];(' + cat.f.map((f) => f.replace('{A}', around) + ';').join('') + ');out center tags 800;';
+}
+async function fetchPlaces(cat, lat, lon, R){
+if(cat.key === 'mine'){
+const list = [];
+loadRoutes().forEach((r) => {
+if(!r.waypoints || r.waypoints.length !== 1) return;
+const wp = r.waypoints[0];
+const d = haversineMeters(lat, lon, wp.lat, wp.lon);
+if(d <= R) list.push({ id: 'mine' + r.id, name: wp.label, named: true, kind: '', kindKey: '', lat: wp.lat, lon: wp.lon, tags: {}, address: wp.address || '', extra: '', dist: d, mine: true });
+});
+return list.sort((a, b) => a.dist - b.dist);
+}
+// Start small and widen, so a big radius in a city doesn't download thousands of places
+let r = Math.min(R, cat.start || 500), ok = false;
+const found = {};
+for(;;){
+const els = await overpassQuery(placesQuery(cat, lat, lon, r), 12000);
+if(!els){ if(!ok) return null; break; }
+ok = true;
+els.forEach((e) => { const pl = elementToPlace(e, lat, lon); if(pl && pl.dist <= R + 50) found[pl.id] = pl; });
+if(Object.keys(found).length >= 40 || r >= R) break;
+r = Math.min(R, r * 4);
+}
+return dedupePlaces(Object.keys(found).map((k) => found[k]));
+}
+function placeListText(pl, lat, lon, heading){
+let txt = pl.name;
+if(pl.kind && pl.kind !== pl.name) txt += ', ' + pl.kind.toLowerCase();
+if(pl.tags && pl.tags.local_ref) txt += ', ' + t('detPlatform').toLowerCase().replace('{v}', pl.tags.local_ref).replace(/\.$/, '');
+if(pl.extra) txt += ', ' + pl.extra;
+if(typeof pl.dist === 'number') txt += ', ' + formatDist(pl.dist) + ', ' + describeDirection(bearingDegrees(lat, lon, pl.lat, pl.lon), heading);
+return txt;
+}
+function openPlaces(){
+ensureHeadingSensor();
+openSheet({
+title: () => t('placesTitle'), trigger: placesBtn,
+render(body){
+const lbl = sheetEl('label', 'sheet-h', t('placesRadius'));
+lbl.htmlFor = 'placesRadiusSel';
+lbl.style.display = 'block';
+body.appendChild(lbl);
+const sel = sheetEl('select', 'sheet-input');
+sel.id = 'placesRadiusSel';
+PLACES_RADII.forEach((r) => { const o = sheetEl('option', '', formatDist(r)); o.value = r; if(r === placesRadius) o.selected = true; sel.appendChild(o); });
+sel.addEventListener('change', () => { placesRadius = parseInt(sel.value, 10); saveSettings(); });
+body.appendChild(sel);
+body.appendChild(sheetEl('h3', 'sheet-h', t('placesCategories')));
+PLACE_CATS.forEach((cat) => { sheetButton(body, t(cat.label), () => openPlaceResults(cat)).dataset.cat = cat.key; });
+}
+});
+}
+function openPlaceResults(cat){
+const st = { msg: t('loading'), places: [], lat: null, lon: null, heading: null, busy: false };
+const sheet = {
+title: () => t(cat.label), trigger: placesBtn,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'placesMsg';
+st.places.forEach((pl) => { sheetButton(body, placeListText(pl, st.lat, st.lon, st.heading), () => openPlaceActions(pl)); });
+if(!st.busy) sheetButton(body, t('refresh'), load).id = 'placesRefreshBtn';
+}
+};
+async function load(){
+if(st.busy) return;
+st.busy = true; st.msg = t('loading'); st.places = [];
+if(topSheet() === sheet) renderSheet();
+announceEvent(t('loading'), true);
+let pos = null;
+try{ pos = await getPosition(); }catch(e){}
+if(!pos){ st.msg = t('locUnavailable'); }
+else {
+st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = currentKnownHeading();
+lastFix = { lat: st.lat, lon: st.lon, acc: pos.coords.accuracy, time: performance.now(), address: null };
+const all = await fetchPlaces(cat, st.lat, st.lon, placesRadius);
+if(!all) st.msg = t('placesError');
+else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(placesRadius));
+else {
+st.places = all.slice(0, 60);
+st.msg = all.length > 60 ? t('placesFoundMore').replace('{n}', all.length).replace('{m}', 60) : t('placesFound').replace('{n}', all.length);
+}
+}
+st.busy = false;
+if(topSheet() === sheet) renderSheet();
+sayEvent(st.msg);
+}
+openSheet(sheet);
+load();
+}
+
+// ---------- Search by name or address ----------
+function openSearch(){
+ensureHeadingSensor();
+const st = { q: '', msg: '', places: [], lat: null, lon: null, heading: null, busy: false };
+const sheet = {
+title: () => t('searchTitle'), trigger: searchBtn,
+render(body){
+const form = sheetEl('form');
+const lbl = sheetEl('label', 'sheet-h', t('searchLabel'));
+lbl.htmlFor = 'searchInput';
+lbl.style.display = 'block';
+const input = sheetEl('input', 'sheet-input');
+input.type = 'search'; input.id = 'searchInput'; input.value = st.q; input.autocomplete = 'off'; input.enterKeyHint = 'search';
+input.addEventListener('input', () => { st.q = input.value; });
+const go = sheetEl('button', 'sheet-btn primary', t('searchGo'));
+go.type = 'submit'; go.id = 'searchGoBtn';
+form.appendChild(lbl); form.appendChild(input); form.appendChild(go);
+form.addEventListener('submit', (e) => { e.preventDefault(); st.q = input.value; run(); });
+body.appendChild(form);
+if(st.msg) body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'searchMsg';
+st.places.forEach((pl) => { sheetButton(body, placeListText(pl, st.lat, st.lon, st.heading), () => openPlaceActions(pl)); });
+}
+};
+async function run(){
+const q = st.q.trim();
+if(st.busy) return;
+if(!q){ st.msg = t('searchEmpty'); st.places = []; renderSheet(); sayEvent(st.msg); return; }
+const cat = categoryForQuery(q);
+if(cat){ openPlaceResults(cat); return; }
+st.busy = true; st.msg = t('loading'); st.places = [];
+renderSheet();
+announceEvent(t('loading'), true);
+let pos = null;
+// Location only improves the search (nearest first); don't hold the search up for it
+try{ pos = await getPosition(4000); }catch(e){}
+let url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=20&addressdetails=1&accept-language=' + lang + '&q=' + encodeURIComponent(q);
+if(pos){
+st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = currentKnownHeading();
+// Prefer results around you, without excluding places further away
+url += '&viewbox=' + (st.lon - 0.4).toFixed(4) + ',' + (st.lat + 0.3).toFixed(4) + ',' + (st.lon + 0.4).toFixed(4) + ',' + (st.lat - 0.3).toFixed(4);
+}
+const res = await fetchJson(url, 12000);
+st.busy = false;
+if(!Array.isArray(res)) st.msg = t('searchError');
+else if(!res.length) st.msg = t('searchNone').replace('{q}', q);
+else {
+st.places = res.map((j) => {
+const plat = parseFloat(j.lat), plon = parseFloat(j.lon);
+const a = formatAddress(j, true);
+const kind = j.category && j.type ? kindName(j.category, j.type) : '';
+const pl = { id: 'n' + j.place_id, name: j.name || (a ? a.text : j.display_name), named: !!j.name, kind: kind, kindKey: '', lat: plat, lon: plon, tags: {}, address: j.name && a ? a.text : '', extra: '' };
+if(j.name && a) pl.extra = a.text;
+if(pos) pl.dist = haversineMeters(st.lat, st.lon, plat, plon);
+return pl;
+}).filter((pl) => isFinite(pl.lat) && isFinite(pl.lon));
+if(pos) st.places.sort((x, y) => x.dist - y.dist);
+st.msg = t('placesFound').replace('{n}', st.places.length);
+}
+if(topSheet() === sheet) renderSheet();
+sayEvent(st.msg);
+}
+openSheet(sheet);
+const inp = document.getElementById('searchInput');
+if(inp) inp.focus();
+}
+
+// ---------- What you can do with a place ----------
+function placeDetails(pl){
+const parts = [];
+if(pl.kind && pl.kind !== pl.name) parts.push(pl.kind + '.');
+if(pl.tags.highway === 'crossing' && pl.extra) parts.push(pl.extra.charAt(0).toUpperCase() + pl.extra.slice(1) + '.');
+if(pl.address) parts.push(t('detAddress').replace('{v}', pl.address));
+if(pl.tags.local_ref) parts.push(t('detPlatform').replace('{v}', pl.tags.local_ref));
+if(pl.tags.route_ref) parts.push(t('detLines').replace('{v}', pl.tags.route_ref.split(';').join(', ')));
+if(pl.tags.opening_hours) parts.push(t('detHours').replace('{v}', pl.tags.opening_hours));
+if(latestPos && performance.now() - latestPos.time < 120000){
+const c = latestPos.coords;
+parts.push(formatDist(haversineMeters(c.latitude, c.longitude, pl.lat, pl.lon)) + ', ' + describeDirection(bearingDegrees(c.latitude, c.longitude, pl.lat, pl.lon), currentKnownHeading()) + '.');
+}
+return parts.join(' ');
+}
+function openPlaceActions(pl){
+openSheet({
+title: pl.name, trigger: null,
+render(body){
+const det = placeDetails(pl);
+if(det) body.appendChild(sheetEl('p', 'sheet-text', det)).id = 'placeDetails';
+sheetButton(body, t('actNavigate'), () => {
+if(running || recording){ sayEvent(t('stopFirst')); return; }
+closeSheet(true);
+startRouteNav({ id: 'place' + Date.now().toString(36), name: pl.name, waypoints: [{ lat: pl.lat, lon: pl.lon, label: pl.name }] });
+}).id = 'actNavigateBtn';
+sheetButton(body, t('actPlan'), () => {
+if(running || recording){ sayEvent(t('stopFirst')); return; }
+openPlan(pl);
+}).id = 'actPlanBtn';
+sheetButton(body, t('actTrack'), () => { closeSheet(true); startTracking(pl); }).id = 'actTrackBtn';
+if(!pl.mine) sheetButton(body, t('actSavePoint'), () => {
+const id = Date.now().toString(36);
+const wp = { lat: pl.lat, lon: pl.lon, label: pl.name };
+if(pl.address) wp.address = pl.address;
+saveRoute({ id: id, name: pl.name + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [wp] });
+if(!pl.address) attachAddress(id, pl.lat, pl.lon);
+sayEvent(t('pointSaved') + ': ' + pl.name);
+}).id = 'actSaveBtn';
+const a = sheetEl('a', 'sheet-btn', t('actGoogleTransit'));
+a.id = 'actTransitLink';
+a.href = 'https://www.google.com/maps/dir/?api=1&destination=' + pl.lat.toFixed(6) + ',' + pl.lon.toFixed(6) + '&travelmode=transit';
+a.target = '_blank'; a.rel = 'noopener';
+body.appendChild(a);
+}
+});
+}
+
+// ---------- Tracking a place: say how far and which way it is as you move ----------
+function updateTrackButton(){
+trackStopBtn.hidden = !trackTarget;
+if(trackTarget) trackStopBtn.textContent = t('trackStop').replace('{name}', trackTarget.name);
+}
+function trackLine(dist, lat, lon){
+return trackTarget.name + ': ' + formatDist(dist) + ', ' + describeDirection(bearingDegrees(lat, lon, trackTarget.lat, trackTarget.lon), currentKnownHeading()) + '.';
+}
+function handleTrackGPS(pos){
+const tt = trackTarget;
+if(!tt) return;
+const c = pos.coords;
+rememberFix(c);
+if(c.accuracy > 30) return;
+const now = performance.now();
+const dist = haversineMeters(c.latitude, c.longitude, tt.lat, tt.lon);
+if(dist <= 15){
+if(!tt.near){
+tt.near = true; tt.lastDist = dist; tt.lastTime = now;
+playChime('arrive');
+sayEvent(t('trackNear').replace('{name}', tt.name));
+}
+return;
+}
+if(dist > 40) tt.near = false;
+// The closer you are, the finer the steps
+const step = dist < 100 ? 10 : dist < 500 ? 25 : dist < 2000 ? 100 : 500;
+if(tt.lastDist !== null && (Math.abs(dist - tt.lastDist) < step || now - tt.lastTime < 4000)) return;
+const first = tt.lastDist === null;
+tt.lastDist = dist; tt.lastTime = now;
+sayEvent((first ? t('trackStart').replace('{name}', tt.name) + ' ' : '') + trackLine(dist, c.latitude, c.longitude));
+}
+function startTracking(pl){
+if(!navigator.geolocation){ sayEvent(t('locUnavailable')); return; }
+if(trackTarget) stopTracking(false);
+ensureHeadingSensor();
+trackTarget = { name: pl.name, lat: pl.lat, lon: pl.lon, lastDist: null, lastTime: -Infinity, near: false, watchId: null };
+trackTarget.watchId = navigator.geolocation.watchPosition(handleTrackGPS, () => {}, { enableHighAccuracy: true });
+requestWakeLock();
+updateTrackButton();
+announceEvent(t('trackStart').replace('{name}', pl.name), true);
+}
+function stopTracking(announceIt){
+if(!trackTarget) return;
+navigator.geolocation.clearWatch(trackTarget.watchId);
+trackTarget = null;
+updateTrackButton();
+if(!running && !recording) releaseWakeLock();
+if(announceIt){
+sayEvent(t('trackStopped'));
+if(!placesBtn.disabled) placesBtn.focus();
+}
+}
+
+// ---------- Walking route along streets (Valhalla routing on OpenStreetMap data) ----------
+const VALHALLA_URL = 'https://valhalla1.openstreetmap.de/route';
+function decodePolyline6(str){
+const pts = [];
+let i = 0, lat = 0, lon = 0;
+while(i < str.length){
+for(let k = 0; k < 2; k++){
+let b, shift = 0, result = 0;
+do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while(b >= 0x20);
+const d = (result & 1) ? ~(result >> 1) : (result >> 1);
+if(k === 0) lat += d; else lon += d;
+}
+pts.push({ lat: lat / 1e6, lon: lon / 1e6 });
+}
+return pts;
+}
+function turnFromManeuver(type){
+if([9, 10, 11, 12, 18, 20, 23].indexOf(type) !== -1) return 'right';
+if([13, 14, 15, 16, 19, 21, 24].indexOf(type) !== -1) return 'left';
+return 'straight';
+}
+// Which points of a path to keep so that straight lines between them stay within eps meters of it
+function simplifyPath(pts, eps){
+if(pts.length < 3) return [];
+const kx = 111320 * Math.cos(pts[0].lat * Math.PI / 180), ky = 110540;
+const xy = pts.map((p) => ({ x: (p.lon - pts[0].lon) * kx, y: (p.lat - pts[0].lat) * ky }));
+const keep = [];
+(function walk(a, b){
+let worst = 0, at = -1;
+const dx = xy[b].x - xy[a].x, dy = xy[b].y - xy[a].y, len = Math.hypot(dx, dy);
+for(let i = a + 1; i < b; i++){
+const d = len < 0.01 ? Math.hypot(xy[i].x - xy[a].x, xy[i].y - xy[a].y) : Math.abs(dy * (xy[i].x - xy[a].x) - dx * (xy[i].y - xy[a].y)) / len;
+if(d > worst){ worst = d; at = i; }
+}
+if(worst > eps){ walk(a, at); keep.push(at); walk(at, b); }
+})(0, pts.length - 1);
+return keep.map((i) => pts[i]);
+}
+function buildPlannedRoute(trip, pl){
+const leg = trip && trip.legs && trip.legs[0];
+if(!leg || !Array.isArray(leg.maneuvers) || !leg.shape) return null;
+const shape = decodePolyline6(leg.shape);
+const man = leg.maneuvers;
+if(man.length < 2 || shape.length < 2) return null;
+const waypoints = [];
+let i = 0, steps = 0;
+while(i < man.length - 1){
+const begin = man[i].begin_shape_index;
+let instr = man[i].instruction, turn = turnFromManeuver(man[i].type), j = i;
+// A stretch of only a few meters can't be told apart by GPS: say it together with the next instruction
+while(man[j].length * 1000 < 8 && j + 1 < man.length - 1){
+j++;
+instr += ' ' + t('thenWord') + ' ' + man[j].instruction.charAt(0).toLowerCase() + man[j].instruction.slice(1);
+if(turn === 'straight') turn = turnFromManeuver(man[j].type);
+}
+const end = Math.min(man[j].end_shape_index, shape.length - 1);
+const p = shape[Math.min(begin, shape.length - 1)];
+waypoints.push({ lat: p.lat, lon: p.lon, label: i === 0 ? t('startWord') : instr.replace(/\.$/, ''), instruction: instr, turn: turn });
+steps++;
+simplifyPath(shape.slice(begin, end + 1), 12).forEach((v) => { waypoints.push({ lat: v.lat, lon: v.lon, label: t('viaWord'), via: true, turn: 'straight' }); });
+i = j + 1;
+}
+const last = shape[shape.length - 1];
+waypoints.push({ lat: last.lat, lon: last.lon, label: pl.name, dest: true });
+return { id: 'plan' + Date.now().toString(36), name: t('routeTo').replace('{name}', pl.name), planned: true, waypoints: waypoints,
+meters: Math.round(trip.summary.length * 1000), minutes: Math.max(1, Math.round(trip.summary.time / 60)), steps: steps };
+}
+async function fetchPlan(lat, lon, pl, shortest){
+const req = { locations: [{ lat: lat, lon: lon }, { lat: pl.lat, lon: pl.lon }], costing: 'pedestrian',
+directions_options: { language: lang === 'sk' ? 'sk-SK' : 'en-US', units: 'kilometers' } };
+if(shortest) req.costing_options = { pedestrian: { shortest: true } };
+const d = await fetchJson(VALHALLA_URL + '?json=' + encodeURIComponent(JSON.stringify(req)), 20000);
+return d && d.trip ? buildPlannedRoute(d.trip, pl) : null;
+}
+function planSummary(route){
+return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps);
+}
+function openPlan(pl){
+const st = { msg: t('planLoading'), variants: [], busy: true };
+const sheet = {
+title: () => t('planTitle').replace('{name}', pl.name), trigger: null,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'planMsg';
+st.variants.forEach((v) => { sheetButton(body, t(v.label) + ': ' + planSummary(v.route), () => openPlanVariant(v)).dataset.variant = v.label; });
+if(st.variants.length) body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
+}
+};
+openSheet(sheet);
+announceEvent(t('planLoading'), true);
+(async () => {
+let pos = null;
+try{ pos = await getPosition(); }catch(e){}
+if(!pos) st.msg = t('locUnavailable');
+else {
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+const best = await fetchPlan(lat, lon, pl, false);
+const shortest = best ? await fetchPlan(lat, lon, pl, true) : null;
+if(!best) st.msg = t('planError');
+else {
+st.variants.push({ label: 'planRecommended', route: best });
+// Offer the shortest one only when it really is a different route
+if(shortest && (Math.abs(shortest.meters - best.meters) >= 5 || shortest.steps !== best.steps)) st.variants.push({ label: 'planShortest', route: shortest });
+st.msg = st.variants.map((v) => t(v.label) + ': ' + planSummary(v.route) + '.').join(' ');
+}
+}
+st.busy = false;
+if(topSheet() === sheet) renderSheet();
+sayEvent(st.msg);
+})();
+}
+function openPlanVariant(v){
+openSheet({
+title: () => t(v.label), trigger: null,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', planSummary(v.route) + '.'));
+sheetButton(body, t('planStart'), () => {
+if(running || recording){ sayEvent(t('stopFirst')); return; }
+closeSheet(true);
+startRouteNav(v.route);
+}, true).id = 'planStartBtn';
+body.appendChild(sheetEl('h3', 'sheet-h', t('planSteps')));
+const ol = sheetEl('ol', 'sheet-list');
+const wps = v.route.waypoints;
+wps.forEach((wp, i) => {
+if(!wp.instruction) return;
+let d = 0, k = i;
+do { d += haversineMeters(wps[k].lat, wps[k].lon, wps[k + 1].lat, wps[k + 1].lon); k++; } while(k < wps.length - 1 && wps[k].via);
+ol.appendChild(sheetEl('li', '', wp.instruction.replace(/\.$/, '') + ', ' + formatDist(d) + '.'));
+});
+body.appendChild(ol);
+body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
+}
+});
+}
+
 // ---------- Route points during navigation ----------
 function openRoutePoints(){
 if(navMode !== 'route' || !activeRoute) return;
 routePointsList.innerHTML = '';
-const n = activeRoute.waypoints.length;
-activeRoute.waypoints.forEach((wp, i) => {
+const wps = activeRoute.waypoints;
+const n = wps.filter((w) => !w.via).length;
+let cur = routeIndex, shown = 0;
+while(wps[cur].via && cur + 1 < wps.length) cur++;
+wps.forEach((wp, i) => {
+if(wp.via) return;
+shown++;
 const b = document.createElement('button');
 b.type = 'button'; b.className = 'picker-item';
-let text = t('pointOf').replace('{i}', i + 1).replace('{n}', n) + ': ' + wp.label;
-if(i < routeIndex) text += ', ' + t('pointPassed');
-if(i === routeIndex) text += ', ' + t('pointCurrent');
+let text = t('pointOf').replace('{i}', shown).replace('{n}', n) + ': ' + wp.label;
+if(i < cur) text += ', ' + t('pointPassed');
+if(i === cur) text += ', ' + t('pointCurrent');
 if(wp.type !== 'straight' && lastLat !== null) text += ', ' + Math.round(haversineMeters(lastLat, lastLon, wp.lat, wp.lon)) + ' m';
 b.textContent = text;
-if(i === routeIndex) b.setAttribute('aria-current', 'step');
+if(i === cur) b.setAttribute('aria-current', 'step');
 b.addEventListener('click', () => {
 closeRoutePoints();
-if(i !== routeIndex) jumpToWaypoint(i);
+if(i !== cur) jumpToWaypoint(i);
 });
 routePointsList.appendChild(b);
 });
@@ -2341,6 +3140,8 @@ autoStartOn: autoStartOn.checked,
 pauseOnLeave: pauseOnLeave.checked,
 showQuickBar: showQuickBar.checked,
 liveLocation: liveLocation.checked,
+dirStyle: dirStyle.value,
+placesRadius: placesRadius,
 fastGps: fastGps.checked,
 offRouteDist: offRouteDist.value,
 distRange: distRange.value,
@@ -2378,6 +3179,8 @@ if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
 if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
+if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass') dirStyle.value = s.dirStyle;
+if(PLACES_RADII.indexOf(s.placesRadius) !== -1) placesRadius = s.placesRadius;
 if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
 if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
 if(s.distRange) distRange.value = s.distRange;
@@ -2409,6 +3212,7 @@ autoStartOn.addEventListener('change', saveSettings);
 pauseOnLeave.addEventListener('change', saveSettings);
 showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); updateLiveWatcher(); });
 liveLocation.addEventListener('change', () => { saveSettings(); updateLiveWatcher(); });
+dirStyle.addEventListener('change', saveSettings);
 document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
@@ -2514,12 +3318,13 @@ try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(routes)); }catch(e){}
 function quickMarkPoint(){
 if(running || recording || !navigator.geolocation) return;
 permMsg.textContent = '';
-navigator.geolocation.getCurrentPosition((pos) => {
+getPosition().then((pos) => {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
 routesOverlay.hidden = true;
 openLabelPicker(quickMarkBtn, (label) => {
 const route = { id: Date.now().toString(36), name: label + ' - ' + new Date().toLocaleDateString(), createdAt: Date.now(), waypoints: [{ lat: lat, lon: lon, label: label }] };
 saveRoute(route);
+attachAddress(route.id, lat, lon);
 const msg = t('pointSaved') + ': ' + label;
 announceEvent(msg);
 if(voiceMode.value !== 'off') speak(msg);
@@ -2530,13 +3335,13 @@ routesOverlay.hidden = false;
 permMsg.textContent = t('errNoGPS');
 announceEvent(t('errNoGPS'));
 if(voiceMode.value !== 'off') speak(t('errNoGPS'));
-}, { enableHighAccuracy: true, timeout: 10000 });
+});
 }
 
 function findNearbyPoints(){
 if(running || recording || !navigator.geolocation) return;
 permMsg.textContent = '';
-navigator.geolocation.getCurrentPosition((pos) => {
+getPosition().then((pos) => {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
 const routes = loadRoutes();
 const nearby = [];
@@ -2552,7 +3357,7 @@ showNearbyList(nearby);
 permMsg.textContent = t('errNoGPS');
 announceEvent(t('errNoGPS'));
 if(voiceMode.value !== 'off') speak(t('errNoGPS'));
-}, { enableHighAccuracy: true, timeout: 10000 });
+});
 }
 
 function showNearbyList(nearby){
@@ -2571,7 +3376,7 @@ if(voiceMode.value !== 'off') speak(summary);
 nearby.forEach(({ route, dist }) => {
 const b = document.createElement('button');
 b.type = 'button'; b.className = 'picker-item';
-b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)';
+b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)' + (route.waypoints[0].address ? ', ' + route.waypoints[0].address : '');
 b.addEventListener('click', () => {
 closePicker();
 startRouteNav(route);
@@ -2763,7 +3568,7 @@ wrapper.style.cssText = 'border:1px solid #2c3340; border-radius:10px; padding:8
 
 const navBtn = document.createElement('button');
 navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.cssText = 'width:100%; margin-bottom:8px;';
-navBtn.textContent = r.name + ' (' + r.waypoints.length + ')';
+navBtn.textContent = r.name + ' (' + r.waypoints.length + ')' + (r.waypoints.length === 1 && r.waypoints[0].address ? ', ' + r.waypoints[0].address : '');
 navBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
 startRouteNav(r);
@@ -2879,6 +3684,7 @@ updateRecordStatus();
 updateNextNoteBtn();
 recordWatchId = navigator.geolocation.watchPosition((pos) => {
 const c = pos.coords;
+rememberFix(c);
 if(c.accuracy > 25) return;
 maybeRefreshMyLocation(c.latitude, c.longitude, c.accuracy);
 if(recordLastLat !== null){
@@ -3033,7 +3839,12 @@ routesOverlay.addEventListener('click', (e) => { if(e.target === routesOverlay) 
 quickMarkBtn.addEventListener('click', quickMarkPoint);
 recordRouteBtn.addEventListener('click', startRecording);
 nearbyBtn.addEventListener('click', findNearbyPoints);
-whereAmIBtn.addEventListener('click', whereAmI);
+myLocationBtn.addEventListener('click', openMyLocation);
+placesBtn.addEventListener('click', openPlaces);
+searchBtn.addEventListener('click', openSearch);
+trackStopBtn.addEventListener('click', () => stopTracking(true));
+sheetCloseBtn.addEventListener('click', () => closeSheet(false));
+sheetOverlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeSheet(false); });
 recWhereAmIBtn.addEventListener('click', whereAmI);
 repeatLastBtn.addEventListener('click', repeatLastAnnouncement);
 recRepeatBtn.addEventListener('click', repeatLastAnnouncement);
