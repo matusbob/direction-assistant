@@ -205,6 +205,10 @@ flex:none;
 </div>
 
 <button type="button" id="manualHoldDoneBtn" class="demobtn" hidden><span id="lblManualHoldDone">Done with this stretch</span></button>
+<div id="navSteps" hidden>
+<h2 id="navStepsTitle" class="quickbar-title" style="margin:4px 0 8px;">Route instructions</h2>
+<div id="navStepsList"></div>
+</div>
 
 <div id="quickBar" class="quickbar" role="group" aria-labelledby="quickBarTitle">
 <h2 id="quickBarTitle" class="quickbar-title">Quick actions</h2>
@@ -339,6 +343,10 @@ flex:none;
 <label for="pauseOnLeave" style="margin:0;" id="lblPauseOnLeave">Stop the straight-line assistant when I leave the app or lock the phone, and start it again when I come back</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="showNavSteps" checked>
+<label for="showNavSteps" style="margin:0;" id="lblShowNavSteps">During route navigation, list all points of the route on the main screen, with the current one marked</label>
+</div>
+<div class="toggle">
 <input type="checkbox" id="showQuickBar" checked>
 <label for="showQuickBar" style="margin:0;" id="lblShowQuickBar">Show quick action buttons on the main screen (where am I, repeat, compass, share...)</label>
 </div>
@@ -446,13 +454,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 39</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 40</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 39;
+const APP_VERSION = 40;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -499,6 +507,13 @@ lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share m
 lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
 versionWord: "Version", lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
+lblShowNavSteps: "During route navigation, list all points of the route on the main screen, with the current one marked", navStepsTitle: "Route instructions",
+placesNearest: "Showing the {n} nearest places.", planNamed: "Along named streets", alongStreet: "along {s}",
+bendRight: "The route bends right.", bendLeft: "The route bends left.",
+locatingStill: "Still waiting for the position. If the phone is asking whether to allow location, allow it.",
+locatingAddress: "Position found. Looking up the address...", locatingAddressStill: "Still looking up the address. The internet connection seems slow.",
+intersectionsLoading: "Looking for intersections...", intersectionsFailed: "Intersections couldn't be loaded right now (the detailed map server isn't answering).",
+placesNoneWider: "Nothing within {r}. Nearest within {r2}:", placesErrorDetail: "This category comes only from the detailed map server, which isn't answering right now. Try again in a moment.",
 locUnavailable: "Couldn't get your location. Check that location is turned on and allowed for this app.",
 lblLiveLocation: "Keep \"My location\" updated even when I'm not walking or navigating (uses GPS and internet)",
 myLocationPrefix: "My location:",
@@ -538,7 +553,7 @@ crossTactile: "tactile paving", crossNoTactile: "no tactile paving", crossIsland
 stopFirst: "Stop the current walk or navigation first.",
 trackStart: "Tracking {name}.", trackStop: "Stop tracking: {name}", trackStopped: "Tracking stopped.", trackNear: "You are at {name}.",
 planTitle: "Route to {name}", planLoading: "Planning the route...", planError: "Couldn't plan a route (no internet, the service is busy, or no walking route exists).",
-planRecommended: "Recommended route", planShortest: "Shortest route", planSummary: "{d}, about {min} min, {n} instructions",
+planRecommended: "Along footpaths (map default)", planShortest: "Shortest route", planSummary: "{d}, about {min} min, {n} instructions",
 planWarning: "The route comes from the map. It doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off. Use your cane and your own judgement.",
 planStart: "Start navigation", planSteps: "Instructions", startWord: "Start", viaWord: "Way point", thenWord: "Then", thatIs: "That is {dir}.",
 routeTo: "Route to {name}",
@@ -639,6 +654,13 @@ lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať
 lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
 versionWord: "Verzia", lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
+lblShowNavSteps: "Počas navigácie trasy zobraziť na hlavnej obrazovke všetky body trasy s vyznačeným aktuálnym", navStepsTitle: "Pokyny trasy",
+placesNearest: "Zobrazujem {n} najbližších miest.", planNamed: "Po pomenovaných uliciach", alongStreet: "pri ulici {s}",
+bendRight: "Trasa zatáča doprava.", bendLeft: "Trasa zatáča doľava.",
+locatingStill: "Stále čakám na polohu. Ak sa telefón pýta, či povoliť polohu, povoľte ju.",
+locatingAddress: "Poloha zistená. Hľadám adresu...", locatingAddressStill: "Stále hľadám adresu. Internet je asi pomalý.",
+intersectionsLoading: "Hľadám križovatky...", intersectionsFailed: "Križovatky sa teraz nepodarilo načítať (podrobný mapový server neodpovedá).",
+placesNoneWider: "V okruhu {r} nič nie je. Najbližšie do {r2}:", placesErrorDetail: "Táto kategória je len na podrobnom mapovom serveri, ktorý teraz neodpovedá. Skúste to o chvíľu znova.",
 locUnavailable: "Polohu sa nepodarilo zistiť. Skontrolujte, či je zapnutá poloha a povolená pre túto aplikáciu.",
 lblLiveLocation: "Priebežne aktualizovať „Moja poloha“, aj keď práve nekráčam ani nenavigujem (používa GPS a internet)",
 myLocationPrefix: "Moja poloha:",
@@ -678,7 +700,7 @@ crossTactile: "vodiaci pás", crossNoTactile: "bez vodiaceho pásu", crossIsland
 stopFirst: "Najprv zastavte prebiehajúcu chôdzu alebo navigáciu.",
 trackStart: "Sledujem {name}.", trackStop: "Zastaviť sledovanie: {name}", trackStopped: "Sledovanie zastavené.", trackNear: "Ste pri mieste {name}.",
 planTitle: "Trasa do {name}", planLoading: "Plánujem trasu...", planError: "Trasu sa nepodarilo naplánovať (nie je internet, služba je vyťažená alebo pešia trasa neexistuje).",
-planRecommended: "Odporúčaná trasa", planShortest: "Najkratšia trasa", planSummary: "{d}, asi {min} min, pokynov: {n}",
+planRecommended: "Po chodníkoch (podľa mapy)", planShortest: "Najkratšia trasa", planSummary: "{d}, asi {min} min, pokynov: {n}",
 planWarning: "Trasa je z mapy. Nevie o prekážkach, rozkopávkach ani o tom, ktoré priechody sú bezpečné, a GPS sa môže mýliť o niekoľko metrov. Používajte palicu a vlastný úsudok.",
 planStart: "Spustiť navigáciu", planSteps: "Pokyny", startWord: "Štart", viaWord: "Priebežný bod", thenWord: "Potom", thatIs: "To je {dir}.",
 routeTo: "Trasa do {name}",
@@ -772,7 +794,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -785,6 +807,7 @@ offRouteDist.options[0].text = t('optOffRouteAuto');
 dirStyle.options[0].text = t('optDirSides'); dirStyle.options[1].text = t('optDirClock'); dirStyle.options[2].text = t('optDirCompass');
 renderMyLocation();
 updateTrackButton();
+renderNavSteps(true);
 if(sheetStack.length) renderSheet();
 document.getElementById('lblDistRange').textContent = t('distLabel');
 document.getElementById('lblMenu3').textContent = t('lblMenu');
@@ -862,6 +885,9 @@ const totalDistOn = document.getElementById('totalDistOn');
 const autoStartOn = document.getElementById('autoStartOn');
 const pauseOnLeave = document.getElementById('pauseOnLeave');
 const showQuickBar = document.getElementById('showQuickBar');
+const showNavSteps = document.getElementById('showNavSteps');
+const navSteps = document.getElementById('navSteps');
+const navStepsList = document.getElementById('navStepsList');
 const liveLocation = document.getElementById('liveLocation');
 const myLocationEl = document.getElementById('myLocation');
 const fastGps = document.getElementById('fastGps');
@@ -945,7 +971,7 @@ let lastFix = null, quickBusy = false;
 const PLACES_RADII = [200, 500, 1000, 2000, 5000, 10000, 30000];
 let placesRadius = 500, liveSession = false, trackTarget = null, passiveHeading = null, passiveHeadingOn = false;
 const sheetStack = [];
-let latestPos = null;
+let latestPos = null, motionGranted = false;
 let myPlace = null, placeLookup = { lat: null, lon: null, time: -Infinity, busy: false }, liveWatchId = null;
 let compassOn = false, compassHeading = null, compassSector = null, compassPending = null, compassTimer = null;
 let minDistToTarget = null, offRoutePeak = 0;
@@ -1411,6 +1437,7 @@ vibrate(vibePattern);
 function handleGPS(pos){
 rememberFix(pos.coords);
 if(!running) return;
+if(navMode === 'route') setTimeout(renderNavSteps, 0);
 const now = performance.now();
 if(now - lastGPSTime < (fastGps.checked ? 900 : 3000)) return;
 lastGPSTime = now;
@@ -1709,7 +1736,7 @@ offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; minDistToTarg
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
-const doneMsg = wp.label + ". " + t('routeDone');
+const doneMsg = wp.label + ". " + (wp.arrival ? wp.arrival + ' ' : '') + t('routeDone');
 announceEvent(doneMsg);
 if(voiceMode.value !== 'off') speak(doneMsg);
 announce(t('routeDone'), '');
@@ -1806,7 +1833,7 @@ const res = await Promise.race([
 DeviceOrientationEvent.requestPermission(),
 new Promise((_,rej)=>setTimeout(()=>rej(new Error('T')),4000))
 ]);
-if(res==='granted') permMsg.textContent = t('errGranted');
+if(res==='granted'){ permMsg.textContent = t('errGranted'); motionGranted = true; }
 else { permMsg.textContent = t('errDenied'); return; }
 }catch(e){ permMsg.textContent = t('errTimeout'); return; }
 }
@@ -1872,6 +1899,7 @@ DeviceOrientationEvent.requestPermission(),
 new Promise((_,rej)=>setTimeout(()=>rej(new Error('T')),4000))
 ]);
 if(res!=='granted'){ permMsg.textContent = t('errDenied'); navMode = 'idle'; return; }
+motionGranted = true;
 }catch(e){ permMsg.textContent = t('errTimeout'); navMode = 'idle'; return; }
 }
 
@@ -1895,6 +1923,7 @@ routesBtn.disabled = true;
 nearbyBtn.disabled = true;
 statusBox.className = 'status ok';
 routePointsBtn.hidden = false;
+renderNavSteps(true);
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
 announceEvent(t('routeNavStart') + ".");
@@ -1930,6 +1959,7 @@ activeRoute = null;
 holdingStraight = false;
 manualHoldDoneBtn.hidden = true;
 routePointsBtn.hidden = true;
+renderNavSteps(true);
 if(!routePointsOverlay.hidden) closeRoutePoints();
 navPaused = false;
 
@@ -1984,15 +2014,18 @@ if(running && lastHeading !== null) return lastHeading;
 if(passiveHeading !== null && performance.now() - passiveHeading.time < 3000) return passiveHeading.h;
 return null;
 }
-// A quiet compass reading for "where is that place from me". Must be called from a button press
-// (iOS only grants the sensor permission on a tap). Without it, directions fall back to north/south/...
-async function ensureHeadingSensor(){
+// A quiet compass reading for "where is that place from me". On iPhone the sensor needs a permission
+// question; that is only asked when "ask" is set (tracking a place). Opening a list never asks: it uses the
+// compass if you've already allowed it (by Start or Compass), otherwise directions are given as north/south/...
+async function ensureHeadingSensor(ask){
 if(passiveHeadingOn) return;
 if(typeof DeviceOrientationEvent === 'undefined') return;
-if(typeof DeviceOrientationEvent.requestPermission === 'function'){
+if(typeof DeviceOrientationEvent.requestPermission === 'function' && !motionGranted){
+if(!ask) return;
 try{
-const res = await Promise.race([DeviceOrientationEvent.requestPermission(), new Promise((_, rej) => setTimeout(() => rej(new Error('T')), 4000))]);
+const res = await DeviceOrientationEvent.requestPermission();
 if(res !== 'granted') return;
+motionGranted = true;
 }catch(e){ return; }
 }
 passiveHeadingOn = true;
@@ -2039,6 +2072,7 @@ if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEven
 try{
 const res = await DeviceOrientationEvent.requestPermission();
 if(res !== 'granted'){ announceEvent(t('errDenied')); permMsg.textContent = t('errDenied'); return; }
+motionGranted = true;
 }catch(e){ announceEvent(t('errTimeout')); permMsg.textContent = t('errTimeout'); return; }
 }
 compassOn = true;
@@ -2053,7 +2087,7 @@ setTimeout(() => { if(compassOn) window.addEventListener('deviceorientation', ha
 // ---------- Where am I / share / save ----------
 // Every position any of the app's GPS watchers receives, so a button press doesn't have to wait for a new fix
 function rememberFix(c){
-if(c && c.accuracy <= 50) latestPos = { coords: { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy }, time: performance.now() };
+if(c && c.accuracy <= 100) latestPos = { coords: { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy }, time: performance.now() };
 }
 function getPosition(maxWaitMs){
 return new Promise((resolve, reject) => {
@@ -2062,9 +2096,14 @@ const age = latestPos ? performance.now() - latestPos.time : Infinity;
 const watching = liveWatchId !== null || running || recording || !!trackTarget;
 if(age < (watching ? 30000 : 10000)){ resolve(latestPos); return; }
 let done = false;
-const finish = (fn, v) => { if(!done){ done = true; clearTimeout(fallback); clearTimeout(giveUp); fn(v); } };
+const finish = (fn, v) => { if(!done){ done = true; clearTimeout(fallback); clearTimeout(giveUp); clearTimeout(coarse); fn(v); } };
 // The browser's own timeout doesn't cover an unanswered permission question, so never wait forever
-const giveUp = setTimeout(() => finish(reject, new Error('timeout')), maxWaitMs || 15000);
+const giveUp = setTimeout(() => finish(reject, new Error('timeout')), maxWaitMs || 25000);
+// Precise GPS can take a long time indoors or between buildings: after 4 s also accept a rougher network position
+const coarse = setTimeout(() => {
+if(done) return;
+navigator.geolocation.getCurrentPosition((p) => { rememberFix(p.coords); finish(resolve, p); }, () => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+}, 4000);
 // While a watcher is running, a phone standing still may not deliver a new fix: use the last one (up to 2 minutes old)
 const fallback = setTimeout(() => { if(latestPos && performance.now() - latestPos.time < 120000) finish(resolve, latestPos); }, 3000);
 navigator.geolocation.getCurrentPosition((p) => { rememberFix(p.coords); finish(resolve, p); }, (e) => {
@@ -2115,20 +2154,40 @@ clearTimeout(timer);
 }
 // Named streets meeting near a position, from OpenStreetMap (Overpass API), nearest first
 const STREET_TYPES = '^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|pedestrian|road)(_link)?$';
-const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 let overpassFirst = 0;
-async function overpassQuery(q, ms){
-// Start with the server that answered last time, so a busy one doesn't slow every request down
-for(let k = 0; k < OVERPASS_URLS.length; k++){
-const i = (overpassFirst + k) % OVERPASS_URLS.length;
-const d = await fetchJson(OVERPASS_URLS[i] + '?data=' + encodeURIComponent(q), ms);
-if(d && Array.isArray(d.elements)){ overpassFirst = i; return d.elements; }
+// Public map servers are often busy. Ask the one that answered last time; if it hasn't answered in 3.5 s (or it
+// fails), ask the next one as well, and take whichever answers first.
+function overpassQuery(q, ms){
+return new Promise((resolve) => {
+const n = OVERPASS_URLS.length, timers = [];
+let started = 0, failed = 0, done = false;
+const startNext = () => {
+if(done || started >= n) return;
+const i = (overpassFirst + started) % n;
+started++;
+const hedge = setTimeout(startNext, 3500);
+timers.push(hedge);
+fetchJson(OVERPASS_URLS[i] + '?data=' + encodeURIComponent(q), ms).then((d) => {
+if(done) return;
+if(d && Array.isArray(d.elements)){
+done = true;
+timers.forEach(clearTimeout);
+overpassFirst = i;
+resolve(d.elements);
+return;
 }
-return null;
+failed++;
+clearTimeout(hedge);
+if(failed >= n) resolve(null); else startNext();
+});
+};
+startNext();
+});
 }
 async function nearbyIntersections(lat, lon){
 const q = '[out:json][timeout:10];way(around:200,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
-const els = await overpassQuery(q, 10000);
+const els = await overpassQuery(q, 8000);
 if(!els) return undefined;
 const nodes = {}, names = {};
 els.forEach((e) => { if(e.type === 'node') nodes[e.id] = e; });
@@ -2174,9 +2233,17 @@ let txt = t('intersection').replace('{streets}', streetList(ix, road)).replace('
 if(heading !== null && heading !== undefined && ix.dist > 5) txt += ' ' + describeDirection(bearingDegrees(lat, lon, ix.lat, ix.lon), heading);
 return txt;
 }
-async function describePlace(lat, lon){
-const [addr, ixs] = await Promise.all([reverseGeocode(lat, lon), nearbyIntersections(lat, lon)]);
-return { lat: lat, lon: lon, addr: addr, ixs: ixs || [], ix: (ixs && ixs[0] && ixs[0].dist <= 150) ? ixs[0] : null };
+// The address comes back as soon as it is known. Intersections get at most ixWaitMs longer; if they are
+// slower (busy map server), place.ixPending resolves later, once they've been filled in.
+async function describePlace(lat, lon, ixWaitMs){
+const place = { lat: lat, lon: lon, addr: null, ixs: [], ix: null, ixPending: null };
+const setIx = (ixs) => { place.ixFailed = ixs === undefined; place.ixs = ixs || []; place.ix = (ixs && ixs[0] && ixs[0].dist <= 150) ? ixs[0] : null; place.ixPending = null; return place; };
+const ixP = nearbyIntersections(lat, lon).catch(() => undefined);
+place.addr = await reverseGeocode(lat, lon);
+const LATE = {};
+const first = await Promise.race([ixP, new Promise((r) => setTimeout(() => r(LATE), ixWaitMs))]);
+if(first === LATE) place.ixPending = ixP.then(setIx); else setIx(first);
+return place;
 }
 function placeLine(place, heading){
 let line = t('myLocationPrefix') + ' ' + (place.addr ? place.addr.text : t('addressUnknownShort')) + '.';
@@ -2198,12 +2265,15 @@ if(placeLookup.lat !== null && haversineMeters(lat, lon, placeLookup.lat, placeL
 placeLookup.busy = true;
 placeLookup.time = now;
 try{
-const place = await describePlace(lat, lon);
-if(place.addr || place.ix){
+const place = await describePlace(lat, lon, 1500);
+const show = () => {
+if(!(place.addr || place.ix)) return;
 myPlace = place;
 placeLookup.lat = lat; placeLookup.lon = lon;
 renderMyLocation();
-}
+};
+show();
+if(place.ixPending) place.ixPending.then(() => { if(myPlace === place || !myPlace) show(); });
 }finally{
 placeLookup.busy = false;
 }
@@ -2233,38 +2303,59 @@ announceEvent(t('locUnavailable'));
 if(voiceMode.value !== 'off') speak(t('locUnavailable'));
 quickResult.textContent = t('locUnavailable');
 }
-// Looks up the current position and builds the full spoken description. Returns null if GPS failed.
-async function lookupWhereAmI(){
+// Looks up the current position and builds the full spoken description. Returns null if no position.
+// onStage('address') is called once the position is known and the address is being looked up.
+async function lookupWhereAmI(onStage){
 let pos;
 try{ pos = await getPosition(); }catch(e){ return null; }
+if(onStage) onStage('address');
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
-const place = await describePlace(lat, lon);
+const place = await describePlace(lat, lon, 1500);
 lastFix = { lat: lat, lon: lon, acc: pos.coords.accuracy, time: performance.now(), address: place.addr ? place.addr.text : null };
+const h = currentKnownHeading();
+const res = { place: place, lat: lat, lon: lon, heading: h, msg: '' };
+const build = () => {
 if(place.addr || place.ix){
 myPlace = place;
 placeLookup.lat = lat; placeLookup.lon = lon; placeLookup.time = performance.now();
 renderMyLocation();
 }
-const h = currentKnownHeading();
 let msg = place.addr ? placeLine(place, h) : t('addressUnavailable') + (place.ix ? ' ' + intersectionText(place.ix, '', lat, lon, h) + '.' : '');
 if(h !== null) msg += ' ' + t('facing') + ' ' + directionWord(h).toLowerCase() + '.';
 msg += ' ' + t('gpsAccuracy').replace('{n}', Math.round(pos.coords.accuracy));
 const near = nearestSavedPoint(lat, lon);
 if(near) msg += ' ' + t('nearestSaved').replace('{label}', near.label).replace('{n}', Math.round(near.dist));
-return { msg: msg, place: place, lat: lat, lon: lon, heading: h };
+res.msg = msg;
+};
+build();
+// Slow intersections: resolves with the sentence to add ("Intersection X and Y, 30 m ahead."), or '' if none
+res.later = place.ixPending ? place.ixPending.then(() => {
+build();
+return place.ix ? intersectionText(place.ix, place.addr ? place.addr.road : '', lat, lon, h) + '.' : '';
+}) : null;
+return res;
+}
+// Spoken hints while waiting, so a long wait is never silent or unexplained
+function locatingHints(say){
+const timers = [setTimeout(() => say(t('locatingStill')), 7000)];
+return { address(){ timers.forEach(clearTimeout); timers.length = 0; timers.push(setTimeout(() => say(t('locatingAddressStill')), 5000)); }, stop(){ timers.forEach(clearTimeout); } };
 }
 async function whereAmI(){
 if(quickBusy) return;
 quickBusy = true;
 announceEvent(t('locating'), true);
 quickResult.textContent = t('locating');
+const hints = locatingHints((m) => { quickResult.textContent = m; announceEvent(m, true); });
 try{
-const res = await lookupWhereAmI();
+const res = await lookupWhereAmI(() => hints.address());
+hints.stop();
 if(!res){ quickError(); return; }
 quickResult.textContent = res.msg;
 announceEvent(res.msg);
 if(voiceMode.value !== 'off') speak(res.msg);
+if(res.later) res.later.then((extra) => { if(extra){ quickResult.textContent = res.msg; sayEvent(extra); } });
 }finally{
+hints.stop();
 quickBusy = false;
 }
 }
@@ -2399,7 +2490,7 @@ sheetButton(body, t('readNearestAddress'), load).id = 'myLocReadBtn';
 if(st.res){
 body.appendChild(sheetEl('h3', 'sheet-h', t('intersectionsNearby')));
 const ixs = st.res.place.ixs.slice(0, 8);
-if(!ixs.length) body.appendChild(sheetEl('p', 'sheet-text', t('noIntersections')));
+if(!ixs.length) body.appendChild(sheetEl('p', 'sheet-text', st.res.place.ixPending ? t('intersectionsLoading') : st.res.place.ixFailed ? t('intersectionsFailed') : t('noIntersections'))).id = 'myLocIxMsg';
 const road = st.res.place.addr ? st.res.place.addr.road : '';
 ixs.forEach((ix) => {
 const name = t('intersectionOf').replace('{streets}', streetList(ix, road));
@@ -2411,16 +2502,31 @@ sheetButton(body, t('lblShareLoc'), shareLocation);
 sheetButton(body, t('lblSavePlace'), () => { closeSheet(true); savePlaceHere(); });
 }
 };
+function showText(m){
+st.text = m;
+const el = document.getElementById('myLocInfo');
+if(el && topSheet() === sheet) el.textContent = m;
+}
 async function load(){
 if(st.busy) return;
 st.busy = true;
+showText(t('locating'));
 announceEvent(t('locating'), true);
-const res = await lookupWhereAmI();
+const hints = locatingHints((m) => { showText(m); announceEvent(m, true); });
+const res = await lookupWhereAmI(() => { hints.address(); showText(t('locatingAddress')); });
+hints.stop();
 st.busy = false;
 st.res = res;
 st.text = res ? res.msg : t('locUnavailable');
 if(topSheet() === sheet) renderSheet();
 sayEvent(st.text);
+if(res && res.later) res.later.then((extra) => {
+if(st.res !== res) return;
+st.text = res.msg;
+// Fill in the list without stealing the screen reader's focus; say the intersection as a follow-up
+if(topSheet() === sheet){ const keep = document.activeElement && document.activeElement.id; renderSheet(); if(keep && document.getElementById(keep)) document.getElementById(keep).focus(); }
+if(extra) sayEvent(extra);
+});
 }
 openSheet(sheet);
 load();
@@ -2463,7 +2569,7 @@ const KINDS = {
 'leisure=park': ['Park', 'Park'], 'leisure=playground': ['Playground', 'Detské ihrisko'], 'leisure=sports_centre': ['Sports centre', 'Športové centrum'],
 'leisure=fitness_centre': ['Gym', 'Fitness centrum'], 'leisure=swimming_pool': ['Swimming pool', 'Plaváreň'], 'leisure=stadium': ['Stadium', 'Štadión'], 'leisure=garden': ['Garden', 'Záhrada'],
 'historic=memorial': ['Memorial', 'Pamätník'], 'historic=monument': ['Monument', 'Pomník'], 'historic=castle': ['Castle', 'Hrad'],
-'office=government': ['Government office', 'Úrad'],
+'office=government': ['Government office', 'Úrad'], 'place=house': ['Address', 'Adresa'],
 'highway=bus_stop': ['Bus stop', 'Autobusová zastávka'], 'highway=crossing': ['Pedestrian crossing', 'Priechod pre chodcov'],
 'railway=tram_stop': ['Tram stop', 'Zastávka električky'], 'railway=station': ['Railway station', 'Železničná stanica'], 'railway=halt': ['Railway stop', 'Železničná zastávka'],
 'railway=subway_entrance': ['Subway entrance', 'Vstup do metra']
@@ -2475,6 +2581,7 @@ const i = lang === 'sk' ? 1 : 0;
 const k = KINDS[key + '=' + value];
 if(k) return k[i];
 if(key === 'place' || key === 'highway' || key === 'building' || key === 'boundary') return KIND_KEYS[key][i];
+if(value === 'yes' && KIND_KEYS[key]) return KIND_KEYS[key][i];
 const pretty = String(value || '').replace(/_/g, ' ');
 if(KIND_KEYS[key]) return KIND_KEYS[key][i] + (pretty && pretty !== 'yes' ? ': ' + pretty : '');
 return pretty.charAt(0).toUpperCase() + pretty.slice(1);
@@ -2482,21 +2589,21 @@ return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 const KIND_TAGS = ['amenity', 'shop', 'tourism', 'leisure', 'historic', 'office', 'railway', 'highway'];
 const PLACE_CATS = [
 { key: 'mine', label: 'catMine' },
-{ key: 'all', label: 'catAll', start: 150, f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
-{ key: 'food', label: 'catFood', f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
-{ key: 'groceries', label: 'catGroceries', f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
-{ key: 'shops', label: 'catShops', f: ['nwr{A}["shop"]'] },
-{ key: 'transport', label: 'catTransport', f: ['node{A}["highway"="bus_stop"]', 'node{A}["railway"~"^(tram_stop|station|halt|subway_entrance)$"]', 'nwr{A}["amenity"="bus_station"]', 'way{A}["railway"="station"]', 'relation{A}["railway"="station"]'] },
+{ key: 'all', label: 'catAll', start: 150, p: ['amenity', 'shop', 'tourism', 'leisure', 'office', 'historic', 'highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt'], f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
+{ key: 'food', label: 'catFood', p: ['amenity:restaurant', 'amenity:cafe', 'amenity:fast_food', 'amenity:bar', 'amenity:pub', 'amenity:food_court', 'amenity:ice_cream', 'amenity:biergarten'], f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
+{ key: 'groceries', label: 'catGroceries', p: ['shop:supermarket', 'shop:convenience', 'shop:bakery', 'shop:greengrocer', 'shop:butcher', 'shop:deli'], f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
+{ key: 'shops', label: 'catShops', p: ['shop'], f: ['nwr{A}["shop"]'] },
+{ key: 'transport', label: 'catTransport', p: ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt', 'railway:subway_entrance', 'amenity:bus_station'], f: ['node{A}["highway"="bus_stop"]', 'node{A}["railway"~"^(tram_stop|station|halt|subway_entrance)$"]', 'nwr{A}["amenity"="bus_station"]', 'way{A}["railway"="station"]', 'relation{A}["railway"="station"]'] },
 { key: 'crossings', label: 'catCrossings', start: 200, f: ['node{A}["highway"="crossing"]'] },
-{ key: 'health', label: 'catHealth', f: ['nwr{A}["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'] },
-{ key: 'pharmacy', label: 'catPharmacy', f: ['nwr{A}["amenity"="pharmacy"]'] },
-{ key: 'education', label: 'catEducation', f: ['nwr{A}["amenity"~"^(school|university|college|kindergarten|library)$"]'] },
-{ key: 'money', label: 'catMoney', f: ['nwr{A}["amenity"~"^(bank|atm)$"]'] },
-{ key: 'offices', label: 'catOffices', f: ['nwr{A}["amenity"~"^(post_office|townhall|police|courthouse|embassy)$"]', 'nwr{A}["office"="government"]'] },
+{ key: 'health', label: 'catHealth', p: ['amenity:hospital', 'amenity:clinic', 'amenity:doctors', 'amenity:dentist', 'amenity:pharmacy'], f: ['nwr{A}["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'] },
+{ key: 'pharmacy', label: 'catPharmacy', p: ['amenity:pharmacy'], f: ['nwr{A}["amenity"="pharmacy"]'] },
+{ key: 'education', label: 'catEducation', p: ['amenity:school', 'amenity:university', 'amenity:college', 'amenity:kindergarten', 'amenity:library'], f: ['nwr{A}["amenity"~"^(school|university|college|kindergarten|library)$"]'] },
+{ key: 'money', label: 'catMoney', p: ['amenity:bank', 'amenity:atm'], f: ['nwr{A}["amenity"~"^(bank|atm)$"]'] },
+{ key: 'offices', label: 'catOffices', p: ['amenity:post_office', 'amenity:townhall', 'amenity:police', 'amenity:courthouse', 'amenity:embassy', 'office:government'], f: ['nwr{A}["amenity"~"^(post_office|townhall|police|courthouse|embassy)$"]', 'nwr{A}["office"="government"]'] },
 { key: 'toilets', label: 'catToilets', f: ['nwr{A}["amenity"="toilets"]'] },
-{ key: 'accommodation', label: 'catAccommodation', f: ['nwr{A}["tourism"~"^(hotel|hostel|guest_house|motel|apartment)$"]'] },
-{ key: 'culture', label: 'catCulture', f: ['nwr{A}["tourism"~"^(museum|gallery|attraction|viewpoint)$"]', 'nwr{A}["amenity"~"^(theatre|cinema|arts_centre|place_of_worship)$"]', 'nwr{A}["historic"~"^(memorial|monument|castle)$"]'] },
-{ key: 'parks', label: 'catParks', f: ['nwr{A}["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium)$"]'] }
+{ key: 'accommodation', label: 'catAccommodation', p: ['tourism:hotel', 'tourism:hostel', 'tourism:guest_house', 'tourism:motel', 'tourism:apartment'], f: ['nwr{A}["tourism"~"^(hotel|hostel|guest_house|motel|apartment)$"]'] },
+{ key: 'culture', label: 'catCulture', p: ['tourism:museum', 'tourism:gallery', 'tourism:attraction', 'tourism:viewpoint', 'amenity:theatre', 'amenity:cinema', 'amenity:arts_centre', 'amenity:place_of_worship', 'historic:memorial', 'historic:monument', 'historic:castle'], f: ['nwr{A}["tourism"~"^(museum|gallery|attraction|viewpoint)$"]', 'nwr{A}["amenity"~"^(theatre|cinema|arts_centre|place_of_worship)$"]', 'nwr{A}["historic"~"^(memorial|monument|castle)$"]'] },
+{ key: 'parks', label: 'catParks', p: ['leisure:park', 'leisure:playground', 'leisure:sports_centre', 'leisure:fitness_centre', 'leisure:swimming_pool', 'leisure:stadium'], f: ['nwr{A}["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium)$"]'] }
 ];
 // What you might type into search that really means "one of these nearby" (compared without accents)
 const CAT_WORDS = {
@@ -2559,11 +2666,17 @@ if(d <= R) list.push({ id: 'mine' + r.id, name: wp.label, named: true, kind: '',
 });
 return list.sort((a, b) => a.dist - b.dist);
 }
+// Named places come from Photon (fast and dependable); it returns the nearest 50 within the radius
+if(cat.p){
+const viaPhoton = await photonNearby(cat, lat, lon, R);
+if(viaPhoton) return viaPhoton;
+}
+// Crossings and toilets (not in Photon), or Photon unreachable: the detailed Overpass servers.
 // Start small and widen, so a big radius in a city doesn't download thousands of places
 let r = Math.min(R, cat.start || 500), ok = false;
 const found = {};
 for(;;){
-const els = await overpassQuery(placesQuery(cat, lat, lon, r), 12000);
+const els = await overpassQuery(placesQuery(cat, lat, lon, r), 9000);
 if(!els){ if(!ok) return null; break; }
 ok = true;
 els.forEach((e) => { const pl = elementToPlace(e, lat, lon); if(pl && pl.dist <= R + 50) found[pl.id] = pl; });
@@ -2571,6 +2684,40 @@ if(Object.keys(found).length >= 40 || r >= R) break;
 r = Math.min(R, r * 4);
 }
 return dedupePlaces(Object.keys(found).map((k) => found[k]));
+}
+const PHOTON_URL = 'https://photon.komoot.io';
+function photonToPlace(f, lat, lon){
+const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+if(!c || !isFinite(c[0]) || !isFinite(c[1])) return null;
+const kind = p.osm_key && p.osm_value ? kindName(p.osm_key, p.osm_value) : '';
+const street = p.street && p.street !== p.city ? p.street : '';
+let addr = street ? street + (p.housenumber ? ' ' + p.housenumber : '') : '';
+const tags = {};
+if(p.osm_key) tags[p.osm_key] = p.osm_value;
+const osmType = { N: 'node', W: 'way', R: 'relation' }[p.osm_type];
+const pl = { id: 'p' + p.osm_type + p.osm_id, osm: osmType ? { type: osmType, id: p.osm_id } : null, name: p.name || kind || addr, named: !!p.name, kind: kind,
+kindKey: (p.osm_key || '') + '=' + (p.osm_value || ''), lat: c[1], lon: c[0], tags: tags, address: addr, city: p.city || '', extra: '' };
+if(lat !== null) pl.dist = haversineMeters(lat, lon, c[1], c[0]);
+return pl;
+}
+async function photonNearby(cat, lat, lon, R){
+const url = PHOTON_URL + '/reverse?lat=' + lat.toFixed(6) + '&lon=' + lon.toFixed(6) + '&radius=' + (R / 1000) + '&limit=50&lang=default' + cat.p.map((x) => '&osm_tag=' + encodeURIComponent(x)).join('');
+const d = await fetchJson(url, 9000);
+if(!d || !Array.isArray(d.features)) return null;
+const seen = {}, list = [];
+d.features.forEach((f) => { const pl = photonToPlace(f, lat, lon); if(pl && !seen[pl.id] && pl.dist <= R + 50){ seen[pl.id] = true; list.push(pl); } });
+const out = dedupePlaces(list);
+out.truncated = d.features.length >= 50;
+return out;
+}
+// Opening hours, platform, lines... for one place, fetched quietly when you open it (if the detailed server answers)
+async function enrichPlace(pl){
+if(!pl.osm || pl.enriched) return false;
+pl.enriched = true;
+const els = await overpassQuery('[out:json][timeout:5];' + pl.osm.type + '(' + pl.osm.id + ');out tags;', 6000);
+if(!els || !els[0] || !els[0].tags) return false;
+pl.tags = els[0].tags;
+return !!(pl.tags.opening_hours || pl.tags.local_ref || pl.tags.route_ref);
 }
 function placeListText(pl, lat, lon, heading){
 let txt = pl.name;
@@ -2620,12 +2767,17 @@ if(!pos){ st.msg = t('locUnavailable'); }
 else {
 st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = currentKnownHeading();
 lastFix = { lat: st.lat, lon: st.lon, acc: pos.coords.accuracy, time: performance.now(), address: null };
-const all = await fetchPlaces(cat, st.lat, st.lon, placesRadius);
-if(!all) st.msg = t('placesError');
-else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(placesRadius));
+let all = await fetchPlaces(cat, st.lat, st.lon, placesRadius), wider = placesRadius;
+// Nothing in range: look further out by itself (up to 30 km), so you learn where the nearest one is
+while(all && !all.length && wider < 30000){
+wider = Math.min(30000, wider * 4);
+all = await fetchPlaces(cat, st.lat, st.lon, wider);
+}
+if(!all) st.msg = t(cat.p ? 'placesError' : 'placesErrorDetail');
+else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(wider));
 else {
 st.places = all.slice(0, 60);
-st.msg = all.length > 60 ? t('placesFoundMore').replace('{n}', all.length).replace('{m}', 60) : t('placesFound').replace('{n}', all.length);
+st.msg = wider > placesRadius ? t('placesNoneWider').replace('{r}', formatDist(placesRadius)).replace('{r2}', formatDist(wider)) : all.truncated ? t('placesNearest').replace('{n}', st.places.length) : all.length > 60 ? t('placesFoundMore').replace('{n}', all.length).replace('{m}', 60) : t('placesFound').replace('{n}', all.length);
 }
 }
 st.busy = false;
@@ -2677,10 +2829,25 @@ st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = curren
 // Prefer results around you, without excluding places further away
 url += '&viewbox=' + (st.lon - 0.4).toFixed(4) + ',' + (st.lat + 0.3).toFixed(4) + ',' + (st.lon + 0.4).toFixed(4) + ',' + (st.lat - 0.3).toFixed(4);
 }
-const res = await fetchJson(url, 12000);
+const res = await fetchJson(url, 10000);
+let viaPhoton = null;
+if(!Array.isArray(res) || !res.length){
+// Second source: Photon (also forgiving with spelling), nearest to you first
+const d = await fetchJson(PHOTON_URL + '/api/?q=' + encodeURIComponent(q) + '&limit=20&lang=default' + (pos ? '&lat=' + st.lat.toFixed(5) + '&lon=' + st.lon.toFixed(5) : ''), 9000);
+if(d && Array.isArray(d.features)) viaPhoton = d.features.map((f) => {
+const pl = photonToPlace(f, pos ? st.lat : null, pos ? st.lon : null);
+if(pl){ const where = [pl.address, pl.city].filter((x) => x && x !== pl.name).join(', '); pl.extra = where; pl.address = where; }
+return pl;
+}).filter(Boolean);
+}
 st.busy = false;
-if(!Array.isArray(res)) st.msg = t('searchError');
-else if(!res.length) st.msg = t('searchNone').replace('{q}', q);
+if(viaPhoton && viaPhoton.length){
+st.places = viaPhoton;
+if(pos) st.places.sort((x, y) => x.dist - y.dist);
+st.msg = t('placesFound').replace('{n}', st.places.length);
+}
+else if(!Array.isArray(res) && !viaPhoton) st.msg = t('searchError');
+else if(!Array.isArray(res) || !res.length) st.msg = t('searchNone').replace('{q}', q);
 else {
 st.places = res.map((j) => {
 const plat = parseFloat(j.lat), plon = parseFloat(j.lon);
@@ -2718,7 +2885,11 @@ parts.push(formatDist(haversineMeters(c.latitude, c.longitude, pl.lat, pl.lon)) 
 return parts.join(' ');
 }
 function openPlaceActions(pl){
-openSheet({
+enrichPlace(pl).then((changed) => {
+const el = document.getElementById('placeDetails');
+if(changed && el && topSheet() === sheet) el.textContent = placeDetails(pl);
+});
+const sheet = {
 title: pl.name, trigger: null,
 render(body){
 const det = placeDetails(pl);
@@ -2747,7 +2918,8 @@ a.href = 'https://www.google.com/maps/dir/?api=1&destination=' + pl.lat.toFixed(
 a.target = '_blank'; a.rel = 'noopener';
 body.appendChild(a);
 }
-});
+};
+openSheet(sheet);
 }
 
 // ---------- Tracking a place: say how far and which way it is as you move ----------
@@ -2785,7 +2957,7 @@ sayEvent((first ? t('trackStart').replace('{name}', tt.name) + ' ' : '') + track
 function startTracking(pl){
 if(!navigator.geolocation){ sayEvent(t('locUnavailable')); return; }
 if(trackTarget) stopTracking(false);
-ensureHeadingSensor();
+ensureHeadingSensor(true);
 trackTarget = { name: pl.name, lat: pl.lat, lon: pl.lon, lastDist: null, lastTime: -Infinity, near: false, watchId: null };
 trackTarget.watchId = navigator.geolocation.watchPosition(handleTrackGPS, () => {}, { enableHighAccuracy: true });
 requestWakeLock();
@@ -2842,6 +3014,18 @@ if(worst > eps){ walk(a, at); keep.push(at); walk(at, b); }
 })(0, pts.length - 1);
 return keep.map((i) => pts[i]);
 }
+// A point part-way along a path (list of {lat, lon}), by distance
+function pointAlong(pts, frac){
+let total = 0;
+const seg = [];
+for(let i = 1; i < pts.length; i++){ const d = haversineMeters(pts[i - 1].lat, pts[i - 1].lon, pts[i].lat, pts[i].lon); seg.push(d); total += d; }
+let want = total * frac;
+for(let i = 0; i < seg.length; i++){
+if(want <= seg[i] || i === seg.length - 1){ const f = seg[i] > 0 ? Math.min(1, want / seg[i]) : 0; return { lat: pts[i].lat + (pts[i + 1].lat - pts[i].lat) * f, lon: pts[i].lon + (pts[i + 1].lon - pts[i].lon) * f }; }
+want -= seg[i];
+}
+return pts[0];
+}
 function buildPlannedRoute(trip, pl){
 const leg = trip && trip.legs && trip.legs[0];
 if(!leg || !Array.isArray(leg.maneuvers) || !leg.shape) return null;
@@ -2854,30 +3038,84 @@ while(i < man.length - 1){
 const begin = man[i].begin_shape_index;
 let instr = man[i].instruction, turn = turnFromManeuver(man[i].type), j = i;
 // A stretch of only a few meters can't be told apart by GPS: say it together with the next instruction
-while(man[j].length * 1000 < 8 && j + 1 < man.length - 1){
+while(man[j].length * 1000 < 15 && j + 1 < man.length - 1){
 j++;
 instr += ' ' + t('thenWord') + ' ' + man[j].instruction.charAt(0).toLowerCase() + man[j].instruction.slice(1);
 if(turn === 'straight') turn = turnFromManeuver(man[j].type);
 }
 const end = Math.min(man[j].end_shape_index, shape.length - 1);
 const p = shape[Math.min(begin, shape.length - 1)];
-waypoints.push({ lat: p.lat, lon: p.lon, label: i === 0 ? t('startWord') : instr.replace(/\.$/, ''), instruction: instr, turn: turn });
+const wp = { lat: p.lat, lon: p.lon, label: i === 0 ? t('startWord') : instr.replace(/\.$/, ''), instruction: instr, turn: turn };
+const path = shape.slice(begin, end + 1);
+const unnamed = !(man[j].street_names && man[j].street_names.length);
+waypoints.push(wp);
 steps++;
-simplifyPath(shape.slice(begin, end + 1), 12).forEach((v) => { waypoints.push({ lat: v.lat, lon: v.lon, label: t('viaWord'), via: true, turn: 'straight' }); });
+// Bends inside this stretch: gentle ones are followed silently, sharp ones (45 degrees or more) are announced
+const kept = [path[0]].concat(simplifyPath(path, 12), [path[path.length - 1]]);
+let said = wp, piece = [kept[0]];
+// An unnamed footpath or sidewalk: remember where to look up which street each piece of it runs along
+const closePiece = () => {
+let len = 0;
+for(let q = 1; q < piece.length; q++) len += haversineMeters(piece[q - 1].lat, piece[q - 1].lon, piece[q].lat, piece[q].lon);
+if(unnamed && len >= 30) said.along = pointAlong(piece, 0.5);
+};
+for(let k = 1; k < kept.length - 1; k++){
+const v = kept[k];
+piece.push(v);
+const ang = angleDiff(bearingDegrees(v.lat, v.lon, kept[k + 1].lat, kept[k + 1].lon), bearingDegrees(kept[k - 1].lat, kept[k - 1].lon, v.lat, v.lon));
+if(Math.abs(ang) >= 45){
+closePiece();
+const txt = t(ang > 0 ? 'bendRight' : 'bendLeft');
+said = { lat: v.lat, lon: v.lon, label: txt.replace(/\.$/, ''), instruction: txt, turn: ang > 0 ? 'right' : 'left', bend: true };
+piece = [v];
+waypoints.push(said);
+steps++;
+} else waypoints.push({ lat: v.lat, lon: v.lon, label: t('viaWord'), via: true, turn: 'straight' });
+}
+piece.push(kept[kept.length - 1]);
+closePiece();
 i = j + 1;
 }
 const last = shape[shape.length - 1];
-waypoints.push({ lat: last.lat, lon: last.lon, label: pl.name, dest: true });
+const dest = { lat: last.lat, lon: last.lon, label: pl.name, dest: true };
+// "Your destination is on the left/right" is worth keeping; a plain "you have arrived" is said anyway
+const fin = man[man.length - 1];
+if((fin.type === 5 || fin.type === 6) && fin.instruction) dest.arrival = fin.instruction;
+waypoints.push(dest);
 return { id: 'plan' + Date.now().toString(36), name: t('routeTo').replace('{name}', pl.name), planned: true, waypoints: waypoints,
 meters: Math.round(trip.summary.length * 1000), minutes: Math.max(1, Math.round(trip.summary.time / 60)), steps: steps };
 }
-async function fetchPlan(lat, lon, pl, shortest){
+async function fetchPlan(lat, lon, pl, options){
 const req = { locations: [{ lat: lat, lon: lon }, { lat: pl.lat, lon: pl.lon }], costing: 'pedestrian',
 directions_options: { language: lang === 'sk' ? 'sk-SK' : 'en-US', units: 'kilometers' } };
-if(shortest) req.costing_options = { pedestrian: { shortest: true } };
+if(options) req.costing_options = { pedestrian: options };
 const d = await fetchJson(VALHALLA_URL + '?json=' + encodeURIComponent(JSON.stringify(req)), 20000);
 return d && d.trip ? buildPlannedRoute(d.trip, pl) : null;
 }
+// Unnamed sidewalks get "along <street>" added, looked up one by one (the address service allows one request a second)
+async function addStreetNames(route, onChange){
+if(route.streetsDone) return;
+route.streetsDone = true;
+const todo = route.waypoints.filter((w) => w.along).slice(0, 8);
+for(let k = 0; k < todo.length; k++){
+const w = todo[k];
+if(k) await new Promise((r) => setTimeout(r, 1100));
+const j = await fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=' + w.along.lat.toFixed(6) + '&lon=' + w.along.lon.toFixed(6) + '&accept-language=' + lang, 6000);
+let road = j && j.address && (j.address.road || j.address.pedestrian);
+if(!j){
+// One more try after a pause (the service allows one request a second and sometimes refuses)
+await new Promise((r) => setTimeout(r, 1600));
+const j2 = await fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=' + w.along.lat.toFixed(6) + '&lon=' + w.along.lon.toFixed(6) + '&accept-language=' + lang, 6000);
+road = j2 && j2.address && (j2.address.road || j2.address.pedestrian);
+}
+if(!road) continue;
+w.instruction = w.instruction.replace(/\.$/, '') + ', ' + t('alongStreet').replace('{s}', road) + '.';
+if(w.label !== t('startWord')) w.label = w.instruction.replace(/\.$/, '');
+delete w.along;
+if(onChange) onChange();
+}
+}
+function routeSignature(r){ return r.meters + '|' + r.waypoints.filter((w) => w.instruction).map((w) => w.instruction).join('|'); }
 function planSummary(route){
 return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps);
 }
@@ -2899,13 +3137,21 @@ try{ pos = await getPosition(); }catch(e){}
 if(!pos) st.msg = t('locUnavailable');
 else {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
-const best = await fetchPlan(lat, lon, pl, false);
-const shortest = best ? await fetchPlan(lat, lon, pl, true) : null;
-if(!best) st.msg = t('planError');
+// Streets with names first: more to orient by than a chain of unnamed sidewalks
+const named = await fetchPlan(lat, lon, pl, { walkway_factor: 5 });
+const best = await fetchPlan(lat, lon, pl, null);
+const shortest = (named || best) ? await fetchPlan(lat, lon, pl, { shortest: true }) : null;
+if(!named && !best) st.msg = t('planError');
 else {
-st.variants.push({ label: 'planRecommended', route: best });
-// Offer the shortest one only when it really is a different route
-if(shortest && (Math.abs(shortest.meters - best.meters) >= 5 || shortest.steps !== best.steps)) st.variants.push({ label: 'planShortest', route: shortest });
+const seen = {};
+[['planNamed', named], ['planRecommended', best], ['planShortest', shortest]].forEach((x) => {
+if(!x[1]) return;
+const sig = routeSignature(x[1]);
+// Offer a variant only when it really is a different route
+if(seen[sig]) return;
+seen[sig] = true;
+st.variants.push({ label: x[0], route: x[1] });
+});
 st.msg = st.variants.map((v) => t(v.label) + ': ' + planSummary(v.route) + '.').join(' ');
 }
 }
@@ -2915,7 +3161,15 @@ sayEvent(st.msg);
 })();
 }
 function openPlanVariant(v){
+addStreetNames(v.route, () => {
+document.querySelectorAll('#sheetBody ol li[data-wp]').forEach((li) => {
+const wp = v.route.waypoints[parseInt(li.dataset.wp, 10)];
+if(wp && wp.instruction && topSheet() && topSheet().variant === v) li.textContent = wp.instruction.replace(/\.$/, '') + ', ' + li.dataset.dist + '.';
+});
+renderNavSteps(true);
+});
 openSheet({
+variant: v,
 title: () => t(v.label), trigger: null,
 render(body){
 body.appendChild(sheetEl('p', 'sheet-text', planSummary(v.route) + '.'));
@@ -2931,7 +3185,10 @@ wps.forEach((wp, i) => {
 if(!wp.instruction) return;
 let d = 0, k = i;
 do { d += haversineMeters(wps[k].lat, wps[k].lon, wps[k + 1].lat, wps[k + 1].lon); k++; } while(k < wps.length - 1 && wps[k].via);
-ol.appendChild(sheetEl('li', '', wp.instruction.replace(/\.$/, '') + ', ' + formatDist(d) + '.'));
+const li = sheetEl('li', '', wp.instruction.replace(/\.$/, '') + ', ' + formatDist(d) + '.');
+li.dataset.wp = i;
+li.dataset.dist = formatDist(d);
+ol.appendChild(li);
 });
 body.appendChild(ol);
 body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
@@ -2971,6 +3228,33 @@ function closeRoutePoints(){
 routePointsOverlay.hidden = true;
 if(!routePointsBtn.hidden) routePointsBtn.focus();
 }
+// All points of the route on the main screen, the current target marked. Redrawn only when the target
+// changes (not on every GPS fix), so a screen reader's place in the list isn't disturbed.
+let navStepsShown = -2;
+function renderNavSteps(force){
+const on = navMode === 'route' && !!activeRoute && showNavSteps.checked;
+navSteps.hidden = !on;
+if(!on){ navStepsShown = -2; navStepsList.innerHTML = ''; return; }
+const wps = activeRoute.waypoints;
+let cur = Math.min(routeIndex, wps.length - 1);
+while(wps[cur].via && cur + 1 < wps.length) cur++;
+if(!force && cur === navStepsShown) return;
+navStepsShown = cur;
+const focused = document.activeElement && navStepsList.contains(document.activeElement) ? document.activeElement.dataset.i : null;
+navStepsList.innerHTML = '';
+let n = 0;
+wps.forEach((wp, i) => {
+if(wp.via) return;
+n++;
+const b = sheetEl('button', 'sheet-btn' + (i === cur ? ' primary' : ''), n + '. ' + (wp.instruction ? wp.instruction.replace(/\.$/, '') : wp.label) + (i === cur ? ', ' + t('pointCurrent') : i < cur ? ', ' + t('pointPassed') : ''));
+b.type = 'button';
+b.dataset.i = i;
+if(i === cur) b.setAttribute('aria-current', 'step');
+b.addEventListener('click', () => { if(i !== navStepsShown) jumpToWaypoint(i); });
+navStepsList.appendChild(b);
+});
+if(focused !== null){ const again = navStepsList.querySelector('[data-i="' + focused + '"]'); if(again) again.focus(); }
+}
 function jumpToWaypoint(i){
 awaitingTurnConfirm = null;
 const msg = t('targetChanged') + ' ' + activeRoute.waypoints[i].label + '.';
@@ -2979,6 +3263,7 @@ if(voiceMode.value !== 'off') speak(msg);
 announce(activeRoute.waypoints[i].label, '');
 enterWaypoint(i);
 if(!holdingStraight && lastLat !== null && !navPaused) updateRouteBearing(lastLat, lastLon);
+renderNavSteps();
 }
 
 // Used when the app starts the straight-line assistant without a button press
@@ -3139,6 +3424,7 @@ totalDistOn: totalDistOn.checked,
 autoStartOn: autoStartOn.checked,
 pauseOnLeave: pauseOnLeave.checked,
 showQuickBar: showQuickBar.checked,
+showNavSteps: showNavSteps.checked,
 liveLocation: liveLocation.checked,
 dirStyle: dirStyle.value,
 placesRadius: placesRadius,
@@ -3178,6 +3464,7 @@ if(typeof s.totalDistOn === 'boolean') totalDistOn.checked = s.totalDistOn;
 if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
+if(typeof s.showNavSteps === 'boolean') showNavSteps.checked = s.showNavSteps;
 if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
 if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass') dirStyle.value = s.dirStyle;
 if(PLACES_RADII.indexOf(s.placesRadius) !== -1) placesRadius = s.placesRadius;
@@ -3212,6 +3499,7 @@ autoStartOn.addEventListener('change', saveSettings);
 pauseOnLeave.addEventListener('change', saveSettings);
 showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); updateLiveWatcher(); });
 liveLocation.addEventListener('change', () => { saveSettings(); updateLiveWatcher(); });
+showNavSteps.addEventListener('change', () => { saveSettings(); renderNavSteps(true); });
 dirStyle.addEventListener('change', saveSettings);
 document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);

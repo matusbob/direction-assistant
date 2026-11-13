@@ -1,4 +1,4 @@
-const CACHE = 'direction-assistant-v39';
+const CACHE = 'direction-assistant-v40';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 // Present only in the real app page, so a Wi-Fi login page or error page is never saved in its place
 const APP_MARKER = 'name="app-id" content="direction-assistant"';
@@ -10,10 +10,18 @@ self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-e.waitUntil(
-caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-);
-self.clients.claim();
+e.waitUntil((async () => {
+const keys = await caches.keys();
+// Versions before 38 kept showing their saved (old) page even after an update. If this version replaces
+// one of those, the page that is open right now is that old page: reload it once so the new one shows.
+const legacy = keys.some((k) => { const m = /^direction-assistant-v(\d+)$/.exec(k); return m && parseInt(m[1], 10) < 38; });
+await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+await self.clients.claim();
+if (legacy) {
+const wins = await self.clients.matchAll({ type: 'window' });
+wins.forEach((c) => { try { c.navigate(c.url).catch(() => {}); } catch (err) {} });
+}
+})());
 });
 
 self.addEventListener('fetch', (e) => {
