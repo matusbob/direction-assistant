@@ -1,4 +1,4 @@
-const CACHE = 'direction-assistant-v38';
+const CACHE = 'direction-assistant-v39';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 // Present only in the real app page, so a Wi-Fi login page or error page is never saved in its place
 const APP_MARKER = 'name="app-id" content="direction-assistant"';
