@@ -152,6 +152,9 @@ font-size:1rem; font-weight:600; cursor:pointer;
 .quickbar-title{grid-column:1 / -1; font-size:0.95rem; color:var(--muted); margin:0;}
 .mylocation{grid-column:1 / -1; text-align:left; font-weight:400; font-size:1rem; line-height:1.4; padding:10px 12px;}
 .quickbtn.wide{grid-column:1 / -1;}
+.toprow{display:flex; gap:8px; margin-bottom:12px;}
+.toprow .picker-close{flex:1; margin:0;}
+.toprow .picker-close[hidden]{display:none;}
 .sheet-text{font-size:1rem; line-height:1.45; margin:0 0 12px;}
 .sheet-h{font-size:1rem; margin:14px 0 8px; color:var(--muted);}
 .sheet-btn{display:block; width:100%; min-height:52px; margin-bottom:8px; text-align:left; padding:10px 12px; font-size:1rem; font-weight:600; background:var(--bg); color:var(--text); border:1px solid #2c3340; border-radius:10px; cursor:pointer; text-decoration:none; box-sizing:border-box;}
@@ -317,6 +320,10 @@ flex:none;
 <input type="checkbox" id="fastGps">
 <label for="fastGps" style="margin:0;" id="lblFastGps">Faster position updates (every second instead of every 3 seconds, uses more battery)</label>
 </div>
+<div class="toggle">
+<input type="checkbox" id="offRouteHint" checked>
+<label for="offRouteHint" style="margin:0;" id="lblOffRouteHint">When I leave the route, also say that I'm moving away and where the next point is</label>
+</div>
 <label for="offRouteDist" id="lblOffRouteDist">Warn that I'm leaving the route once I've walked away from the next point by</label>
 <select id="offRouteDist">
 <option value="auto" selected>Automatically (as before)</option>
@@ -368,10 +375,12 @@ flex:none;
 </div>
 <div class="rowval" aria-hidden="true"><span id="lblStepMin">0.4m</span><span id="stepLengthVal">0.7m</span><span id="lblStepMax">1.2m</span></div>
 </div> </fieldset>
+<button type="button" id="toTopBtn" class="demobtn"><span id="lblToTop">Back to the top of the screen</span></button>
 </main>
 
 <div id="pickerOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="pickerClose">Back</button></div>
 <h2 id="pickerTitle">Choose a value</h2>
 <div id="pickerList" class="picker-list"></div>
 <button type="button" id="pickerClose" class="picker-close">Close</button>
@@ -380,6 +389,7 @@ flex:none;
 
 <div id="routesOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routesTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="routesCloseBtn">Back</button></div>
 <h2 id="routesTitle">Saved routes</h2>
 <button type="button" id="quickMarkBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblQuickMark">Save a point here</span></button>
 <button type="button" id="recordRouteBtn" class="picker-item" style="width:100%; margin-bottom:10px;"><span id="lblRecordRoute">Record new route</span></button>
@@ -393,6 +403,7 @@ flex:none;
 
 <div id="editRouteOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="editRouteTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="editRouteDoneBtn">Back</button></div>
 <h2 id="editRouteTitle">Edit route</h2>
 <div id="editRouteList" class="picker-list"></div>
 <button type="button" id="editRouteDoneBtn" class="picker-close"><span id="lblEditRouteDone">Done</span></button>
@@ -401,6 +412,7 @@ flex:none;
 
 <div id="noteListOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="noteListTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="noteListCloseBtn">Back</button></div>
 <h2 id="noteListTitle">Prepared notes</h2>
 <label for="noteListText" id="lblNoteListHint" style="display:block; margin-bottom:10px;">Paste or type your notes, one per line.</label>
 <textarea id="noteListText" rows="8" style="width:100%; min-height:160px; font:inherit; padding:10px; border-radius:10px; border:1px solid #2c3340; background:#0e1116; color:inherit; margin-bottom:12px;"></textarea>
@@ -430,14 +442,16 @@ flex:none;
 
 <div id="sheetOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+<div class="toprow"><button type="button" id="sheetBackTop" class="picker-close">Back</button><button type="button" id="sheetHomeTop" class="picker-close" hidden>Main screen</button></div>
 <h2 id="sheetTitle" tabindex="-1"></h2>
 <div id="sheetBody"></div>
-<button type="button" id="sheetCloseBtn" class="picker-close"><span id="lblSheetClose">Close</span></button>
+<div class="toprow" style="margin:0;"><button type="button" id="sheetCloseBtn" class="picker-close"><span id="lblSheetClose">Close</span></button><button type="button" id="sheetHomeBottom" class="picker-close" hidden>Main screen</button></div>
 </div>
 </div>
 
 <div id="historyOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="historyCloseBtn">Back</button></div>
 <h2 id="historyTitle" tabindex="-1">Announcement history</h2>
 <div id="historyList" class="picker-list"></div>
 <button type="button" id="historyCloseBtn" class="picker-close"><span id="lblHistoryClose">Close</span></button>
@@ -446,6 +460,7 @@ flex:none;
 
 <div id="routePointsOverlay" class="picker-overlay" hidden>
 <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="routePointsTitle">
+<div class="toprow"><button type="button" class="picker-close topback" data-close="routePointsCloseBtn">Back</button></div>
 <h2 id="routePointsTitle" tabindex="-1">Route points</h2>
 <div id="routePointsList" class="picker-list"></div>
 <button type="button" id="routePointsCloseBtn" class="picker-close"><span id="lblRoutePointsClose">Close</span></button>
@@ -454,13 +469,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 40</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 41</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 40;
+const APP_VERSION = 41;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -510,6 +525,11 @@ noAnnouncementsYet: "No announcements yet.",
 lblShowNavSteps: "During route navigation, list all points of the route on the main screen, with the current one marked", navStepsTitle: "Route instructions",
 placesNearest: "Showing the {n} nearest places.", planNamed: "Along named streets", alongStreet: "along {s}",
 bendRight: "The route bends right.", bendLeft: "The route bends left.",
+backToMain: "Back to the main screen", mainScreen: "Main screen", toTop: "Back to the top of the screen",
+lblOffRouteHint: "When I leave the route, also say that I'm moving away and where the next point is",
+offRouteAway: "You're moving away from the next point, probably the wrong way. It is {dir}, {d}.",
+crossAppend: "over a pedestrian crossing", crossAlone: "Cross at the pedestrian crossing.", acrossStreet: "across {s}", thenAlong: "then along {s}",
+planCrossings: "pedestrian crossings: {n}", destAtEnd: "At the end: {s}",
 locatingStill: "Still waiting for the position. If the phone is asking whether to allow location, allow it.",
 locatingAddress: "Position found. Looking up the address...", locatingAddressStill: "Still looking up the address. The internet connection seems slow.",
 intersectionsLoading: "Looking for intersections...", intersectionsFailed: "Intersections couldn't be loaded right now (the detailed map server isn't answering).",
@@ -657,6 +677,11 @@ noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
 lblShowNavSteps: "Počas navigácie trasy zobraziť na hlavnej obrazovke všetky body trasy s vyznačeným aktuálnym", navStepsTitle: "Pokyny trasy",
 placesNearest: "Zobrazujem {n} najbližších miest.", planNamed: "Po pomenovaných uliciach", alongStreet: "pri ulici {s}",
 bendRight: "Trasa zatáča doprava.", bendLeft: "Trasa zatáča doľava.",
+backToMain: "Späť na hlavnú obrazovku", mainScreen: "Hlavná obrazovka", toTop: "Späť na začiatok obrazovky",
+lblOffRouteHint: "Keď odídem z trasy, povedať aj to, že sa vzďaľujem, a kde je ďalší bod",
+offRouteAway: "Vzďaľujete sa od ďalšieho bodu, pravdepodobne idete nesprávnym smerom. Je {dir}, {d}.",
+crossAppend: "cez priechod pre chodcov", crossAlone: "Prejdite cez priechod pre chodcov.", acrossStreet: "cez ulicu {s}", thenAlong: "potom popri ulici {s}",
+planCrossings: "priechodov pre chodcov: {n}", destAtEnd: "Na konci: {s}",
 locatingStill: "Stále čakám na polohu. Ak sa telefón pýta, či povoliť polohu, povoľte ju.",
 locatingAddress: "Poloha zistená. Hľadám adresu...", locatingAddressStill: "Stále hľadám adresu. Internet je asi pomalý.",
 intersectionsLoading: "Hľadám križovatky...", intersectionsFailed: "Križovatky sa teraz nepodarilo načítať (podrobný mapový server neodpovedá).",
@@ -794,7 +819,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -805,6 +830,8 @@ document.getElementById('lblRoutePointsClose').textContent = t('close');
 document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
 dirStyle.options[0].text = t('optDirSides'); dirStyle.options[1].text = t('optDirClock'); dirStyle.options[2].text = t('optDirCompass');
+document.querySelectorAll('.topback').forEach((b) => { b.textContent = t('back'); });
+document.getElementById('lblToTop').textContent = t('toTop');
 renderMyLocation();
 updateTrackButton();
 renderNavSteps(true);
@@ -892,6 +919,7 @@ const liveLocation = document.getElementById('liveLocation');
 const myLocationEl = document.getElementById('myLocation');
 const fastGps = document.getElementById('fastGps');
 const offRouteDist = document.getElementById('offRouteDist');
+const offRouteHint = document.getElementById('offRouteHint');
 const quickBar = document.getElementById('quickBar');
 const quickResult = document.getElementById('quickResult');
 const myLocationBtn = document.getElementById('myLocationBtn');
@@ -1659,6 +1687,10 @@ announce(t('stepEstimateLabel'), Math.max(0, Math.round(remaining)) + 'm');
 }
 }
 
+function offRouteText(dist){
+if(!offRouteHint.checked || currentBearing === null) return t('offRoute');
+return t('offRoute') + ' ' + t('offRouteAway').replace('{dir}', describeDirection(currentBearing, lastHeading)).replace('{d}', formatDist(dist));
+}
 function updateRouteBearing(lat, lon){
 if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
 const wp = activeRoute.waypoints[routeIndex];
@@ -1691,8 +1723,8 @@ if(!offRouteFlag && dist - minDistToTarget >= offRouteMeters){
 offRouteFlag = true;
 offRoutePeak = dist;
 playChime('offroute');
-announceEvent(t('offRoute'));
-if(talk) speak(t('offRoute'));
+announceEvent(offRouteText(dist));
+if(talk) speak(offRouteText(dist));
 chimeVibrate([200, 100, 200]);
 } else if(offRouteFlag){
 if(dist > offRoutePeak) offRoutePeak = dist;
@@ -1721,8 +1753,8 @@ chimeVibrate([60, 40, 60]);
 if(offRouteStreak >= 3 && !offRouteFlag){
 offRouteFlag = true;
 playChime('offroute');
-announceEvent(t('offRoute'));
-if(talk) speak(t('offRoute'));
+announceEvent(offRouteText(dist));
+if(talk) speak(offRouteText(dist));
 chimeVibrate([200, 100, 200]);
 }
 }
@@ -1765,6 +1797,9 @@ if(wp.instruction){
 arriveMsg = wp.instruction;
 // At the very start of a planned route, also say which way that is from where the phone is pointing
 if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
+// ...and which side the destination will be on, when the map knows
+const endWp = activeRoute.waypoints[activeRoute.waypoints.length - 1];
+if(nextIndex === 1 && endWp.arrival) arriveMsg += ' ' + t('destAtEnd').replace('{s}', endWp.arrival);
 }
 announceEvent(arriveMsg);
 if(talk) speak(arriveMsg);
@@ -2185,26 +2220,63 @@ if(failed >= n) resolve(null); else startNext();
 startNext();
 });
 }
-async function nearbyIntersections(lat, lon){
-const q = '[out:json][timeout:10];way(around:200,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
+// All points near a position where two or more differently named streets meet: [{names, lat, lon}], or null
+async function overpassIntersectionNodes(lat, lon){
+const q = '[out:json][timeout:10];way(around:260,' + lat.toFixed(6) + ',' + lon.toFixed(6) + ')["highway"~"' + STREET_TYPES + '"]["name"];out body;>;out skel qt;';
 const els = await overpassQuery(q, 8000);
-if(!els) return undefined;
+if(!els) return null;
 const nodes = {}, names = {};
 els.forEach((e) => { if(e.type === 'node') nodes[e.id] = e; });
 els.forEach((e) => {
 if(e.type !== 'way' || !e.tags || !e.tags.name || !Array.isArray(e.nodes)) return;
 e.nodes.forEach((id) => { (names[id] = names[id] || new Set()).add(e.tags.name); });
 });
+return Object.keys(names).filter((id) => names[id].size >= 2 && nodes[id]).map((id) => ({ names: Array.from(names[id]), lat: nodes[id].lat, lon: nodes[id].lon }));
+}
+// The same from the routing service (Valhalla): every street piece within 260 m with its name and shape;
+// where the ends of pieces with different names coincide is an intersection. Streets only (no footpaths).
+async function valhallaIntersectionNodes(lat, lon){
+const req = { locations: [{ lat: lat, lon: lon, radius: 200, search_filter: { min_road_class: 'residential' } }], costing: 'pedestrian', verbose: true };
+const d = await fetchJson(VALHALLA_BASE + '/locate?json=' + encodeURIComponent(JSON.stringify(req)), 9000);
+if(!Array.isArray(d) || !d[0] || !Array.isArray(d[0].edges)) return null;
+const at = {};
+d[0].edges.forEach((e) => {
+const info = e.edge_info;
+if(!info || !Array.isArray(info.names) || !info.names.length || !info.shape) return;
+const pts = decodePolyline6(info.shape);
+[pts[0], pts[pts.length - 1]].forEach((p) => {
+if(!p) return;
+const key = p.lat.toFixed(5) + ',' + p.lon.toFixed(5);
+if(!at[key]) at[key] = { lat: p.lat, lon: p.lon, set: new Set() };
+info.names.forEach((n) => at[key].set.add(n));
+});
+});
+return Object.keys(at).filter((k) => at[k].set.size >= 2).map((k) => ({ names: Array.from(at[k].set), lat: at[k].lat, lon: at[k].lon }));
+}
+function intersectionsFrom(nodes, lat, lon){
 const byStreets = {};
-Object.keys(names).forEach((id) => {
-const n = nodes[id];
-if(names[id].size < 2 || !n) return;
+nodes.forEach((n) => {
 const dist = haversineMeters(lat, lon, n.lat, n.lon);
 if(dist > 200) return;
-const key = Array.from(names[id]).sort().join('|');
-if(!byStreets[key] || dist < byStreets[key].dist) byStreets[key] = { names: Array.from(names[id]), dist: dist, lat: n.lat, lon: n.lon };
+const key = n.names.slice().sort().join('|');
+if(!byStreets[key] || dist < byStreets[key].dist) byStreets[key] = { names: n.names, dist: dist, lat: n.lat, lon: n.lon };
 });
 return Object.keys(byStreets).map((k) => byStreets[k]).sort((x, y) => x.dist - y.dist);
+}
+// Named streets meeting near a position, nearest first; undefined when no source answered.
+// One download covers the surroundings: while you stay within 60 m of where it was made, distances are just recalculated.
+let ixCache = null;
+async function nearbyIntersections(lat, lon, background){
+const fromCenter = ixCache && performance.now() - ixCache.time < 900000 ? haversineMeters(lat, lon, ixCache.lat, ixCache.lon) : Infinity;
+// Automatic refreshes while walking download less often (mobile data): up to 150 m from the last download
+if(fromCenter < (background ? 150 : 60)) return intersectionsFrom(ixCache.nodes, lat, lon);
+const store = (nodes, full) => { if(nodes && (full || !(ixCache && ixCache.full && ixCache.lat === lat && ixCache.lon === lon))) ixCache = { lat: lat, lon: lon, time: performance.now(), nodes: nodes, full: full }; return nodes; };
+// The detailed servers know pedestrian streets too, but are often slow: let them improve the result when they do answer
+const viaOverpass = overpassIntersectionNodes(lat, lon).then((n) => store(n, true)).catch(() => null);
+let nodes = store(await valhallaIntersectionNodes(lat, lon).catch(() => null), false);
+if(!nodes) nodes = await viaOverpass;
+if(!nodes) return undefined;
+return intersectionsFrom(nodes, lat, lon);
 }
 // "ahead to the right" / "at 2 o'clock" / "to the north-east", depending on the setting.
 // Without a known heading only the compass direction can be given.
@@ -2235,10 +2307,10 @@ return txt;
 }
 // The address comes back as soon as it is known. Intersections get at most ixWaitMs longer; if they are
 // slower (busy map server), place.ixPending resolves later, once they've been filled in.
-async function describePlace(lat, lon, ixWaitMs){
+async function describePlace(lat, lon, ixWaitMs, background){
 const place = { lat: lat, lon: lon, addr: null, ixs: [], ix: null, ixPending: null };
 const setIx = (ixs) => { place.ixFailed = ixs === undefined; place.ixs = ixs || []; place.ix = (ixs && ixs[0] && ixs[0].dist <= 150) ? ixs[0] : null; place.ixPending = null; return place; };
-const ixP = nearbyIntersections(lat, lon).catch(() => undefined);
+const ixP = nearbyIntersections(lat, lon, background).catch(() => undefined);
 place.addr = await reverseGeocode(lat, lon);
 const LATE = {};
 const first = await Promise.race([ixP, new Promise((r) => setTimeout(() => r(LATE), ixWaitMs))]);
@@ -2265,7 +2337,7 @@ if(placeLookup.lat !== null && haversineMeters(lat, lon, placeLookup.lat, placeL
 placeLookup.busy = true;
 placeLookup.time = now;
 try{
-const place = await describePlace(lat, lon, 1500);
+const place = await describePlace(lat, lon, 1500, true);
 const show = () => {
 if(!(place.addr || place.ix)) return;
 myPlace = place;
@@ -2458,6 +2530,9 @@ sheetTitle.textContent = typeof sh.title === 'function' ? sh.title() : sh.title;
 sheetBody.innerHTML = '';
 sh.render(sheetBody);
 document.getElementById('lblSheetClose').textContent = sheetStack.length > 1 ? t('back') : t('close');
+document.getElementById('sheetBackTop').textContent = sheetStack.length > 1 ? t('back') : t('backToMain');
+document.getElementById('sheetHomeTop').hidden = document.getElementById('sheetHomeBottom').hidden = sheetStack.length < 2;
+document.getElementById('sheetHomeTop').textContent = document.getElementById('sheetHomeBottom').textContent = t('mainScreen');
 sheetOverlay.hidden = false;
 sheetTitle.focus();
 }
@@ -2977,7 +3052,8 @@ if(!placesBtn.disabled) placesBtn.focus();
 }
 
 // ---------- Walking route along streets (Valhalla routing on OpenStreetMap data) ----------
-const VALHALLA_URL = 'https://valhalla1.openstreetmap.de/route';
+const VALHALLA_BASE = 'https://valhalla1.openstreetmap.de';
+const VALHALLA_URL = VALHALLA_BASE + '/route';
 function decodePolyline6(str){
 const pts = [];
 let i = 0, lat = 0, lon = 0;
@@ -3026,34 +3102,23 @@ want -= seg[i];
 }
 return pts[0];
 }
-function buildPlannedRoute(trip, pl){
+// crossings: pedestrian crossings on the route as [{b, e}] index ranges of the route's shape (may be empty)
+function buildPlannedRoute(trip, pl, crossings){
 const leg = trip && trip.legs && trip.legs[0];
 if(!leg || !Array.isArray(leg.maneuvers) || !leg.shape) return null;
 const shape = decodePolyline6(leg.shape);
 const man = leg.maneuvers;
 if(man.length < 2 || shape.length < 2) return null;
 const waypoints = [];
-let i = 0, steps = 0;
-while(i < man.length - 1){
-const begin = man[i].begin_shape_index;
-let instr = man[i].instruction, turn = turnFromManeuver(man[i].type), j = i;
-// A stretch of only a few meters can't be told apart by GPS: say it together with the next instruction
-while(man[j].length * 1000 < 15 && j + 1 < man.length - 1){
-j++;
-instr += ' ' + t('thenWord') + ' ' + man[j].instruction.charAt(0).toLowerCase() + man[j].instruction.slice(1);
-if(turn === 'straight') turn = turnFromManeuver(man[j].type);
-}
-const end = Math.min(man[j].end_shape_index, shape.length - 1);
-const p = shape[Math.min(begin, shape.length - 1)];
-const wp = { lat: p.lat, lon: p.lon, label: i === 0 ? t('startWord') : instr.replace(/\.$/, ''), instruction: instr, turn: turn };
-const path = shape.slice(begin, end + 1);
-const unnamed = !(man[j].street_names && man[j].street_names.length);
-waypoints.push(wp);
-steps++;
-// Bends inside this stretch: gentle ones are followed silently, sharp ones (45 degrees or more) are announced
+const cross = (crossings || []).slice().sort((x, y) => x.b - y.b);
+const midOf = (c) => { const part = shape.slice(c.b, Math.min(c.e, shape.length - 1) + 1); return part.length > 1 ? pointAlong(part, 0.5) : shape[c.b]; };
+let steps = 0;
+// One stretch of path after an announced point: gentle bends are followed silently, sharp ones (45 degrees
+// or more) are announced; an unnamed footpath remembers where to look up the street it runs along
+const emit = (path, saidFirst, unnamed) => {
+if(path.length < 2) return;
 const kept = [path[0]].concat(simplifyPath(path, 12), [path[path.length - 1]]);
-let said = wp, piece = [kept[0]];
-// An unnamed footpath or sidewalk: remember where to look up which street each piece of it runs along
+let said = saidFirst, piece = [kept[0]];
 const closePiece = () => {
 let len = 0;
 for(let q = 1; q < piece.length; q++) len += haversineMeters(piece[q - 1].lat, piece[q - 1].lon, piece[q].lat, piece[q].lon);
@@ -3066,7 +3131,7 @@ const ang = angleDiff(bearingDegrees(v.lat, v.lon, kept[k + 1].lat, kept[k + 1].
 if(Math.abs(ang) >= 45){
 closePiece();
 const txt = t(ang > 0 ? 'bendRight' : 'bendLeft');
-said = { lat: v.lat, lon: v.lon, label: txt.replace(/\.$/, ''), instruction: txt, turn: ang > 0 ? 'right' : 'left', bend: true };
+said = { lat: v.lat, lon: v.lon, label: txt.replace(/\.$/, ''), instruction: txt, base: txt, turn: ang > 0 ? 'right' : 'left', bend: true };
 piece = [v];
 waypoints.push(said);
 steps++;
@@ -3074,8 +3139,45 @@ steps++;
 }
 piece.push(kept[kept.length - 1]);
 closePiece();
+};
+let i = 0;
+while(i < man.length - 1){
+const begin = Math.min(man[i].begin_shape_index, shape.length - 1);
+let instr = man[i].instruction, turn = turnFromManeuver(man[i].type), j = i;
+// A stretch of only a few meters can't be told apart by GPS: say it together with the next instruction
+while(man[j].length * 1000 < 15 && j + 1 < man.length - 1){
+j++;
+instr += ' ' + t('thenWord') + ' ' + man[j].instruction.charAt(0).toLowerCase() + man[j].instruction.slice(1);
+if(turn === 'straight') turn = turnFromManeuver(man[j].type);
+}
+const end = Math.min(man[j].end_shape_index, shape.length - 1);
+const p = shape[begin];
+const wp = { lat: p.lat, lon: p.lon, label: '', instruction: instr, base: instr, turn: turn, first: i === 0 };
+const unnamed = !(man[j].street_names && man[j].street_names.length);
+waypoints.push(wp);
+steps++;
+let said = wp, from = begin;
+cross.filter((c) => c.b >= begin && c.b < end).forEach((c) => {
+const q = shape[c.b];
+if(c.b <= from || haversineMeters(shape[from].lat, shape[from].lon, q.lat, q.lon) < 8){
+// The crossing starts right where this instruction is given: say it as part of it
+if(!said.cross){
+if(!/priechod|crosswalk|crossing/i.test(said.base)) said.base = said.base.replace(/\.$/, '') + ', ' + t('crossAppend') + '.';
+said.instruction = said.base;
+said.cross = midOf(c);
+}
+return;
+}
+emit(shape.slice(from, c.b + 1), said, unnamed);
+said = { lat: q.lat, lon: q.lon, label: '', instruction: t('crossAlone'), base: t('crossAlone'), turn: 'straight', cross: midOf(c), crossing: true };
+waypoints.push(said);
+steps++;
+from = c.b;
+});
+emit(shape.slice(from, end + 1), said, unnamed);
 i = j + 1;
 }
+waypoints.forEach((w) => { if(w.instruction && !w.label) w.label = w.first ? t('startWord') : w.instruction.replace(/\.$/, ''); });
 const last = shape[shape.length - 1];
 const dest = { lat: last.lat, lon: last.lon, label: pl.name, dest: true };
 // "Your destination is on the left/right" is worth keeping; a plain "you have arrived" is said anyway
@@ -3083,41 +3185,88 @@ const fin = man[man.length - 1];
 if((fin.type === 5 || fin.type === 6) && fin.instruction) dest.arrival = fin.instruction;
 waypoints.push(dest);
 return { id: 'plan' + Date.now().toString(36), name: t('routeTo').replace('{name}', pl.name), planned: true, waypoints: waypoints,
-meters: Math.round(trip.summary.length * 1000), minutes: Math.max(1, Math.round(trip.summary.time / 60)), steps: steps };
+meters: Math.round(trip.summary.length * 1000), minutes: Math.max(1, Math.round(trip.summary.time / 60)), steps: steps,
+crossings: waypoints.filter((w) => w.cross).length };
+}
+// Where the route uses pedestrian crossings, from the router's own description of each piece of the path.
+// Returns [{b, e}] index ranges in "shape", or [] when unknown.
+async function fetchCrossings(encoded, shape){
+const req = { encoded_polyline: encoded, costing: 'pedestrian', shape_match: 'walk_or_snap',
+filters: { attributes: ['edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'shape'], action: 'include' } };
+let d = null;
+try{
+const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+const timer = setTimeout(() => { if(ctrl) ctrl.abort(); }, 10000);
+const r = await fetch(VALHALLA_BASE + '/trace_attributes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req), signal: ctrl ? ctrl.signal : undefined });
+clearTimeout(timer);
+d = r.ok ? await r.json() : null;
+}catch(e){ d = null; }
+if(!d || !Array.isArray(d.edges)) return [];
+const theirs = d.shape ? decodePolyline6(d.shape) : shape;
+// Their path may be re-sampled: translate each crossing's ends to the nearest point of our path
+const nearest = (pt) => {
+let best = -1, bd = 15;
+for(let k = 0; k < shape.length; k++){ const dd = haversineMeters(pt.lat, pt.lon, shape[k].lat, shape[k].lon); if(dd < bd){ bd = dd; best = k; } }
+return best;
+};
+const runs = [];
+d.edges.forEach((e) => {
+if(e.use !== 'pedestrian_crossing') return;
+const pb = theirs[e.begin_shape_index], pe = theirs[e.end_shape_index];
+if(!pb || !pe) return;
+const b = nearest(pb), en = nearest(pe);
+if(b < 0 || en < 0 || en < b) return;
+const prev = runs[runs.length - 1];
+// Two halves of one crossing (a refuge island in the middle) count as one
+if(prev && b - prev.e <= 1 && haversineMeters(shape[prev.e].lat, shape[prev.e].lon, shape[b].lat, shape[b].lon) < 10) prev.e = en;
+else runs.push({ b: b, e: en });
+});
+return runs;
 }
 async function fetchPlan(lat, lon, pl, options){
 const req = { locations: [{ lat: lat, lon: lon }, { lat: pl.lat, lon: pl.lon }], costing: 'pedestrian',
 directions_options: { language: lang === 'sk' ? 'sk-SK' : 'en-US', units: 'kilometers' } };
 if(options) req.costing_options = { pedestrian: options };
 const d = await fetchJson(VALHALLA_URL + '?json=' + encodeURIComponent(JSON.stringify(req)), 20000);
-return d && d.trip ? buildPlannedRoute(d.trip, pl) : null;
+if(!d || !d.trip) return null;
+return { trip: d.trip, sig: d.trip.legs && d.trip.legs[0] ? d.trip.legs[0].shape : '' };
 }
-// Unnamed sidewalks get "along <street>" added, looked up one by one (the address service allows one request a second)
-async function addStreetNames(route, onChange){
-if(route.streetsDone) return;
-route.streetsDone = true;
-const todo = route.waypoints.filter((w) => w.along).slice(0, 8);
-for(let k = 0; k < todo.length; k++){
-const w = todo[k];
-if(k) await new Promise((r) => setTimeout(r, 1100));
-const j = await fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=' + w.along.lat.toFixed(6) + '&lon=' + w.along.lon.toFixed(6) + '&accept-language=' + lang, 6000);
-let road = j && j.address && (j.address.road || j.address.pedestrian);
+function composeInstruction(w){
+let txt = w.base.replace(/\.$/, '');
+if(w.crossStreet) txt += ' ' + t('acrossStreet').replace('{s}', w.crossStreet);
+if(w.alongStreet) txt += ', ' + t(w.cross ? 'thenAlong' : 'alongStreet').replace('{s}', w.alongStreet);
+return txt + '.';
+}
+async function lookupRoad(pt){
+const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=' + pt.lat.toFixed(6) + '&lon=' + pt.lon.toFixed(6) + '&accept-language=' + lang;
+let j = await fetchJson(url, 6000);
 if(!j){
 // One more try after a pause (the service allows one request a second and sometimes refuses)
 await new Promise((r) => setTimeout(r, 1600));
-const j2 = await fetchJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=' + w.along.lat.toFixed(6) + '&lon=' + w.along.lon.toFixed(6) + '&accept-language=' + lang, 6000);
-road = j2 && j2.address && (j2.address.road || j2.address.pedestrian);
+j = await fetchJson(url, 6000);
 }
+return (j && j.address && (j.address.road || j.address.pedestrian)) || '';
+}
+// Which street a crossing goes across, and which street an unnamed sidewalk runs along: looked up one by
+// one (the address service allows one request a second), instructions are completed as answers arrive
+async function addStreetNames(route, onChange){
+if(route.streetsDone) return;
+route.streetsDone = true;
+const todo = [];
+route.waypoints.forEach((w) => { if(w.cross) todo.push([w, 'cross']); if(w.along) todo.push([w, 'along']); });
+for(let k = 0; k < todo.length && k < 12; k++){
+const w = todo[k][0], kind = todo[k][1];
+if(k) await new Promise((r) => setTimeout(r, 1100));
+const road = await lookupRoad(w[kind]);
 if(!road) continue;
-w.instruction = w.instruction.replace(/\.$/, '') + ', ' + t('alongStreet').replace('{s}', road) + '.';
-if(w.label !== t('startWord')) w.label = w.instruction.replace(/\.$/, '');
-delete w.along;
+if(kind === 'cross') w.crossStreet = road; else w.alongStreet = road;
+w.instruction = composeInstruction(w);
+if(!w.first) w.label = w.instruction.replace(/\.$/, '');
 if(onChange) onChange();
 }
 }
-function routeSignature(r){ return r.meters + '|' + r.waypoints.filter((w) => w.instruction).map((w) => w.instruction).join('|'); }
 function planSummary(route){
-return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps);
+return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps) + (route.crossings ? ', ' + t('planCrossings').replace('{n}', route.crossings) : '');
 }
 function openPlan(pl){
 const st = { msg: t('planLoading'), variants: [], busy: true };
@@ -3143,16 +3292,20 @@ const best = await fetchPlan(lat, lon, pl, null);
 const shortest = (named || best) ? await fetchPlan(lat, lon, pl, { shortest: true }) : null;
 if(!named && !best) st.msg = t('planError');
 else {
-const seen = {};
+const seen = {}, picked = [];
 [['planNamed', named], ['planRecommended', best], ['planShortest', shortest]].forEach((x) => {
-if(!x[1]) return;
-const sig = routeSignature(x[1]);
-// Offer a variant only when it really is a different route
-if(seen[sig]) return;
-seen[sig] = true;
-st.variants.push({ label: x[0], route: x[1] });
+// Offer a variant only when it really is a different path
+if(!x[1] || seen[x[1].sig]) return;
+seen[x[1].sig] = true;
+picked.push(x);
 });
-st.msg = st.variants.map((v) => t(v.label) + ': ' + planSummary(v.route) + '.').join(' ');
+for(const x of picked){
+const shape = decodePolyline6(x[1].sig);
+const route = buildPlannedRoute(x[1].trip, pl, await fetchCrossings(x[1].sig, shape));
+if(route) st.variants.push({ label: x[0], route: route });
+}
+if(!st.variants.length) st.msg = t('planError');
+else st.msg = st.variants.map((v) => t(v.label) + ': ' + planSummary(v.route) + '.').join(' ');
 }
 }
 st.busy = false;
@@ -3430,6 +3583,7 @@ dirStyle: dirStyle.value,
 placesRadius: placesRadius,
 fastGps: fastGps.checked,
 offRouteDist: offRouteDist.value,
+offRouteHint: offRouteHint.checked,
 distRange: distRange.value,
 stepLength: stepLength.value,
 obstacleMode: obstacleMode.checked,
@@ -3469,6 +3623,7 @@ if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
 if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass') dirStyle.value = s.dirStyle;
 if(PLACES_RADII.indexOf(s.placesRadius) !== -1) placesRadius = s.placesRadius;
 if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
+if(typeof s.offRouteHint === 'boolean') offRouteHint.checked = s.offRouteHint;
 if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
@@ -3504,6 +3659,7 @@ dirStyle.addEventListener('change', saveSettings);
 document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
+offRouteHint.addEventListener('change', saveSettings);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
 obstacleMode.addEventListener('change', saveSettings);
@@ -4132,6 +4288,11 @@ placesBtn.addEventListener('click', openPlaces);
 searchBtn.addEventListener('click', openSearch);
 trackStopBtn.addEventListener('click', () => stopTracking(true));
 sheetCloseBtn.addEventListener('click', () => closeSheet(false));
+document.getElementById('sheetBackTop').addEventListener('click', () => closeSheet(false));
+document.getElementById('sheetHomeTop').addEventListener('click', () => closeSheet(true));
+document.getElementById('sheetHomeBottom').addEventListener('click', () => closeSheet(true));
+document.querySelectorAll('.topback').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.close).click()));
+document.getElementById('toTopBtn').addEventListener('click', () => { const h = document.getElementById('title'); h.setAttribute('tabindex', '-1'); h.focus(); window.scrollTo(0, 0); });
 sheetOverlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeSheet(false); });
 recWhereAmIBtn.addEventListener('click', whereAmI);
 repeatLastBtn.addEventListener('click', repeatLastAnnouncement);
