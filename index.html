@@ -469,13 +469,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 41</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 42</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 41;
+const APP_VERSION = 42;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -523,7 +523,11 @@ lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
 versionWord: "Version", lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
 lblShowNavSteps: "During route navigation, list all points of the route on the main screen, with the current one marked", navStepsTitle: "Route instructions",
-placesNearest: "Showing the {n} nearest places.", planNamed: "Along named streets", alongStreet: "along {s}",
+placesNearest: "Showing the {n} nearest places.",
+catStreets: "Streets and roads", catIntersections: "Intersections", kindStreet: "Street", approxWord: "position approximate",
+showMore: "Show {n} more", streetsFound: "{n} streets found.", ixsFound: "{n} intersections found.", allFound: "Found: {p} places, {s} streets, {i} intersections.", showingNearest: "Showing the {m} nearest; more with the button at the end of the list.",
+placesCapNote: "Of each kind of place only the 50 nearest can be loaded, so far-away ones may be missing.",
+streetsUpToNote: "Streets and intersections are included up to {r}.", streetsError: "Streets couldn't be loaded (no internet, or the service is busy). Try again in a moment.", planNamed: "Along named streets", alongStreet: "along {s}",
 bendRight: "The route bends right.", bendLeft: "The route bends left.",
 backToMain: "Back to the main screen", mainScreen: "Main screen", toTop: "Back to the top of the screen",
 lblOffRouteHint: "When I leave the route, also say that I'm moving away and where the next point is",
@@ -675,7 +679,11 @@ lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavr
 versionWord: "Verzia", lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
 lblShowNavSteps: "Počas navigácie trasy zobraziť na hlavnej obrazovke všetky body trasy s vyznačeným aktuálnym", navStepsTitle: "Pokyny trasy",
-placesNearest: "Zobrazujem {n} najbližších miest.", planNamed: "Po pomenovaných uliciach", alongStreet: "pri ulici {s}",
+placesNearest: "Zobrazujem {n} najbližších miest.",
+catStreets: "Ulice a cesty", catIntersections: "Križovatky", kindStreet: "Ulica", approxWord: "poloha približne",
+showMore: "Zobraziť ďalších {n}", streetsFound: "Nájdených ulíc: {n}.", ixsFound: "Nájdených križovatiek: {n}.", allFound: "Nájdené: miest {p}, ulíc {s}, križovatiek {i}.", showingNearest: "Zobrazujem {m} najbližších, ďalšie tlačidlom na konci zoznamu.",
+placesCapNote: "Z každého druhu miest sa dá načítať len 50 najbližších, takže vzdialenejšie môžu chýbať.",
+streetsUpToNote: "Ulice a križovatky sú zahrnuté do {r}.", streetsError: "Ulice sa nepodarilo načítať (nie je internet alebo je služba vyťažená). Skúste to o chvíľu znova.", planNamed: "Po pomenovaných uliciach", alongStreet: "pri ulici {s}",
 bendRight: "Trasa zatáča doprava.", bendLeft: "Trasa zatáča doľava.",
 backToMain: "Späť na hlavnú obrazovku", mainScreen: "Hlavná obrazovka", toTop: "Späť na začiatok obrazovky",
 lblOffRouteHint: "Keď odídem z trasy, povedať aj to, že sa vzďaľujem, a kde je ďalší bod",
@@ -2235,29 +2243,68 @@ return Object.keys(names).filter((id) => names[id].size >= 2 && nodes[id]).map((
 }
 // The same from the routing service (Valhalla): every street piece within 260 m with its name and shape;
 // where the ends of pieces with different names coincide is an intersection. Streets only (no footpaths).
-async function valhallaIntersectionNodes(lat, lon){
-const req = { locations: [{ lat: lat, lon: lon, radius: 200, search_filter: { min_road_class: 'residential' } }], costing: 'pedestrian', verbose: true };
-const d = await fetchJson(VALHALLA_BASE + '/locate?json=' + encodeURIComponent(JSON.stringify(req)), 9000);
+// Named street pieces around a position: [{names, pts}] (each piece once), or null. Kept for a few minutes
+// so that Streets, Intersections and Everything nearby share one download.
+let streetCache = null;
+async function fetchStreetEdges(lat, lon, r){
+if(streetCache && r <= streetCache.r && performance.now() - streetCache.time < 600000 && haversineMeters(lat, lon, streetCache.lat, streetCache.lon) < 30) return streetCache.edges;
+const req = { locations: [{ lat: lat, lon: lon, radius: r, search_filter: { min_road_class: 'residential' } }], costing: 'pedestrian', verbose: true };
+const d = await fetchJson(VALHALLA_BASE + '/locate?json=' + encodeURIComponent(JSON.stringify(req)), r > 300 ? 25000 : 9000);
 if(!Array.isArray(d) || !d[0] || !Array.isArray(d[0].edges)) return null;
-const at = {};
+const seen = {}, edges = [];
 d[0].edges.forEach((e) => {
 const info = e.edge_info;
-if(!info || !Array.isArray(info.names) || !info.names.length || !info.shape) return;
+if(!info || !Array.isArray(info.names) || !info.names.length || !info.shape || seen[info.shape]) return;
+seen[info.shape] = true;
 const pts = decodePolyline6(info.shape);
-[pts[0], pts[pts.length - 1]].forEach((p) => {
-if(!p) return;
+if(pts.length) edges.push({ names: info.names, pts: pts });
+});
+streetCache = { lat: lat, lon: lon, r: r, time: performance.now(), edges: edges };
+return edges;
+}
+// Where the ends of pieces with different names coincide is an intersection
+function nodesFromEdges(edges){
+const at = {};
+edges.forEach((e) => {
+[e.pts[0], e.pts[e.pts.length - 1]].forEach((p) => {
 const key = p.lat.toFixed(5) + ',' + p.lon.toFixed(5);
 if(!at[key]) at[key] = { lat: p.lat, lon: p.lon, set: new Set() };
-info.names.forEach((n) => at[key].set.add(n));
+e.names.forEach((n) => at[key].set.add(n));
 });
 });
 return Object.keys(at).filter((k) => at[k].set.size >= 2).map((k) => ({ names: Array.from(at[k].set), lat: at[k].lat, lon: at[k].lon }));
 }
-function intersectionsFrom(nodes, lat, lon){
+async function valhallaIntersectionNodes(lat, lon){
+const edges = await fetchStreetEdges(lat, lon, 200);
+return edges ? nodesFromEdges(edges) : null;
+}
+// Each named street once, with the point of it that is nearest to you
+function streetsFromEdges(edges, lat, lon, maxDist){
+const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540, best = {};
+edges.forEach((e) => {
+let bd = Infinity, bp = null;
+for(let i = 0; i < e.pts.length; i++){
+const ax = (e.pts[i].lon - lon) * kx, ay = (e.pts[i].lat - lat) * ky;
+let px = ax, py = ay;
+if(i + 1 < e.pts.length){
+const bx = (e.pts[i + 1].lon - lon) * kx, by = (e.pts[i + 1].lat - lat) * ky;
+const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+const f = len2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+px = ax + dx * f; py = ay + dy * f;
+}
+const d = Math.hypot(px, py);
+if(d < bd){ bd = d; bp = { lat: lat + py / ky, lon: lon + px / kx }; }
+}
+if(!bp || bd > maxDist) return;
+e.names.forEach((n) => { if(!best[n] || bd < best[n].dist) best[n] = { name: n, dist: bd, lat: bp.lat, lon: bp.lon }; });
+});
+return Object.keys(best).map((k) => best[k]).sort((x, y) => x.dist - y.dist);
+}
+function intersectionsFrom(nodes, lat, lon, maxDist){
 const byStreets = {};
 nodes.forEach((n) => {
 const dist = haversineMeters(lat, lon, n.lat, n.lon);
-if(dist > 200) return;
+if(dist > (maxDist || 200)) return;
 const key = n.names.slice().sort().join('|');
 if(!byStreets[key] || dist < byStreets[key].dist) byStreets[key] = { names: n.names, dist: dist, lat: n.lat, lon: n.lon };
 });
@@ -2625,7 +2672,7 @@ const KINDS = {
 'amenity=bicycle_rental': ['Bicycle rental', 'Požičovňa bicyklov'], 'amenity=taxi': ['Taxi rank', 'Stanovište taxi'], 'amenity=bus_station': ['Bus station', 'Autobusová stanica'],
 'amenity=fuel': ['Petrol station', 'Čerpacia stanica'], 'amenity=marketplace': ['Marketplace', 'Trhovisko'], 'amenity=community_centre': ['Community centre', 'Komunitné centrum'],
 'amenity=social_facility': ['Social facility', 'Sociálne zariadenie'], 'amenity=nightclub': ['Nightclub', 'Nočný klub'], 'amenity=charging_station': ['Charging station', 'Nabíjacia stanica'],
-'amenity=vending_machine': ['Vending machine', 'Automat'], 'amenity=car_rental': ['Car rental', 'Požičovňa áut'],
+'amenity=vending_machine': ['Vending machine', 'Automat'], 'amenity=car_rental': ['Car rental', 'Požičovňa áut'], 'amenity=car_wash': ['Car wash', 'Autoumyvareň'],
 'shop=supermarket': ['Supermarket', 'Supermarket'], 'shop=convenience': ['Grocery shop', 'Potraviny'], 'shop=bakery': ['Bakery', 'Pekáreň'], 'shop=butcher': ['Butcher', 'Mäsiarstvo'],
 'shop=greengrocer': ['Greengrocer', 'Ovocie a zelenina'], 'shop=deli': ['Delicatessen', 'Lahôdky'], 'shop=clothes': ['Clothes shop', 'Oblečenie'], 'shop=shoes': ['Shoe shop', 'Obuv'],
 'shop=books': ['Bookshop', 'Kníhkupectvo'], 'shop=chemist': ['Drugstore', 'Drogéria'], 'shop=hairdresser': ['Hairdresser', 'Kaderníctvo'], 'shop=beauty': ['Beauty salon', 'Kozmetický salón'],
@@ -2664,6 +2711,8 @@ return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 const KIND_TAGS = ['amenity', 'shop', 'tourism', 'leisure', 'historic', 'office', 'railway', 'highway'];
 const PLACE_CATS = [
 { key: 'mine', label: 'catMine' },
+{ key: 'streets', label: 'catStreets', streets: true },
+{ key: 'ixs', label: 'catIntersections', streets: true },
 { key: 'all', label: 'catAll', start: 150, p: ['amenity', 'shop', 'tourism', 'leisure', 'office', 'historic', 'highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt'], f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
 { key: 'food', label: 'catFood', p: ['amenity:restaurant', 'amenity:cafe', 'amenity:fast_food', 'amenity:bar', 'amenity:pub', 'amenity:food_court', 'amenity:ice_cream', 'amenity:biergarten'], f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
 { key: 'groceries', label: 'catGroceries', p: ['shop:supermarket', 'shop:convenience', 'shop:bakery', 'shop:greengrocer', 'shop:butcher', 'shop:deli'], f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
@@ -2741,8 +2790,30 @@ if(d <= R) list.push({ id: 'mine' + r.id, name: wp.label, named: true, kind: '',
 });
 return list.sort((a, b) => a.dist - b.dist);
 }
+if(cat.streets){
+const list = await streetPlaces(cat.key, lat, lon, Math.min(R, STREETS_MAX));
+if(list) list.streetsUpTo = Math.min(R, STREETS_MAX);
+return list;
+}
+if(cat.key === 'all'){
+// Everything: places of every kind (asked for in four groups, since each answer holds at most 50) plus the
+// streets and intersections around you
+const groups = [['amenity'], ['shop'], ['tourism', 'leisure', 'historic', 'office'], ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt']];
+const sr = Math.min(R, 500);
+const res = await Promise.all(groups.map((g) => photonNearby({ p: g }, lat, lon, R)).concat([streetPlaces('streets', lat, lon, sr), streetPlaces('ixs', lat, lon, sr)]));
+const places = res.slice(0, 4), okPlaces = places.filter(Boolean);
+if(okPlaces.length || res[4] || res[5]){
+const seen = {}, list = [];
+okPlaces.forEach((g) => g.forEach((pl) => { if(!seen[pl.id]){ seen[pl.id] = true; list.push(pl); } }));
+const out = dedupePlaces(list).concat(res[4] || [], res[5] || []).sort((a, b) => a.dist - b.dist);
+out.truncated = okPlaces.some((g) => g.truncated);
+out.counts = { places: out.length - (res[4] || []).length - (res[5] || []).length, streets: (res[4] || []).length, ixs: (res[5] || []).length };
+out.streetsUpTo = sr;
+return out;
+}
+}
 // Named places come from Photon (fast and dependable); it returns the nearest 50 within the radius
-if(cat.p){
+else if(cat.p){
 const viaPhoton = await photonNearby(cat, lat, lon, R);
 if(viaPhoton) return viaPhoton;
 }
@@ -2761,6 +2832,34 @@ r = Math.min(R, r * 4);
 return dedupePlaces(Object.keys(found).map((k) => found[k]));
 }
 const PHOTON_URL = 'https://photon.komoot.io';
+// Streets and intersections are looked up at most this far (the download grows quickly with distance)
+const STREETS_MAX = 1000;
+// kind: 'streets' or 'ixs'. Returns places, or null when the street data couldn't be loaded.
+async function streetPlaces(kind, lat, lon, r){
+const edges = await fetchStreetEdges(lat, lon, r);
+if(kind === 'ixs'){
+if(!edges) return null;
+return intersectionsFrom(nodesFromEdges(edges), lat, lon, r).map((ix) => {
+const name = t('intersectionOf').replace('{streets}', streetList(ix, ''));
+return { id: 'ix' + ix.names.slice().sort().join('|'), name: name, named: false, kind: '', kindKey: 'ix', lat: ix.lat, lon: ix.lon, tags: {}, address: '', extra: '', dist: ix.dist };
+});
+}
+const list = edges ? streetsFromEdges(edges, lat, lon, r).map((x) => ({ id: 'st' + x.name, name: x.name, named: false, kind: t('kindStreet'), kindKey: 'street', lat: x.lat, lon: x.lon, tags: {}, address: '', extra: '', dist: x.dist })) : [];
+// Named service roads and pedestrian streets are missing from that data: add them from Photon (position approximate)
+const d = await fetchJson(PHOTON_URL + '/reverse?lat=' + lat.toFixed(6) + '&lon=' + lon.toFixed(6) + '&radius=' + (r / 1000) + '&limit=50&lang=default&layer=street', 9000);
+if(!edges && !(d && Array.isArray(d.features))) return null;
+const have = {};
+list.forEach((x) => { have[x.name] = true; });
+((d && d.features) || []).forEach((f) => {
+const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+if(!p.name || have[p.name] || !c) return;
+const dist = haversineMeters(lat, lon, c[1], c[0]);
+if(dist > r) return;
+have[p.name] = true;
+list.push({ id: 'st' + p.name, name: p.name, named: false, kind: t('kindStreet'), kindKey: 'street', lat: c[1], lon: c[0], tags: {}, address: '', extra: t('approxWord'), dist: dist });
+});
+return list.sort((a, b) => a.dist - b.dist);
+}
 function photonToPlace(f, lat, lon){
 const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
 if(!c || !isFinite(c[0]) || !isFinite(c[1])) return null;
@@ -2822,18 +2921,25 @@ PLACE_CATS.forEach((cat) => { sheetButton(body, t(cat.label), () => openPlaceRes
 });
 }
 function openPlaceResults(cat){
-const st = { msg: t('loading'), places: [], lat: null, lon: null, heading: null, busy: false };
+const st = { msg: t('loading'), places: [], shown: 60, lat: null, lon: null, heading: null, busy: false };
 const sheet = {
 title: () => t(cat.label), trigger: placesBtn,
 render(body){
 body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'placesMsg';
-st.places.forEach((pl) => { sheetButton(body, placeListText(pl, st.lat, st.lon, st.heading), () => openPlaceActions(pl)); });
+st.places.slice(0, st.shown).forEach((pl, i) => { sheetButton(body, placeListText(pl, st.lat, st.lon, st.heading), () => openPlaceActions(pl)).dataset.n = i; });
+if(st.places.length > st.shown) sheetButton(body, t('showMore').replace('{n}', Math.min(60, st.places.length - st.shown)), () => {
+const from = st.shown;
+st.shown += 60;
+renderSheet();
+const next = sheetBody.querySelector('[data-n="' + from + '"]');
+if(next) next.focus();
+}).id = 'placesMoreBtn';
 if(!st.busy) sheetButton(body, t('refresh'), load).id = 'placesRefreshBtn';
 }
 };
 async function load(){
 if(st.busy) return;
-st.busy = true; st.msg = t('loading'); st.places = [];
+st.busy = true; st.msg = t('loading'); st.places = []; st.shown = 60;
 if(topSheet() === sheet) renderSheet();
 announceEvent(t('loading'), true);
 let pos = null;
@@ -2844,15 +2950,21 @@ st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = curren
 lastFix = { lat: st.lat, lon: st.lon, acc: pos.coords.accuracy, time: performance.now(), address: null };
 let all = await fetchPlaces(cat, st.lat, st.lon, placesRadius), wider = placesRadius;
 // Nothing in range: look further out by itself (up to 30 km), so you learn where the nearest one is
-while(all && !all.length && wider < 30000){
+while(all && !all.length && wider < (cat.streets ? STREETS_MAX : 30000)){
 wider = Math.min(30000, wider * 4);
 all = await fetchPlaces(cat, st.lat, st.lon, wider);
 }
-if(!all) st.msg = t(cat.p ? 'placesError' : 'placesErrorDetail');
-else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(wider));
+if(!all) st.msg = t(cat.streets ? 'streetsError' : cat.p ? 'placesError' : 'placesErrorDetail');
+else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(Math.min(wider, cat.streets ? STREETS_MAX : wider)));
 else {
-st.places = all.slice(0, 60);
-st.msg = wider > placesRadius ? t('placesNoneWider').replace('{r}', formatDist(placesRadius)).replace('{r2}', formatDist(wider)) : all.truncated ? t('placesNearest').replace('{n}', st.places.length) : all.length > 60 ? t('placesFoundMore').replace('{n}', all.length).replace('{m}', 60) : t('placesFound').replace('{n}', all.length);
+st.places = all;
+const n = all.length, m = Math.min(60, n);
+if(all.counts) st.msg = t('allFound').replace('{p}', all.counts.places).replace('{s}', all.counts.streets).replace('{i}', all.counts.ixs) + (n > m ? ' ' + t('showingNearest').replace('{m}', m) : '');
+else if(cat.streets) st.msg = t(cat.key === 'ixs' ? 'ixsFound' : 'streetsFound').replace('{n}', n) + (n > m ? ' ' + t('showingNearest').replace('{m}', m) : '');
+else st.msg = wider > placesRadius ? t('placesNoneWider').replace('{r}', formatDist(placesRadius)).replace('{r2}', formatDist(wider)) : n > m ? t('placesFoundMore').replace('{n}', n).replace('{m}', m) : t('placesFound').replace('{n}', n);
+// Say plainly where the list is not complete
+if(all.truncated) st.msg += ' ' + t('placesCapNote');
+if(all.streetsUpTo && all.streetsUpTo < placesRadius) st.msg += ' ' + t('streetsUpToNote').replace('{r}', formatDist(all.streetsUpTo));
 }
 }
 st.busy = false;
