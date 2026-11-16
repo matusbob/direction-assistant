@@ -367,6 +367,10 @@ flex:none;
 <input type="checkbox" id="liveLocation">
 <label for="liveLocation" style="margin:0;" id="lblLiveLocation">Keep "My location" updated even when I'm not walking or navigating (uses GPS and internet)</label>
 </div>
+<div class="toggle">
+<input type="checkbox" id="ownPoi">
+<label for="ownPoi" style="margin:0;" id="lblOwnPoi">In Places nearby, also show places without a name and small things from the app's own map data (Slovakia only): pedestrian crossings, crossings over tracks, steps, bollards, unnamed shops and pharmacies, benches...</label>
+</div>
 <div class="sliderrow" id="stepLengthRow">
 <label for="stepLength" id="lblStepLength">Step length for step-based estimate (meters, experimental)</label>
 <div class="sliderwrap">
@@ -469,13 +473,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 42</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 43</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 42;
+const APP_VERSION = 43;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -527,6 +531,9 @@ placesNearest: "Showing the {n} nearest places.",
 catStreets: "Streets and roads", catIntersections: "Intersections", kindStreet: "Street", approxWord: "position approximate",
 showMore: "Show {n} more", streetsFound: "{n} streets found.", ixsFound: "{n} intersections found.", allFound: "Found: {p} places, {s} streets, {i} intersections.", showingNearest: "Showing the {m} nearest; more with the button at the end of the list.",
 placesCapNote: "Of each kind of place only the 50 nearest can be loaded, so far-away ones may be missing.",
+lblOwnPoi: "In Places nearby, also show places without a name and small things from the app's own map data (Slovakia only): pedestrian crossings, crossings over tracks, steps, bollards, unnamed shops and pharmacies, benches...",
+catBarriers: "Steps and obstacles", ownError: "The app's map data couldn't be loaded (no internet?). Try again in a moment.", ownUpToNote: "Places without a name are included up to {r}.", stepsCount: "{n} steps", stepsHandrail: "with handrail", stepsNoHandrail: "no handrail",
+wheelchairYes: "wheelchair accessible", linesWord: "lines {v}",
 streetsUpToNote: "Streets and intersections are included up to {r}.", streetsError: "Streets couldn't be loaded (no internet, or the service is busy). Try again in a moment.", planNamed: "Along named streets", alongStreet: "along {s}",
 bendRight: "The route bends right.", bendLeft: "The route bends left.",
 backToMain: "Back to the main screen", mainScreen: "Main screen", toTop: "Back to the top of the screen",
@@ -683,6 +690,9 @@ placesNearest: "Zobrazujem {n} najbližších miest.",
 catStreets: "Ulice a cesty", catIntersections: "Križovatky", kindStreet: "Ulica", approxWord: "poloha približne",
 showMore: "Zobraziť ďalších {n}", streetsFound: "Nájdených ulíc: {n}.", ixsFound: "Nájdených križovatiek: {n}.", allFound: "Nájdené: miest {p}, ulíc {s}, križovatiek {i}.", showingNearest: "Zobrazujem {m} najbližších, ďalšie tlačidlom na konci zoznamu.",
 placesCapNote: "Z každého druhu miest sa dá načítať len 50 najbližších, takže vzdialenejšie môžu chýbať.",
+lblOwnPoi: "V Okolí ukazovať aj miesta bez názvu a drobnosti z vlastných mapových dát aplikácie (len Slovensko): priechody pre chodcov, priechody cez koľaje, schody, stĺpiky, obchody a lekárne bez názvu, lavičky...",
+catBarriers: "Schody a prekážky", ownError: "Mapové dáta aplikácie sa nepodarilo načítať (nie je internet?). Skúste to o chvíľu znova.", ownUpToNote: "Miesta bez názvu sú zahrnuté do {r}.", stepsCount: "{n} schodov", stepsHandrail: "so zábradlím", stepsNoHandrail: "bez zábradlia",
+wheelchairYes: "bezbariérový prístup", linesWord: "linky {v}",
 streetsUpToNote: "Ulice a križovatky sú zahrnuté do {r}.", streetsError: "Ulice sa nepodarilo načítať (nie je internet alebo je služba vyťažená). Skúste to o chvíľu znova.", planNamed: "Po pomenovaných uliciach", alongStreet: "pri ulici {s}",
 bendRight: "Trasa zatáča doprava.", bendLeft: "Trasa zatáča doľava.",
 backToMain: "Späť na hlavnú obrazovku", mainScreen: "Hlavná obrazovka", toTop: "Späť na začiatok obrazovky",
@@ -827,7 +837,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -924,6 +934,7 @@ const showNavSteps = document.getElementById('showNavSteps');
 const navSteps = document.getElementById('navSteps');
 const navStepsList = document.getElementById('navStepsList');
 const liveLocation = document.getElementById('liveLocation');
+const ownPoi = document.getElementById('ownPoi');
 const myLocationEl = document.getElementById('myLocation');
 const fastGps = document.getElementById('fastGps');
 const offRouteDist = document.getElementById('offRouteDist');
@@ -2694,10 +2705,23 @@ const KINDS = {
 'office=government': ['Government office', 'Úrad'], 'place=house': ['Address', 'Adresa'],
 'highway=bus_stop': ['Bus stop', 'Autobusová zastávka'], 'highway=crossing': ['Pedestrian crossing', 'Priechod pre chodcov'],
 'railway=tram_stop': ['Tram stop', 'Zastávka električky'], 'railway=station': ['Railway station', 'Železničná stanica'], 'railway=halt': ['Railway stop', 'Železničná zastávka'],
-'railway=subway_entrance': ['Subway entrance', 'Vstup do metra']
+'railway=subway_entrance': ['Subway entrance', 'Vstup do metra'],
+'railway=crossing': ['Crossing over tracks', 'Priechod cez koľaje'], 'railway=level_crossing': ['Level crossing', 'Železničné priecestie'],
+'highway=steps': ['Steps', 'Schody'], 'highway=traffic_signals': ['Traffic lights', 'Semafor'], 'highway=elevator': ['Lift', 'Výťah'],
+'barrier=bollard': ['Bollard', 'Stĺpik'], 'barrier=cycle_barrier': ['Barrier on the path', 'Zábrana na chodníku'], 'barrier=turnstile': ['Turnstile', 'Turniket'],
+'amenity=recycling': ['Recycling containers', 'Kontajnery na triedený odpad'], 'amenity=telephone': ['Phone box', 'Telefónny automat'], 'amenity=shelter': ['Shelter', 'Prístrešok'],
+'historic=wayside_shrine': ['Wayside shrine', 'Božia muka'], 'historic=wayside_cross': ['Wayside cross', 'Kríž'],
+'emergency=defibrillator': ['Defibrillator', 'Defibrilátor'], 'emergency=phone': ['Emergency phone', 'Núdzový telefón'],
+'leisure=fitness_station': ['Outdoor gym', 'Fitness pod holým nebom'], 'leisure=dog_park': ['Dog park', 'Výbeh pre psov'], 'leisure=pitch': ['Sports pitch', 'Ihrisko'],
+'club=sport': ['Sports club', 'Športový klub'], 'healthcare=speech_therapist': ['Speech therapist', 'Logopéd'], 'healthcare=physiotherapist': ['Physiotherapist', 'Fyzioterapeut'],
+'healthcare=psychotherapist': ['Psychotherapist', 'Psychoterapeut'], 'healthcare=laboratory': ['Medical laboratory', 'Laboratórium'], 'healthcare=optometrist': ['Optometrist', 'Optometrista'],
+'healthcare=alternative': ['Alternative medicine', 'Alternatívna medicína'], 'healthcare=blood_donation': ['Blood donation', 'Darovanie krvi'],
+'man_made=observatory': ['Observatory', 'Hvezdáreň'], 'man_made=tower': ['Tower', 'Veža'], 'man_made=water_tower': ['Water tower', 'Vodojem'],
+'natural=spring': ['Spring', 'Prameň'], 'natural=peak': ['Peak', 'Vrchol'], 'natural=cave_entrance': ['Cave', 'Jaskyňa']
 };
 const KIND_KEYS = { shop: ['Shop', 'Obchod'], office: ['Office', 'Kancelária'], historic: ['Historic site', 'Pamiatka'], tourism: ['Tourism', 'Turistika'], leisure: ['Leisure', 'Voľný čas'],
-place: ['Place', 'Miesto'], highway: ['Street', 'Ulica'], building: ['Building', 'Budova'], boundary: ['Area', 'Oblasť'], railway: ['Railway', 'Železnica'] };
+place: ['Place', 'Miesto'], highway: ['Street', 'Ulica'], building: ['Building', 'Budova'], boundary: ['Area', 'Oblasť'], railway: ['Railway', 'Železnica'],
+club: ['Club', 'Klub'], healthcare: ['Health care', 'Zdravotníctvo'], craft: ['Craft', 'Remeslo'], barrier: ['Barrier', 'Prekážka'] };
 function kindName(key, value){
 const i = lang === 'sk' ? 1 : 0;
 const k = KINDS[key + '=' + value];
@@ -2713,21 +2737,22 @@ const PLACE_CATS = [
 { key: 'mine', label: 'catMine' },
 { key: 'streets', label: 'catStreets', streets: true },
 { key: 'ixs', label: 'catIntersections', streets: true },
-{ key: 'all', label: 'catAll', start: 150, p: ['amenity', 'shop', 'tourism', 'leisure', 'office', 'historic', 'highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt'], f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
-{ key: 'food', label: 'catFood', p: ['amenity:restaurant', 'amenity:cafe', 'amenity:fast_food', 'amenity:bar', 'amenity:pub', 'amenity:food_court', 'amenity:ice_cream', 'amenity:biergarten'], f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
-{ key: 'groceries', label: 'catGroceries', p: ['shop:supermarket', 'shop:convenience', 'shop:bakery', 'shop:greengrocer', 'shop:butcher', 'shop:deli'], f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
-{ key: 'shops', label: 'catShops', p: ['shop'], f: ['nwr{A}["shop"]'] },
-{ key: 'transport', label: 'catTransport', p: ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt', 'railway:subway_entrance', 'amenity:bus_station'], f: ['node{A}["highway"="bus_stop"]', 'node{A}["railway"~"^(tram_stop|station|halt|subway_entrance)$"]', 'nwr{A}["amenity"="bus_station"]', 'way{A}["railway"="station"]', 'relation{A}["railway"="station"]'] },
-{ key: 'crossings', label: 'catCrossings', start: 200, f: ['node{A}["highway"="crossing"]'] },
-{ key: 'health', label: 'catHealth', p: ['amenity:hospital', 'amenity:clinic', 'amenity:doctors', 'amenity:dentist', 'amenity:pharmacy'], f: ['nwr{A}["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'] },
-{ key: 'pharmacy', label: 'catPharmacy', p: ['amenity:pharmacy'], f: ['nwr{A}["amenity"="pharmacy"]'] },
-{ key: 'education', label: 'catEducation', p: ['amenity:school', 'amenity:university', 'amenity:college', 'amenity:kindergarten', 'amenity:library'], f: ['nwr{A}["amenity"~"^(school|university|college|kindergarten|library)$"]'] },
-{ key: 'money', label: 'catMoney', p: ['amenity:bank', 'amenity:atm'], f: ['nwr{A}["amenity"~"^(bank|atm)$"]'] },
-{ key: 'offices', label: 'catOffices', p: ['amenity:post_office', 'amenity:townhall', 'amenity:police', 'amenity:courthouse', 'amenity:embassy', 'office:government'], f: ['nwr{A}["amenity"~"^(post_office|townhall|police|courthouse|embassy)$"]', 'nwr{A}["office"="government"]'] },
-{ key: 'toilets', label: 'catToilets', f: ['nwr{A}["amenity"="toilets"]'] },
-{ key: 'accommodation', label: 'catAccommodation', p: ['tourism:hotel', 'tourism:hostel', 'tourism:guest_house', 'tourism:motel', 'tourism:apartment'], f: ['nwr{A}["tourism"~"^(hotel|hostel|guest_house|motel|apartment)$"]'] },
-{ key: 'culture', label: 'catCulture', p: ['tourism:museum', 'tourism:gallery', 'tourism:attraction', 'tourism:viewpoint', 'amenity:theatre', 'amenity:cinema', 'amenity:arts_centre', 'amenity:place_of_worship', 'historic:memorial', 'historic:monument', 'historic:castle'], f: ['nwr{A}["tourism"~"^(museum|gallery|attraction|viewpoint)$"]', 'nwr{A}["amenity"~"^(theatre|cinema|arts_centre|place_of_worship)$"]', 'nwr{A}["historic"~"^(memorial|monument|castle)$"]'] },
-{ key: 'parks', label: 'catParks', p: ['leisure:park', 'leisure:playground', 'leisure:sports_centre', 'leisure:fitness_centre', 'leisure:swimming_pool', 'leisure:stadium'], f: ['nwr{A}["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium)$"]'] }
+{ key: 'all', label: 'catAll', start: 150, o: ['*'], p: ['amenity', 'shop', 'tourism', 'leisure', 'office', 'historic', 'highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt'], f: ['nwr{A}["name"]["amenity"]', 'nwr{A}["name"]["shop"]', 'nwr{A}["name"]["tourism"]', 'nwr{A}["name"]["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium|garden)$"]', 'nwr{A}["name"]["office"]', 'nwr{A}["name"]["historic"]', 'node{A}["name"]["highway"="bus_stop"]', 'node{A}["name"]["railway"~"^(tram_stop|station|halt)$"]'] },
+{ key: 'food', label: 'catFood', o: ['amenity=restaurant', 'amenity=cafe', 'amenity=fast_food', 'amenity=bar', 'amenity=pub', 'amenity=food_court', 'amenity=ice_cream', 'amenity=biergarten'], p: ['amenity:restaurant', 'amenity:cafe', 'amenity:fast_food', 'amenity:bar', 'amenity:pub', 'amenity:food_court', 'amenity:ice_cream', 'amenity:biergarten'], f: ['nwr{A}["amenity"~"^(restaurant|cafe|fast_food|bar|pub|food_court|ice_cream|biergarten)$"]'] },
+{ key: 'groceries', label: 'catGroceries', o: ['shop=supermarket', 'shop=convenience', 'shop=bakery', 'shop=greengrocer', 'shop=butcher', 'shop=deli'], p: ['shop:supermarket', 'shop:convenience', 'shop:bakery', 'shop:greengrocer', 'shop:butcher', 'shop:deli'], f: ['nwr{A}["shop"~"^(supermarket|convenience|bakery|greengrocer|butcher|deli)$"]'] },
+{ key: 'shops', label: 'catShops', o: ['shop=*'], p: ['shop'], f: ['nwr{A}["shop"]'] },
+{ key: 'transport', label: 'catTransport', o: ['highway=bus_stop', 'railway=tram_stop', 'railway=station', 'railway=halt', 'railway=subway_entrance', 'amenity=bus_station'], p: ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt', 'railway:subway_entrance', 'amenity:bus_station'], f: ['node{A}["highway"="bus_stop"]', 'node{A}["railway"~"^(tram_stop|station|halt|subway_entrance)$"]', 'nwr{A}["amenity"="bus_station"]', 'way{A}["railway"="station"]', 'relation{A}["railway"="station"]'] },
+{ key: 'crossings', label: 'catCrossings', start: 200, o: ['highway=crossing', 'railway=crossing', 'railway=level_crossing', 'highway=traffic_signals'], f: ['node{A}["highway"="crossing"]'] },
+{ key: 'health', label: 'catHealth', o: ['amenity=hospital', 'amenity=clinic', 'amenity=doctors', 'amenity=dentist', 'amenity=pharmacy', 'healthcare=*'], p: ['amenity:hospital', 'amenity:clinic', 'amenity:doctors', 'amenity:dentist', 'amenity:pharmacy', 'healthcare'], f: ['nwr{A}["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'] },
+{ key: 'pharmacy', label: 'catPharmacy', o: ['amenity=pharmacy'], p: ['amenity:pharmacy'], f: ['nwr{A}["amenity"="pharmacy"]'] },
+{ key: 'education', label: 'catEducation', o: ['amenity=school', 'amenity=university', 'amenity=college', 'amenity=kindergarten', 'amenity=library'], p: ['amenity:school', 'amenity:university', 'amenity:college', 'amenity:kindergarten', 'amenity:library'], f: ['nwr{A}["amenity"~"^(school|university|college|kindergarten|library)$"]'] },
+{ key: 'money', label: 'catMoney', o: ['amenity=bank', 'amenity=atm'], p: ['amenity:bank', 'amenity:atm'], f: ['nwr{A}["amenity"~"^(bank|atm)$"]'] },
+{ key: 'offices', label: 'catOffices', o: ['amenity=post_office', 'amenity=post_box', 'amenity=parcel_locker', 'amenity=townhall', 'amenity=police', 'amenity=courthouse', 'amenity=embassy', 'office=government'], p: ['amenity:post_office', 'amenity:townhall', 'amenity:police', 'amenity:courthouse', 'amenity:embassy', 'office:government'], f: ['nwr{A}["amenity"~"^(post_office|townhall|police|courthouse|embassy)$"]', 'nwr{A}["office"="government"]'] },
+{ key: 'toilets', label: 'catToilets', o: ['amenity=toilets'], f: ['nwr{A}["amenity"="toilets"]'] },
+{ key: 'accommodation', label: 'catAccommodation', o: ['tourism=hotel', 'tourism=hostel', 'tourism=guest_house', 'tourism=motel', 'tourism=apartment'], p: ['tourism:hotel', 'tourism:hostel', 'tourism:guest_house', 'tourism:motel', 'tourism:apartment'], f: ['nwr{A}["tourism"~"^(hotel|hostel|guest_house|motel|apartment)$"]'] },
+{ key: 'culture', label: 'catCulture', o: ['tourism=museum', 'tourism=gallery', 'tourism=attraction', 'tourism=viewpoint', 'tourism=artwork', 'amenity=theatre', 'amenity=cinema', 'amenity=arts_centre', 'amenity=place_of_worship', 'historic=*'], p: ['tourism:museum', 'tourism:gallery', 'tourism:attraction', 'tourism:viewpoint', 'amenity:theatre', 'amenity:cinema', 'amenity:arts_centre', 'amenity:place_of_worship', 'historic:memorial', 'historic:monument', 'historic:castle'], f: ['nwr{A}["tourism"~"^(museum|gallery|attraction|viewpoint)$"]', 'nwr{A}["amenity"~"^(theatre|cinema|arts_centre|place_of_worship)$"]', 'nwr{A}["historic"~"^(memorial|monument|castle)$"]'] },
+{ key: 'barriers', label: 'catBarriers', own: true, o: ['highway=steps', 'highway=elevator', 'barrier=bollard', 'barrier=cycle_barrier', 'barrier=turnstile', 'railway=level_crossing', 'railway=crossing'] },
+{ key: 'parks', label: 'catParks', o: ['leisure=park', 'leisure=playground', 'leisure=sports_centre', 'leisure=fitness_centre', 'leisure=swimming_pool', 'leisure=stadium', 'leisure=fitness_station', 'leisure=dog_park', 'club=*'], p: ['leisure:park', 'leisure:playground', 'leisure:sports_centre', 'leisure:fitness_centre', 'leisure:swimming_pool', 'leisure:stadium'], f: ['nwr{A}["leisure"~"^(park|playground|sports_centre|fitness_centre|swimming_pool|stadium)$"]'] }
 ];
 // What you might type into search that really means "one of these nearby" (compared without accents)
 const CAT_WORDS = {
@@ -2798,24 +2823,49 @@ return list;
 if(cat.key === 'all'){
 // Everything: places of every kind (asked for in four groups, since each answer holds at most 50) plus the
 // streets and intersections around you
-const groups = [['amenity'], ['shop'], ['tourism', 'leisure', 'historic', 'office'], ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt']];
+const groups = [['amenity'], ['shop'], ['tourism', 'leisure', 'historic', 'office', 'club', 'healthcare'], ['highway:bus_stop', 'railway:tram_stop', 'railway:station', 'railway:halt']];
 const sr = Math.min(R, 500);
-const res = await Promise.all(groups.map((g) => photonNearby({ p: g }, lat, lon, R)).concat([streetPlaces('streets', lat, lon, sr), streetPlaces('ixs', lat, lon, sr)]));
+const useOwn = ownPoi.checked;
+const res = await Promise.all(groups.map((g) => photonNearby({ p: g }, lat, lon, R)).concat([streetPlaces('streets', lat, lon, sr), streetPlaces('ixs', lat, lon, sr),
+useOwn ? ownPlaces(cat.o, lat, lon, Math.min(R, OWN_MAX)) : null]));
 const places = res.slice(0, 4), okPlaces = places.filter(Boolean);
-if(okPlaces.length || res[4] || res[5]){
+if(okPlaces.length || res[4] || res[5] || res[6]){
 const seen = {}, list = [];
 okPlaces.forEach((g) => g.forEach((pl) => { if(!seen[pl.id]){ seen[pl.id] = true; list.push(pl); } }));
-const out = dedupePlaces(list).concat(res[4] || [], res[5] || []).sort((a, b) => a.dist - b.dist);
+const own = mergeOwn(dedupePlaces(list), res[6]);
+const out = own.concat(res[4] || [], res[5] || []).sort((a, b) => a.dist - b.dist);
 out.truncated = okPlaces.some((g) => g.truncated);
-out.counts = { places: out.length - (res[4] || []).length - (res[5] || []).length, streets: (res[4] || []).length, ixs: (res[5] || []).length };
+out.counts = { places: own.length, streets: (res[4] || []).length, ixs: (res[5] || []).length };
 out.streetsUpTo = sr;
+if(useOwn && res[6] && R > OWN_MAX) out.ownUpTo = OWN_MAX;
 return out;
 }
 }
+else if(cat.own){
+// Only in the app's own data
+const own = await ownPlaces(cat.o, lat, lon, Math.min(R, OWN_MAX));
+if(own && R > OWN_MAX) own.ownUpTo = OWN_MAX;
+return own;
+}
 // Named places come from Photon (fast and dependable); it returns the nearest 50 within the radius
 else if(cat.p){
+if(ownPoi.checked && cat.o){
+const both = await Promise.all([photonNearby(cat, lat, lon, R), ownPlaces(cat.o, lat, lon, Math.min(R, OWN_MAX))]);
+if(both[0] || both[1]){
+const out = mergeOwn(both[0] || [], both[1]);
+if(both[1] && R > OWN_MAX) out.ownUpTo = OWN_MAX;
+return out;
+}
+}
+else {
 const viaPhoton = await photonNearby(cat, lat, lon, R);
 if(viaPhoton) return viaPhoton;
+}
+}
+// Crossings and toilets are complete in the app's own data
+if(ownPoi.checked && cat.o && !cat.p){
+const own = await ownPlaces(cat.o, lat, lon, Math.min(R, OWN_MAX));
+if(own){ if(R > OWN_MAX) own.ownUpTo = OWN_MAX; return own; }
 }
 // Crossings and toilets (not in Photon), or Photon unreachable: the detailed Overpass servers.
 // Start small and widen, so a big radius in a city doesn't download thousands of places
@@ -2823,13 +2873,116 @@ let r = Math.min(R, cat.start || 500), ok = false;
 const found = {};
 for(;;){
 const els = await overpassQuery(placesQuery(cat, lat, lon, r), 9000);
-if(!els){ if(!ok) return null; break; }
+if(!els){
+if(ok) break;
+// Nothing else answers: the app's own data still has these places (within its range)
+if(cat.o && !ownPoi.checked){
+const own = await ownPlaces(cat.o, lat, lon, Math.min(R, OWN_MAX));
+if(own && own.length){ if(R > OWN_MAX) own.ownUpTo = OWN_MAX; return own; }
+}
+return null;
+}
 ok = true;
 els.forEach((e) => { const pl = elementToPlace(e, lat, lon); if(pl && pl.dist <= R + 50) found[pl.id] = pl; });
 if(Object.keys(found).length >= 40 || r >= R) break;
 r = Math.min(R, r * 4);
 }
 return dedupePlaces(Object.keys(found).map((k) => found[k]));
+}
+// ---------- The app's own map data: every useful point in Slovakia, named or not ----------
+// Made from an OpenStreetMap extract (tools/poi) and served next to the app as small tiles, so it doesn't depend
+// on the busy map servers and also has what they leave out: unnamed crossings, steps, bollards, unnamed pharmacies...
+const OWN_BASE = 'data/poi1/';
+const OWN_TLAT = 0.02, OWN_TLON = 0.03;
+// Area the data covers (Slovakia); outside it there is nothing to load
+const OWN_AREA = { s: 47.7, n: 49.65, w: 16.8, e: 22.6 };
+// Points are loaded up to this far; further out only the named places (from Photon) are listed
+const OWN_MAX = 2000;
+const ownTiles = new Map();
+function ownCovers(lat, lon){ return lat >= OWN_AREA.s && lat <= OWN_AREA.n && lon >= OWN_AREA.w && lon <= OWN_AREA.e; }
+// A tile's points; [] where the map has nothing, null when it couldn't be loaded
+function ownTile(ty, tx){
+const key = ty + '/' + tx;
+if(ownTiles.has(key)) return ownTiles.get(key);
+const pr = (async () => {
+const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+const timer = setTimeout(() => { if(ctrl) ctrl.abort(); }, 9000);
+try{
+const r = await fetch(OWN_BASE + key + '.json', ctrl ? { signal: ctrl.signal } : undefined);
+if(r.status === 404) return [];
+if(!r.ok) return null;
+const d = await r.json();
+return Array.isArray(d.p) ? d.p : [];
+}catch(e){
+return null;
+}finally{
+clearTimeout(timer);
+}
+})();
+ownTiles.set(key, pr);
+// Don't remember a failure, so the next look tries again
+pr.then((v) => { if(v === null) ownTiles.delete(key); });
+return pr;
+}
+function ownMatches(kk, kinds){
+if(!kinds) return false;
+return kinds.some((k) => k === '*' || k === kk || (k.slice(-2) === '=*' && kk.indexOf(k.slice(0, -1)) === 0));
+}
+function ownToPlace(rec, lat, lon){
+const kk = rec[2], eq = kk.indexOf('='), key = kk.slice(0, eq), value = kk.slice(eq + 1);
+const name = rec[3] || '', e = rec[4] || {};
+const kind = kindName(key, value);
+const tags = {};
+tags[key] = value;
+if(name) tags.name = name;
+if(e.x) tags.crossing = e.x;
+if(e.m) tags['crossing:markings'] = e.m;
+if(e.tp) tags.tactile_paving = e.tp;
+if(e.snd) tags['traffic_signals:sound'] = e.snd;
+if(e.r) tags.route_ref = e.r;
+if(e.o) tags.opening_hours = e.o;
+if(e.w) tags.wheelchair = e.w;
+let extra = '';
+if(kk === 'highway=crossing' || kk === 'railway=crossing') extra = crossingInfo(tags).join(', ');
+else if(kk === 'highway=traffic_signals' && e.snd === 'yes') extra = t('crossSound');
+else if(kk === 'highway=steps'){
+const parts = [];
+if(e.sc && /^\d+$/.test(e.sc)) parts.push(t('stepsCount').replace('{n}', e.sc));
+if(e.hr === 'yes' || e.hr === 'both' || e.hr === 'left' || e.hr === 'right') parts.push(t('stepsHandrail')); else if(e.hr === 'no') parts.push(t('stepsNoHandrail'));
+extra = parts.join(', ');
+}
+else if(e.w === 'yes' && key !== 'highway' && key !== 'railway') extra = t('wheelchairYes');
+return { id: 'o' + kk + rec[0] + ',' + rec[1], name: name || kind, named: !!name, kind: kind, kindKey: kk, lat: rec[0], lon: rec[1], tags: tags,
+address: e.a || '', extra: extra, dist: haversineMeters(lat, lon, rec[0], rec[1]), own: true };
+}
+// Points of the given kinds within r meters, nearest first; null when the data couldn't be loaded
+async function ownPlaces(kinds, lat, lon, r){
+if(!ownCovers(lat, lon)) return null;
+const dLat = r / 111320, dLon = r / (111320 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+const y0 = Math.floor((lat - dLat) / OWN_TLAT), y1 = Math.floor((lat + dLat) / OWN_TLAT);
+const x0 = Math.floor((lon - dLon) / OWN_TLON), x1 = Math.floor((lon + dLon) / OWN_TLON);
+const jobs = [];
+for(let y = y0; y <= y1; y++) for(let x = x0; x <= x1; x++) jobs.push(ownTile(y, x));
+const tiles = await Promise.all(jobs);
+if(tiles.every((tl) => tl === null)) return null;
+const out = [];
+tiles.forEach((tl) => (tl || []).forEach((rec) => {
+if(!ownMatches(rec[2], kinds)) return;
+if(Math.abs(rec[0] - lat) > dLat || Math.abs(rec[1] - lon) > dLon) return;
+const pl = ownToPlace(rec, lat, lon);
+if(pl.dist <= r) out.push(pl);
+}));
+return out.sort((a, b) => a.dist - b.dist);
+}
+// Adds own points to a list of places, leaving out the ones the list already has (same name close by)
+function mergeOwn(list, own){
+if(!own || !own.length) return list;
+const named = {};
+list.forEach((pl) => { if(pl.named){ const k = plainText(pl.name); (named[k] = named[k] || []).push(pl); } });
+const add = own.filter((o) => !(o.named && (named[plainText(o.name)] || []).some((pl) => haversineMeters(pl.lat, pl.lon, o.lat, o.lon) < 150)));
+const out = list.concat(add).sort((a, b) => a.dist - b.dist);
+['truncated', 'counts', 'streetsUpTo', 'ownUpTo'].forEach((k) => { if(list[k] !== undefined) out[k] = list[k]; });
+return out;
 }
 const PHOTON_URL = 'https://photon.komoot.io';
 // Streets and intersections are looked up at most this far (the download grows quickly with distance)
@@ -2916,7 +3069,7 @@ PLACES_RADII.forEach((r) => { const o = sheetEl('option', '', formatDist(r)); o.
 sel.addEventListener('change', () => { placesRadius = parseInt(sel.value, 10); saveSettings(); });
 body.appendChild(sel);
 body.appendChild(sheetEl('h3', 'sheet-h', t('placesCategories')));
-PLACE_CATS.forEach((cat) => { sheetButton(body, t(cat.label), () => openPlaceResults(cat)).dataset.cat = cat.key; });
+PLACE_CATS.forEach((cat) => { if(!cat.own || ownPoi.checked) sheetButton(body, t(cat.label), () => openPlaceResults(cat)).dataset.cat = cat.key; });
 }
 });
 }
@@ -2950,12 +3103,12 @@ st.lat = pos.coords.latitude; st.lon = pos.coords.longitude; st.heading = curren
 lastFix = { lat: st.lat, lon: st.lon, acc: pos.coords.accuracy, time: performance.now(), address: null };
 let all = await fetchPlaces(cat, st.lat, st.lon, placesRadius), wider = placesRadius;
 // Nothing in range: look further out by itself (up to 30 km), so you learn where the nearest one is
-while(all && !all.length && wider < (cat.streets ? STREETS_MAX : 30000)){
+while(all && !all.length && wider < (cat.streets ? STREETS_MAX : cat.own ? OWN_MAX : 30000)){
 wider = Math.min(30000, wider * 4);
 all = await fetchPlaces(cat, st.lat, st.lon, wider);
 }
-if(!all) st.msg = t(cat.streets ? 'streetsError' : cat.p ? 'placesError' : 'placesErrorDetail');
-else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(Math.min(wider, cat.streets ? STREETS_MAX : wider)));
+if(!all) st.msg = t(cat.streets ? 'streetsError' : cat.own ? 'ownError' : cat.p ? 'placesError' : 'placesErrorDetail');
+else if(!all.length) st.msg = t('placesNone').replace('{r}', formatDist(Math.min(wider, cat.streets ? STREETS_MAX : cat.own ? OWN_MAX : wider)));
 else {
 st.places = all;
 const n = all.length, m = Math.min(60, n);
@@ -2965,6 +3118,7 @@ else st.msg = wider > placesRadius ? t('placesNoneWider').replace('{r}', formatD
 // Say plainly where the list is not complete
 if(all.truncated) st.msg += ' ' + t('placesCapNote');
 if(all.streetsUpTo && all.streetsUpTo < placesRadius) st.msg += ' ' + t('streetsUpToNote').replace('{r}', formatDist(all.streetsUpTo));
+if(all.ownUpTo && all.ownUpTo < placesRadius && wider === placesRadius) st.msg += ' ' + t('ownUpToNote').replace('{r}', formatDist(all.ownUpTo));
 }
 }
 st.busy = false;
@@ -3060,7 +3214,7 @@ if(inp) inp.focus();
 function placeDetails(pl){
 const parts = [];
 if(pl.kind && pl.kind !== pl.name) parts.push(pl.kind + '.');
-if(pl.tags.highway === 'crossing' && pl.extra) parts.push(pl.extra.charAt(0).toUpperCase() + pl.extra.slice(1) + '.');
+if((pl.tags.highway === 'crossing' || pl.tags.railway === 'crossing' || pl.own) && pl.extra) parts.push(pl.extra.charAt(0).toUpperCase() + pl.extra.slice(1) + '.');
 if(pl.address) parts.push(t('detAddress').replace('{v}', pl.address));
 if(pl.tags.local_ref) parts.push(t('detPlatform').replace('{v}', pl.tags.local_ref));
 if(pl.tags.route_ref) parts.push(t('detLines').replace('{v}', pl.tags.route_ref.split(';').join(', ')));
@@ -3691,6 +3845,7 @@ pauseOnLeave: pauseOnLeave.checked,
 showQuickBar: showQuickBar.checked,
 showNavSteps: showNavSteps.checked,
 liveLocation: liveLocation.checked,
+ownPoi: ownPoi.checked,
 dirStyle: dirStyle.value,
 placesRadius: placesRadius,
 fastGps: fastGps.checked,
@@ -3732,6 +3887,7 @@ if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
 if(typeof s.showNavSteps === 'boolean') showNavSteps.checked = s.showNavSteps;
 if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
+if(typeof s.ownPoi === 'boolean') ownPoi.checked = s.ownPoi;
 if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass') dirStyle.value = s.dirStyle;
 if(PLACES_RADII.indexOf(s.placesRadius) !== -1) placesRadius = s.placesRadius;
 if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
@@ -3766,6 +3922,7 @@ autoStartOn.addEventListener('change', saveSettings);
 pauseOnLeave.addEventListener('change', saveSettings);
 showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.checked; quickResult.hidden = !showQuickBar.checked; saveSettings(); updateLiveWatcher(); });
 liveLocation.addEventListener('change', () => { saveSettings(); updateLiveWatcher(); });
+ownPoi.addEventListener('change', saveSettings);
 showNavSteps.addEventListener('change', () => { saveSettings(); renderNavSteps(true); });
 dirStyle.addEventListener('change', saveSettings);
 document.addEventListener('visibilitychange', updateLiveWatcher);
