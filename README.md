@@ -53,7 +53,23 @@ Open it on a phone over HTTPS (required for the compass/motion sensors) and gran
 - Installable as a home-screen app (PWA) and works offline. Updates now arrive reliably: when online, the app page is always loaded fresh from the web (with the saved copy used offline, or if the network takes more than 5 seconds), the app checks for a new version every time it's opened or brought back to the front, and a new version can no longer store a stale copy of the page from the browser's cache (which previously could leave a phone stuck on an older version). A phone that is still stuck on one of those older versions (before 38) is reloaded automatically, once, as soon as it picks up the current one - so opening the link in Safari ends up on the current version without having to open it twice. A Wi-Fi login page is never saved in place of the app. The app's version number is shown at the bottom of the screen, next to the language button, so you can check which version is running.
 - Note for iPhone: Safari and the home-screen icon keep separate saved routes and settings, and Safari may clear a website's data if it isn't opened for about a week - the home-screen icon doesn't. Use the home-screen icon as your main way in, and export routes as GPX now and then as a backup. The icon always loads the latest version; right after an update the first launch can still show the previous one, so close and reopen it.
 
+## Android app (experimental)
+A separate, deliberately simple native Android app for the core feature - holding a straight line - that keeps working with the screen locked and the phone in a pocket, which the web app can't do.
+
+**Download:** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk (Android 10 or newer; built for and meant to be tried first on a Pixel 7 with TalkBack).
+
+- One screen: a large **Start / Stop** button, **Set direction**, and **Settings**. While it runs, the notification has **Set direction** and **Stop** too, including on the lock screen.
+- Same behaviour as the web app's straight-line mode: the direction is taken 1.2 s after Start; within the allowed deviation a quiet tick every 2.5 s and one warning tick at 70 % of it; beyond it, beeps from the side you drift to (faster and higher the further off), vibration (drifting right: one continuous buzz, left: pulses; stronger when hard), and a spoken message at most every 3 s ("Drift right, 20 degrees", "Back on track."); a summary on Stop ("You drifted 2 times.").
+- **Doing good** every 10/20/50/100 m from GPS (off by default; asks for location only when turned on), with a weak-GPS warning; a compass-calibration warning when readings jump or the sensor reports low accuracy.
+- Works however the phone is carried: lying flat it follows the top edge, held or carried upright (e.g. in a front pocket, either way up) it follows the back of the phone - whichever is closer to level when the direction is set, kept for the whole walk. Carry it the same way throughout; if you change how you hold it, press Set direction again.
+- Settings: allowed deviation (5-40 degrees, default 15), sounds, vibrations, voice (off / only when drifting / always), Doing good, language (phone / Slovak / English). With the app's own voice off, messages go to TalkBack through a live region while the app is open, so they aren't read twice.
+- Slovak and English throughout, including the voice (needs the phone's text-to-speech voice for that language).
+- Runs as a foreground service with a partial wake lock while guiding; nothing runs after Stop.
+
+Status: tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone** - compass behaviour in a pocket, with the screen off, and vibration strength need to be checked on the device, at home first and then outside with someone sighted nearby. Source, build and test instructions: [`android/`](android/README.md).
+
 ## Files
 - `index.html` — the current app (same as `smerasistentv3.html`, kept in sync so the link above always shows the latest version).
 - `smerasistentv3.html` — latest version, source of truth for `index.html`.
 - `v2.html` — earlier iteration, kept for reference.
+- `android/` — the Android app's source; `downloads/smerovy-asistent.apk` — its latest build.

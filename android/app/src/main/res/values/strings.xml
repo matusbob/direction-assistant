@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Direction Assistant</string>
+    <!-- Language of the app's own voice (BCP 47) -->
+    <string name="tts_lang">en-US</string>
+
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="set_direction">Set direction</string>
+    <string name="settings">Settings</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="version">Version %1$s</string>
+    <string name="hint">Tip: once started, you can lock the screen and put the phone in your pocket. The notification has Set direction and Stop, also on the lock screen. Carry the phone the same way the whole time, for example upright in a front pocket.</string>
+
+    <string name="ready">Ready</string>
+    <string name="ready_sub">Press Start, holding the phone the way you will carry it.</string>
+    <string name="scanning">Reading the compass…</string>
+    <string name="scanning_sub">Hold the phone still, the way you will carry it.</string>
+    <string name="dir_set">Direction set</string>
+    <string name="dir_set_sub">Walk straight.</string>
+    <string name="dir_set_speech">Direction set. Walk straight.</string>
+    <string name="straight">Straight</string>
+    <string name="straight_sub">You are on track.</string>
+    <string name="s_right">Slight right</string>
+    <string name="s_right_sub">Turn left.</string>
+    <string name="h_right">Hard right</string>
+    <string name="h_right_sub">Turn left!</string>
+    <string name="s_left">Slight left</string>
+    <string name="s_left_sub">Turn right.</string>
+    <string name="h_left">Hard left</string>
+    <string name="h_left_sub">Turn right!</string>
+    <string name="back_on_track">Back on track.</string>
+    <string name="drift_right">Drift right, %1$d degrees</string>
+    <string name="drift_left">Drift left, %1$d degrees</string>
+    <string name="hard_drift_right">Hard drift right, %1$d degrees</string>
+    <string name="hard_drift_left">Hard drift left, %1$d degrees</string>
+    <string name="doing_good">Doing good, %1$d meters</string>
+    <string name="compass_warning">Compass may be unreliable, try calibrating it by waving your phone in a figure-8.</string>
+    <string name="poor_gps">GPS signal is weak here, so the distance may be inaccurate.</string>
+    <string name="need_location">Doing good needs location access and location turned on. Guiding without it.</string>
+    <string name="no_compass">This phone has no compass sensor.</string>
+    <string name="tts_missing">The voice for this language isn\'t available. Sounds and vibrations still work; you can switch the language in Settings or install the voice in the phone\'s text-to-speech settings.</string>
+    <string name="start_failed">Couldn\'t start. Open the app and press Start again.</string>
+    <string name="stopped">Stopped</string>
+    <string name="stopped_sub">Press Start.</string>
+    <string name="summary_distance">Distance walked: %1$d meters.</string>
+    <plurals name="summary_drifts">
+        <item quantity="one">You drifted %1$d time.</item>
+        <item quantity="other">You drifted %1$d times.</item>
+    </plurals>
+    <string name="summary_no_drift">You stayed on track the whole way.</string>
+
+    <string name="notif_channel">Walking guidance</string>
+    <string name="notif_running">Direction Assistant is guiding you</string>
+
+    <string name="on">on</string>
+    <string name="off">off</string>
+    <string name="threshold">Allowed deviation</string>
+    <string name="degrees">%1$d degrees</string>
+    <string name="set_threshold">Allowed deviation: %1$d degrees</string>
+    <string name="sound">Sounds</string>
+    <string name="set_sound">Sounds: %1$s</string>
+    <string name="vibration">Vibrations</string>
+    <string name="set_vibration">Vibrations: %1$s</string>
+    <string name="voice">Voice</string>
+    <string name="set_voice">Voice: %1$s</string>
+    <string name="voice_off">off (the screen reader reads the messages while the app is open)</string>
+    <string name="voice_drift">only when drifting</string>
+    <string name="voice_always">always</string>
+    <string name="doing_good_title">Doing good</string>
+    <string name="set_good">Doing good: %1$s</string>
+    <string name="good_every">every %1$d meters</string>
+    <string name="language">Language</string>
+    <string name="set_language">Language: %1$s</string>
+    <string name="lang_system">phone language</string>
+    <string name="lang_sk" translatable="false">Slovenčina</string>
+    <string name="lang_en" translatable="false">English</string>
+</resources>

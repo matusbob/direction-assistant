@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smerový asistent</string>
+    <string name="tts_lang">sk-SK</string>
+
+    <string name="start">Štart</string>
+    <string name="stop">Stop</string>
+    <string name="set_direction">Nastaviť smer</string>
+    <string name="settings">Nastavenia</string>
+    <string name="close">Zavrieť</string>
+    <string name="back">Späť</string>
+    <string name="version">Verzia %1$s</string>
+    <string name="hint">Tip: po štarte môžete zamknúť obrazovku a dať telefón do vrecka. V oznámení sú tlačidlá Nastaviť smer a Stop, aj na zamknutej obrazovke. Noste telefón celý čas rovnako, napríklad nastojato v prednom vrecku.</string>
+
+    <string name="ready">Pripravené</string>
+    <string name="ready_sub">Stlačte Štart a držte telefón tak, ako ho ponesiete.</string>
+    <string name="scanning">Snímam kompas…</string>
+    <string name="scanning_sub">Držte telefón pokojne, tak ako ho ponesiete.</string>
+    <string name="dir_set">Smer nastavený</string>
+    <string name="dir_set_sub">Choďte rovno.</string>
+    <string name="dir_set_speech">Smer nastavený. Choďte rovno.</string>
+    <string name="straight">Rovno</string>
+    <string name="straight_sub">Držíte smer.</string>
+    <string name="s_right">Mierne doprava</string>
+    <string name="s_right_sub">Zabočte vľavo.</string>
+    <string name="h_right">Silno doprava</string>
+    <string name="h_right_sub">Zabočte vľavo!</string>
+    <string name="s_left">Mierne doľava</string>
+    <string name="s_left_sub">Zabočte vpravo.</string>
+    <string name="h_left">Silno doľava</string>
+    <string name="h_left_sub">Zabočte vpravo!</string>
+    <string name="back_on_track">Vrátil si sa do pôvodného smeru.</string>
+    <string name="drift_right">Vybočenie doprava, %1$d stupňov</string>
+    <string name="drift_left">Vybočenie doľava, %1$d stupňov</string>
+    <string name="hard_drift_right">Silné vybočenie doprava, %1$d stupňov</string>
+    <string name="hard_drift_left">Silné vybočenie doľava, %1$d stupňov</string>
+    <string name="doing_good">Ideš dobre, %1$d metrov</string>
+    <string name="compass_warning">Kompas môže byť nespoľahlivý, skús ho skalibrovať pohybom telefónu v tvare osmičky.</string>
+    <string name="poor_gps">GPS signál je tu slabý, vzdialenosť môže byť nepresná.</string>
+    <string name="need_location">Ideš dobre potrebuje prístup k polohe a zapnutú polohu. Vediem bez neho.</string>
+    <string name="no_compass">Tento telefón nemá kompas.</string>
+    <string name="tts_missing">Hlas pre tento jazyk nie je k dispozícii. Zvuky a vibrácie fungujú; jazyk môžete zmeniť v Nastaveniach alebo hlas doinštalovať v nastaveniach prevodu textu na reč v telefóne.</string>
+    <string name="start_failed">Nepodarilo sa spustiť. Otvorte aplikáciu a stlačte Štart znova.</string>
+    <string name="stopped">Zastavené</string>
+    <string name="stopped_sub">Stlačte Štart.</string>
+    <string name="summary_distance">Prejdená vzdialenosť: %1$d metrov.</string>
+    <plurals name="summary_drifts">
+        <item quantity="one">Vychýlil si sa %1$d-krát.</item>
+        <item quantity="few">Vychýlil si sa %1$d-krát.</item>
+        <item quantity="many">Vychýlil si sa %1$d-krát.</item>
+        <item quantity="other">Vychýlil si sa %1$d-krát.</item>
+    </plurals>
+    <string name="summary_no_drift">Celou cestou si držal smer.</string>
+
+    <string name="notif_channel">Vedenie pri chôdzi</string>
+    <string name="notif_running">Smerový asistent vás vedie</string>
+
+    <string name="on">zapnuté</string>
+    <string name="off">vypnuté</string>
+    <string name="threshold">Povolená odchýlka</string>
+    <string name="degrees">%1$d stupňov</string>
+    <string name="set_threshold">Povolená odchýlka: %1$d stupňov</string>
+    <string name="sound">Zvuky</string>
+    <string name="set_sound">Zvuky: %1$s</string>
+    <string name="vibration">Vibrácie</string>
+    <string name="set_vibration">Vibrácie: %1$s</string>
+    <string name="voice">Hlas</string>
+    <string name="set_voice">Hlas: %1$s</string>
+    <string name="voice_off">vypnutý (keď je aplikácia otvorená, hlásenia číta čítačka obrazovky)</string>
+    <string name="voice_drift">len pri vybočení</string>
+    <string name="voice_always">vždy</string>
+    <string name="doing_good_title">Ideš dobre</string>
+    <string name="set_good">Ideš dobre: %1$s</string>
+    <string name="good_every">každých %1$d metrov</string>
+    <string name="language">Jazyk</string>
+    <string name="set_language">Jazyk: %1$s</string>
+    <string name="lang_system">podľa telefónu</string>
+</resources>
