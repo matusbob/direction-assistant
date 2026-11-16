@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.matusbob.directionassistant'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'io.github.matusbob.directionassistant'
+        minSdk 29
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // The signing key is kept in the repository on purpose: it lets every build install as an update over
+    // the previous one. It does not protect against tampering - install the app only from this project.
+    signingConfigs {
+        release {
+            storeFile file('../signing/direction-assistant.jks')
+            storePassword 'direction-assistant'
+            keyAlias 'direction-assistant'
+            keyPassword 'direction-assistant'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+    }
+}
+
+configurations {
+    robolectricAndroid { transitive = false }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.18'
+    // The simulated Android that Robolectric runs the app on (SDK 35), fetched by Gradle rather than at test time
+    robolectricAndroid 'org.robolectric:android-all-instrumented:15-robolectric-14663667-2-i7'
+}
+
+def robolectricJars = layout.buildDirectory.dir('robolectric-jars')
+tasks.register('copyRobolectricJars', Copy) {
+    from configurations.robolectricAndroid
+    into robolectricJars
+}
+tasks.withType(Test).configureEach {
+    dependsOn 'copyRobolectricJars'
+    systemProperty 'robolectric.offline', 'true'
+    systemProperty 'robolectric.dependency.dir', robolectricJars.get().asFile.absolutePath
+}
