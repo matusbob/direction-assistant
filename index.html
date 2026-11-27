@@ -354,6 +354,10 @@ flex:none;
 <label for="showNavSteps" style="margin:0;" id="lblShowNavSteps">During route navigation, list all points of the route on the main screen, with the current one marked</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="focusNavStep" checked>
+<label for="focusNavStep" style="margin:0;" id="lblFocusNavStep">When route navigation starts, move the screen reader to the current point in the route instructions, and keep it on the current point when the next one becomes current</label>
+</div>
+<div class="toggle">
 <input type="checkbox" id="showQuickBar" checked>
 <label for="showQuickBar" style="margin:0;" id="lblShowQuickBar">Show quick action buttons on the main screen (where am I, repeat, compass, share...)</label>
 </div>
@@ -473,13 +477,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 43</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 44</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 43;
+const APP_VERSION = 44;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -526,7 +530,11 @@ lblHistory: "Announcement history", lblCompass: "Compass", lblShareLoc: "Share m
 lblSavePlace: "Save this place", lblRoutePoints: "Route points", close: "Close",
 versionWord: "Version", lblOsmAttrib: "Addresses:", osmContrib: "© OpenStreetMap contributors",
 noAnnouncementsYet: "No announcements yet.",
-lblShowNavSteps: "During route navigation, list all points of the route on the main screen, with the current one marked", navStepsTitle: "Route instructions",
+lblShowNavSteps: "During route navigation, list all points of the route on the main screen, with the current one marked",
+lblFocusNavStep: "When route navigation starts, move the screen reader to the current point in the route instructions, and keep it on the current point when the next one becomes current",
+planSave: "Save to my routes", planSaved: "Saved to Saved routes as \u201c{name}\u201d. There you can add a note to each point, delete points and navigate it again.",
+planSaveWait: "Adding the street names first, the route will be saved in a moment.", planAlreadySaved: "This route is already in Saved routes.",
+planSameAs: "same route as {v}", planVariantFailed: "couldn't be loaded", editNoteBtn: "Note", notePrompt: "Your note for this point (said when you reach it):", noteWord: "note", navStepsTitle: "Route instructions",
 placesNearest: "Showing the {n} nearest places.",
 catStreets: "Streets and roads", catIntersections: "Intersections", kindStreet: "Street", approxWord: "position approximate",
 showMore: "Show {n} more", streetsFound: "{n} streets found.", ixsFound: "{n} intersections found.", allFound: "Found: {p} places, {s} streets, {i} intersections.", showingNearest: "Showing the {m} nearest; more with the button at the end of the list.",
@@ -685,7 +693,11 @@ lblHistory: "História hlásení", lblCompass: "Kompas", lblShareLoc: "Zdieľať
 lblSavePlace: "Uložiť toto miesto", lblRoutePoints: "Body trasy", close: "Zavrieť",
 versionWord: "Verzia", lblOsmAttrib: "Adresy:", osmContrib: "© prispievatelia OpenStreetMap",
 noAnnouncementsYet: "Zatiaľ žiadne hlásenia.",
-lblShowNavSteps: "Počas navigácie trasy zobraziť na hlavnej obrazovke všetky body trasy s vyznačeným aktuálnym", navStepsTitle: "Pokyny trasy",
+lblShowNavSteps: "Počas navigácie trasy zobraziť na hlavnej obrazovke všetky body trasy s vyznačeným aktuálnym",
+lblFocusNavStep: "Po spustení navigácie trasy presunúť kurzor čítačky na aktuálny bod v pokynoch trasy a držať ho na aktuálnom bode, keď sa aktuálnym stane ďalší",
+planSave: "Uložiť medzi moje trasy", planSaved: "Uložené v Uložených trasách ako \u201e{name}\u201c. Tam môžete ku každému bodu pridať poznámku, body zmazať a trasu znova navigovať.",
+planSaveWait: "Najprv sa doplnia názvy ulíc, trasa sa uloží o chvíľu.", planAlreadySaved: "Táto trasa už je v Uložených trasách.",
+planSameAs: "rovnaká trasa ako {v}", planVariantFailed: "nepodarilo sa načítať", editNoteBtn: "Poznámka", notePrompt: "Vaša poznámka k tomuto bodu (povie sa, keď k nemu prídete):", noteWord: "poznámka", navStepsTitle: "Pokyny trasy",
 placesNearest: "Zobrazujem {n} najbližších miest.",
 catStreets: "Ulice a cesty", catIntersections: "Križovatky", kindStreet: "Ulica", approxWord: "poloha približne",
 showMore: "Zobraziť ďalších {n}", streetsFound: "Nájdených ulíc: {n}.", ixsFound: "Nájdených križovatiek: {n}.", allFound: "Nájdené: miest {p}, ulíc {s}, križovatiek {i}.", showingNearest: "Zobrazujem {m} najbližších, ďalšie tlačidlom na konci zoznamu.",
@@ -837,7 +849,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -931,6 +943,7 @@ const autoStartOn = document.getElementById('autoStartOn');
 const pauseOnLeave = document.getElementById('pauseOnLeave');
 const showQuickBar = document.getElementById('showQuickBar');
 const showNavSteps = document.getElementById('showNavSteps');
+const focusNavStep = document.getElementById('focusNavStep');
 const navSteps = document.getElementById('navSteps');
 const navStepsList = document.getElementById('navStepsList');
 const liveLocation = document.getElementById('liveLocation');
@@ -1813,7 +1826,7 @@ else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
 let arriveMsg = wp.label + ". " + msg;
 if(wp.instruction){
-arriveMsg = wp.instruction;
+arriveMsg = wp.instruction + (wp.note ? ' ' + wp.note.replace(/([^.!?])$/, '$1.') : '');
 // At the very start of a planned route, also say which way that is from where the phone is pointing
 if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
 // ...and which side the destination will be on, when the map knows
@@ -1978,6 +1991,7 @@ nearbyBtn.disabled = true;
 statusBox.className = 'status ok';
 routePointsBtn.hidden = false;
 renderNavSteps(true);
+focusCurrentStep();
 const wp = route.waypoints[0];
 if(wp.type === 'straight'){
 announceEvent(t('routeNavStart') + ".");
@@ -3530,6 +3544,7 @@ w.instruction = composeInstruction(w);
 if(!w.first) w.label = w.instruction.replace(/\.$/, '');
 if(onChange) onChange();
 }
+route.namesFinished = true;
 }
 function planSummary(route){
 return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps) + (route.crossings ? ', ' + t('planCrossings').replace('{n}', route.crossings) : '');
@@ -3540,8 +3555,11 @@ const sheet = {
 title: () => t('planTitle').replace('{name}', pl.name), trigger: null,
 render(body){
 body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'planMsg';
-st.variants.forEach((v) => { sheetButton(body, t(v.label) + ': ' + planSummary(v.route), () => openPlanVariant(v)).dataset.variant = v.label; });
-if(st.variants.length) body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
+if(st.variants.some((v) => v.route)) st.variants.forEach((v) => {
+if(!v.route){ body.appendChild(sheetEl('p', 'sheet-text', t(v.label) + ': ' + t('planVariantFailed') + '.')).dataset.variant = v.label; return; }
+sheetButton(body, t(v.label) + ': ' + (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route), () => openPlanVariant(v)).dataset.variant = v.label;
+});
+if(st.variants.some((v) => v.route)) body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
 }
 };
 openSheet(sheet);
@@ -3558,20 +3576,20 @@ const best = await fetchPlan(lat, lon, pl, null);
 const shortest = (named || best) ? await fetchPlan(lat, lon, pl, { shortest: true }) : null;
 if(!named && !best) st.msg = t('planError');
 else {
-const seen = {}, picked = [];
-[['planNamed', named], ['planRecommended', best], ['planShortest', shortest]].forEach((x) => {
-// Offer a variant only when it really is a different path
-if(!x[1] || seen[x[1].sig]) return;
-seen[x[1].sig] = true;
-picked.push(x);
-});
-for(const x of picked){
+// Every kind of route is listed; one that turns out to be the same path as another says so
+const seen = {};
+for(const x of [['planNamed', named], ['planRecommended', best], ['planShortest', shortest]]){
+if(!x[1]){ st.variants.push({ label: x[0], route: null }); continue; }
+const first = seen[x[1].sig];
+if(first){ st.variants.push({ label: x[0], route: first.route, same: first.label, of: first }); continue; }
 const shape = decodePolyline6(x[1].sig);
 const route = buildPlannedRoute(x[1].trip, pl, await fetchCrossings(x[1].sig, shape));
-if(route) st.variants.push({ label: x[0], route: route });
+const v = { label: x[0], route: route };
+st.variants.push(v);
+if(route) seen[x[1].sig] = v;
 }
-if(!st.variants.length) st.msg = t('planError');
-else st.msg = st.variants.map((v) => t(v.label) + ': ' + planSummary(v.route) + '.').join(' ');
+if(!st.variants.some((v) => v.route)) st.msg = t('planError');
+else st.msg = st.variants.map((v) => t(v.label) + ': ' + (!v.route ? t('planVariantFailed') : (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route)) + '.').join(' ');
 }
 }
 st.busy = false;
@@ -3580,10 +3598,12 @@ sayEvent(st.msg);
 })();
 }
 function openPlanVariant(v){
-addStreetNames(v.route, () => {
+const route = v.route;
+// Street names are looked up once per route; the list on screen is completed as they arrive
+if(!route.namesPromise) route.namesPromise = addStreetNames(route, () => {
 document.querySelectorAll('#sheetBody ol li[data-wp]').forEach((li) => {
-const wp = v.route.waypoints[parseInt(li.dataset.wp, 10)];
-if(wp && wp.instruction && topSheet() && topSheet().variant === v) li.textContent = wp.instruction.replace(/\.$/, '') + ', ' + li.dataset.dist + '.';
+const wp = route.waypoints[parseInt(li.dataset.wp, 10)];
+if(wp && wp.instruction && topSheet() && topSheet().variant && topSheet().variant.route === route) li.textContent = wp.instruction.replace(/\.$/, '') + ', ' + li.dataset.dist + '.';
 });
 renderNavSteps(true);
 });
@@ -3597,6 +3617,7 @@ if(running || recording){ sayEvent(t('stopFirst')); return; }
 closeSheet(true);
 startRouteNav(v.route);
 }, true).id = 'planStartBtn';
+sheetButton(body, t('planSave'), () => savePlannedRoute(v)).id = 'planSaveBtn';
 body.appendChild(sheetEl('h3', 'sheet-h', t('planSteps')));
 const ol = sheetEl('ol', 'sheet-list');
 const wps = v.route.waypoints;
@@ -3613,6 +3634,31 @@ body.appendChild(ol);
 body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
 }
 });
+}
+
+// A planned route kept in Saved routes, so you can add notes to its points and walk it again
+async function savePlannedRoute(v){
+const base = v.of || v;
+if(base.saving) return;
+if(base.savedAs){ sayEvent(t('planAlreadySaved')); return; }
+base.saving = true;
+if(v.route.namesPromise && !v.route.namesFinished){
+sayEvent(t('planSaveWait'));
+await v.route.namesPromise;
+}
+const keepPromise = v.route.namesPromise;
+delete v.route.namesPromise;
+const copy = JSON.parse(JSON.stringify(v.route));
+v.route.namesPromise = keepPromise;
+copy.id = Date.now().toString(36);
+copy.name = v.route.name + ', ' + t(v.label).toLowerCase() + ' - ' + new Date().toLocaleDateString();
+copy.createdAt = Date.now();
+delete copy.streetsDone;
+delete copy.namesFinished;
+saveRoute(copy);
+base.saving = false;
+base.savedAs = copy.id;
+sayEvent(t('planSaved').replace('{name}', copy.name));
 }
 
 // ---------- Route points during navigation ----------
@@ -3658,14 +3704,17 @@ const wps = activeRoute.waypoints;
 let cur = Math.min(routeIndex, wps.length - 1);
 while(wps[cur].via && cur + 1 < wps.length) cur++;
 if(!force && cur === navStepsShown) return;
+const prevCur = navStepsShown;
 navStepsShown = cur;
-const focused = document.activeElement && navStepsList.contains(document.activeElement) ? document.activeElement.dataset.i : null;
+let focused = document.activeElement && navStepsList.contains(document.activeElement) ? document.activeElement.dataset.i : null;
+// The screen reader was on the current point: keep it on the current point as the route moves on
+if(focused !== null && focusNavStep.checked && focused === String(prevCur)) focused = String(cur);
 navStepsList.innerHTML = '';
 let n = 0;
 wps.forEach((wp, i) => {
 if(wp.via) return;
 n++;
-const b = sheetEl('button', 'sheet-btn' + (i === cur ? ' primary' : ''), n + '. ' + (wp.instruction ? wp.instruction.replace(/\.$/, '') : wp.label) + (i === cur ? ', ' + t('pointCurrent') : i < cur ? ', ' + t('pointPassed') : ''));
+const b = sheetEl('button', 'sheet-btn' + (i === cur ? ' primary' : ''), n + '. ' + (wp.instruction ? wp.instruction.replace(/\.$/, '') : wp.label) + (wp.note ? ', ' + t('noteWord') + ': ' + wp.note : '') + (i === cur ? ', ' + t('pointCurrent') : i < cur ? ', ' + t('pointPassed') : ''));
 b.type = 'button';
 b.dataset.i = i;
 if(i === cur) b.setAttribute('aria-current', 'step');
@@ -3673,6 +3722,13 @@ b.addEventListener('click', () => { if(i !== navStepsShown) jumpToWaypoint(i); }
 navStepsList.appendChild(b);
 });
 if(focused !== null){ const again = navStepsList.querySelector('[data-i="' + focused + '"]'); if(again) again.focus(); }
+}
+function focusCurrentStep(){
+if(!focusNavStep.checked || navSteps.hidden) return;
+const b = navStepsList.querySelector('[aria-current="step"]');
+if(!b) return;
+b.focus();
+try{ b.scrollIntoView({ block: 'center' }); }catch(e){}
 }
 function jumpToWaypoint(i){
 awaitingTurnConfirm = null;
@@ -3844,6 +3900,7 @@ autoStartOn: autoStartOn.checked,
 pauseOnLeave: pauseOnLeave.checked,
 showQuickBar: showQuickBar.checked,
 showNavSteps: showNavSteps.checked,
+focusNavStep: focusNavStep.checked,
 liveLocation: liveLocation.checked,
 ownPoi: ownPoi.checked,
 dirStyle: dirStyle.value,
@@ -3886,6 +3943,7 @@ if(typeof s.autoStartOn === 'boolean') autoStartOn.checked = s.autoStartOn;
 if(typeof s.pauseOnLeave === 'boolean') pauseOnLeave.checked = s.pauseOnLeave;
 if(typeof s.showQuickBar === 'boolean') showQuickBar.checked = s.showQuickBar;
 if(typeof s.showNavSteps === 'boolean') showNavSteps.checked = s.showNavSteps;
+if(typeof s.focusNavStep === 'boolean') focusNavStep.checked = s.focusNavStep;
 if(typeof s.liveLocation === 'boolean') liveLocation.checked = s.liveLocation;
 if(typeof s.ownPoi === 'boolean') ownPoi.checked = s.ownPoi;
 if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass') dirStyle.value = s.dirStyle;
@@ -3924,6 +3982,7 @@ showQuickBar.addEventListener('change', () => { quickBar.hidden = !showQuickBar.
 liveLocation.addEventListener('change', () => { saveSettings(); updateLiveWatcher(); });
 ownPoi.addEventListener('change', saveSettings);
 showNavSteps.addEventListener('change', () => { saveSettings(); renderNavSteps(true); });
+focusNavStep.addEventListener('change', saveSettings);
 dirStyle.addEventListener('change', saveSettings);
 document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
@@ -4119,24 +4178,30 @@ function renderEditRouteList(route){
 editRouteList.innerHTML = '';
 const notes = loadNoteList();
 route.waypoints.forEach((wp, i) => {
+// Silent way points of a planned route only carry its shape
+if(wp.via) return;
 const row = document.createElement('div');
 row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
 
 const label = document.createElement('div');
 label.className = 'picker-item';
 label.style.cssText = 'flex:1; display:flex; align-items:center; padding-left:14px;';
-label.textContent = wp.label + (wp.type === 'straight' ? '' : '');
+label.textContent = pointText(wp);
 
 const renameBtn = document.createElement('button');
 renameBtn.type = 'button'; renameBtn.className = 'menubtn';
-renameBtn.textContent = t('renamePoint');
+// A planned route's point says the map's instruction; what you add is your own note to it
+renameBtn.textContent = wp.instruction ? t('editNoteBtn') : t('renamePoint');
+if(wp.instruction) renameBtn.setAttribute('aria-label', t('editNoteBtn') + ': ' + wp.instruction.replace(/\.$/, ''));
 renameBtn.addEventListener('click', () => {
-const v = window.prompt(t('customLabelPrompt'), wp.label);
-if(v && v.trim()){
-wp.label = v.trim();
+const v = window.prompt(wp.instruction ? t('notePrompt') : t('customLabelPrompt'), wp.instruction ? (wp.note || '') : wp.label);
+if(v === null) return;
+if(wp.instruction) wp.note = v.trim();
+else if(v.trim()) wp.label = v.trim();
+else return;
+if(wp.instruction && !wp.note) delete wp.note;
 updateRouteInStorage(route);
 renderEditRouteList(route);
-}
 });
 
 const delBtn = document.createElement('button');
@@ -4160,7 +4225,7 @@ useNoteBtn.setAttribute('aria-label', t('useNoteAria') + ': ' + notes[editNoteIn
 useNoteBtn.addEventListener('click', () => {
 const note = loadNoteList()[editNoteIndex];
 if(!note) return;
-wp.label = note;
+if(wp.instruction) wp.note = note; else wp.label = note;
 editNoteIndex++;
 updateRouteInStorage(route);
 renderEditRouteList(route);
@@ -4182,6 +4247,35 @@ editRouteList.appendChild(p);
 }
 }
 
+function pointText(wp){
+if(!wp.instruction) return wp.label;
+return wp.instruction.replace(/\.$/, '') + (wp.note ? ', ' + t('noteWord') + ': ' + wp.note : '');
+}
+// The way back along a route. Your own points keep their names; a planned route's instructions only make
+// sense in their direction, so on the way back its turns are worked out again (your notes are kept)
+function reversedWaypoints(wps){
+const rev = wps.slice().reverse();
+if(!wps.some((w) => w.instruction)) return rev;
+let turns = 0;
+return rev.map((w, i) => {
+const out = { lat: w.lat, lon: w.lon };
+if(i === 0){ out.label = t('startPoint'); return out; }
+if(i === rev.length - 1){ out.label = w.note || t('destinationPoint'); return out; }
+if(w.via || w.bend){ out.label = t('viaWord'); out.via = true; out.turn = 'straight'; return out; }
+const a = rev[i - 1], b = rev[i + 1];
+const ang = angleDiff(bearingDegrees(w.lat, w.lon, b.lat, b.lon), bearingDegrees(a.lat, a.lon, w.lat, w.lon));
+const kind = Math.abs(ang) < 35 ? '' : ang > 0 ? 'right' : 'left';
+if(!kind && !w.note && !w.crossing){ out.label = t('viaWord'); out.via = true; out.turn = 'straight'; return out; }
+out.turn = kind || 'straight';
+const parts = [];
+if(kind){ turns++; parts.push(t(kind === 'right' ? 'autoTurnRight' : 'autoTurnLeft') + ' ' + turns); }
+else if(w.crossing) parts.push(kindName('highway', 'crossing'));
+if(w.note) parts.push(w.note);
+out.label = parts.join(', ');
+return out;
+});
+}
+
 function escapeXml(s){
 return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -4189,7 +4283,7 @@ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
 function routeToGPX(route){
 let gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Direction Assistant">\n';
 route.waypoints.forEach((wp) => {
-gpx += '<wpt lat="' + wp.lat + '" lon="' + wp.lon + '"><name>' + escapeXml(wp.label) + '</name></wpt>\n';
+gpx += '<wpt lat="' + wp.lat + '" lon="' + wp.lon + '"><name>' + escapeXml(pointText(wp)) + '</name></wpt>\n';
 });
 gpx += '</gpx>\n';
 return gpx;
@@ -4281,7 +4375,7 @@ wrapper.style.cssText = 'border:1px solid #2c3340; border-radius:10px; padding:8
 
 const navBtn = document.createElement('button');
 navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.cssText = 'width:100%; margin-bottom:8px;';
-navBtn.textContent = r.name + ' (' + r.waypoints.length + ')' + (r.waypoints.length === 1 && r.waypoints[0].address ? ', ' + r.waypoints[0].address : '');
+navBtn.textContent = r.name + ' (' + r.waypoints.filter((w) => !w.via).length + ')' + (r.waypoints.length === 1 && r.waypoints[0].address ? ', ' + r.waypoints[0].address : '');
 navBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
 startRouteNav(r);
@@ -4295,7 +4389,7 @@ backBtn.type = 'button'; backBtn.className = 'menubtn'; backBtn.style.flex = '1'
 backBtn.textContent = '⇄ ' + t('navigateBack');
 backBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
-startRouteNav({ id: r.id, name: r.name, waypoints: r.waypoints.slice().reverse() });
+startRouteNav({ id: r.id, name: r.name, waypoints: reversedWaypoints(r.waypoints) });
 });
 
 const editBtn = document.createElement('button');

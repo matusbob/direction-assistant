@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 43:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 44:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,7 +12,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 43, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 44, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Rovný smer.** Štart → po chvíli sa zapamätá smer, ktorým telefón mieri. Pri vybočení pípa zo strany, kam uhýbaš, vibruje (doprava jedno súvislé zabzučanie, doľava prerušované) a povie „Vybočenie vpravo, 20 stupňov“. Keď ideš dobre, tichý tik každých pár sekúnd.
   - Citlivosť v stupňoch alebo v metroch podľa GPS.
@@ -49,10 +49,12 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - zastávky, lekárne a obchody bez názvu, lavičky, ihriská a ďalšie
 - **Čo sa dá s každým miestom:**
   - navigovať priamo (smer a vzdialenosť)
-  - naplánovať pešiu trasu po uliciach (skúšobné): po pomenovaných uliciach, po chodníkoch alebo najkratšia, s názvami ulíc a priechodmi pre chodcov
+  - naplánovať pešiu trasu po uliciach (skúšobné): vždy sa ukážu všetky tri druhy (po pomenovaných uliciach, po chodníkoch, najkratšia); keď sú dve rovnaké, povie to. Pokyny majú názvy ulíc a priechody pre chodcov
+  - plánovanú trasu **uložiť medzi moje trasy** (nové vo verzii 44): potom je v Uložených trasách, ku každému bodu sa dá pridať vlastná poznámka (povie sa pri príchode k bodu), body sa dajú zmazať a trasa sa dá navigovať znova aj späť
   - sledovať miesto (priebežne hovorí, ako je ďaleko a kde)
   - uložiť ho
   - otvoriť spojenie MHD v Google Mapách
+- **Po spustení navigácie trasy** sa kurzor čítačky presunie na aktuálny bod v Pokynoch trasy a ostáva na aktuálnom bode, keď sa posúva (nové vo verzii 44, dá sa vypnúť v Nastaveniach).
 - **Na každej obrazovke** je tlačidlo Späť, na hlbších aj Hlavná obrazovka.
 - **Bez dotyku:**
   - odkaz s `?go=1` (napr. v Skratkách) spustí rovný smer hneď
@@ -218,11 +220,16 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 
 ### Walking routes along streets (experimental)
 - **Planning:** from any place, **Plan a walking route along streets** asks the Valhalla routing service (OpenStreetMap data) for a pedestrian route from where you are.
-- **Up to three variants**, each with its length, time and number of instructions. Variants that turn out identical are offered only once.
+- **All three kinds of route are always listed**, each with its length, time, number of instructions and pedestrian crossings. When two kinds turn out to be the same path, the second says so ("Shortest route: same route as Along footpaths, 425 m...") and opens the same route. A kind that couldn't be loaded says so.
   1. **Along named streets.** This comes first, because street names give far more to orient by: "turn left onto Lesná, then right onto S. H. Vajanského".
   2. **Along footpaths**, the map's default.
   3. **The shortest.**
-- **Before you start**, opening a variant shows every instruction with its distance.
+- **Before you start**, opening a variant shows every instruction with its distance, with **Start navigation** and **Save to my routes**.
+- **Save to my routes** keeps the route in Saved routes (named "Route to ..., along named streets - date"). It waits until the street names are filled in. There, **Edit** lists its points (the silent way points that only carry the route's shape are left out):
+  - each instruction point has a **Note** button: your own note is said right after the instruction when you reach that point, and is shown in the instructions list; an empty note removes it
+  - the destination can be renamed, and points can be deleted
+  - **From list** puts your next prepared note on a point as its note
+  - **Navigate back** works too: the instructions of the way there would be wrong backwards, so on the way back the turns are worked out again ("Turn right 1"...), crossings are kept, and so are your notes
 - **How the instructions read:**
   - Unnamed sidewalks get the street they run along: "turn left onto the walkway, along G. Bethlena".
   - Sharp bends inside a long stretch are announced ("The route bends left"); gentle ones are followed silently.
@@ -230,10 +237,11 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
   - **Pedestrian crossings** the route uses become part of the instructions, for example "over a pedestrian crossing across S. H. Vajanského". Each variant says how many crossings it has. Only crossings drawn in the map are known.
   - At the start the app says which way the first instruction is from where the phone points ("That is behind you"), and which side the destination is on ("At the end: your destination is on the left").
 - **Navigation** uses the same engine as your own routes: "50 m, turn right onto Laurinská" ... "Turn right onto Laurinská", including what the map knows about crossings, steps and escalators.
-- **Limits:** the route comes from the map. The map doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off. It doesn't replace a cane, a guide dog or your own judgement. Planned routes aren't saved yet.
+- **Limits:** the route comes from the map. The map doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off. It doesn't replace a cane, a guide dog or your own judgement.
 
 ### During any route navigation
 - **Route instructions** on the main screen list all points of the route, with the current target marked and passed ones labelled. Pressing one makes it the target. The list is redrawn only when the target changes, so a screen reader's place in it isn't disturbed. A setting turns it off.
+- **The screen reader is moved to the current point** when route navigation starts (setting, on by default): VoiceOver lands on "1. ..., current target" in Route instructions instead of staying where you were. While it is on the current point, it moves on with it when the next point becomes current. If you are elsewhere on the screen, it is left alone.
 - **Leaving the route says more** (setting, on by default): besides "You are off the route", the app adds that you're moving away from the next point, probably the wrong way, and where that point is ("It is behind you, 40 m").
 
 ### Hands-free start and stop
@@ -254,7 +262,7 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 - Language: Slovak or English, with the button at the bottom of the screen.
 
 ### Settings
-All settings are remembered. New features are off by default, so nothing changes unless you turn them on.
+All settings are remembered. New features are off by default, so nothing changes unless you turn them on; the one exception is moving the screen reader to the current point, which was asked for as the normal behaviour and can be turned off.
 
 | Setting (Slovak name in the app) | Default |
 |---|---|
@@ -277,6 +285,7 @@ All settings are remembered. New features are off by default, so nothing changes
 | Po otvorení aplikácie hneď spustiť asistenta - auto-start | off |
 | Vypnúť asistenta, keď odídem z aplikácie... - stop when I leave, start when I come back | off |
 | Zobraziť všetky body trasy - route instructions on the main screen | on |
+| Po spustení navigácie trasy presunúť kurzor čítačky na aktuálny bod - move the screen reader to the current point | on |
 | Zobraziť rýchle tlačidlá - quick actions | on |
 | Ako hovoriť, kde sa miesto nachádza - directions: sides / clock face / compass | sides |
 | Priebežne aktualizovať „Moja poloha“ - keep My location updated all the time | off |
@@ -352,7 +361,7 @@ Source, build and test instructions: [`android/`](android/README.md).
   - comparison against the previous version, so nothing changes by accident
   - checks against the real map services around Lesná 6, Nové Zámky
   - real use on an iPhone with VoiceOver by the author: saved points, and being told when you reach one, were reported to work dependably
-  - **Places without a name (version 43) and planned walking routes still need checking outside.**
+  - **Places without a name (version 43), planned walking routes and saving them (version 44), and how VoiceOver follows the moved cursor still need checking on the iPhone and outside.**
 - **Android app.** Tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone**. Still to check on the device, at home first and then outside with someone sighted nearby:
   - how the compass behaves in a pocket
   - how it works with the screen off
@@ -367,3 +376,4 @@ Source, build and test instructions: [`android/`](android/README.md).
   - Points of interest in Slovakia as small tiles (0.02° × 0.03°, about 2 × 2 km), with `meta.json` (date, tile list).
   - Derived from OpenStreetMap (© OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/)), made with `tools/poi/` (see [its README](tools/poi/README.md)).
 - `android/`: the Android app's source. `downloads/smerovy-asistent.apk` is its latest build.
+- `tests/`: automated tests of the web app with recorded map answers (see [its README](tests/README.md)).
