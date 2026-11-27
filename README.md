@@ -1,77 +1,369 @@
-# direction-assistant
-Accessible walking assistant for blind and visually impaired users. Helps you walk in a straight line and navigate your own saved routes, using compass, GPS, spatial audio, voice, and vibration.
+# direction-assistant (Smerový asistent)
+An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
-**Live app:** https://matusbob.github.io/direction-assistant/
+## Links
+- **Web app (iPhone and any phone), current version 43:** https://matusbob.github.io/direction-assistant/
+  - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
+  - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
+  - The version number is at the bottom of the screen, next to the language button.
+- **Android app (APK), version 1.0, for Android 10 and newer (made for a Pixel 7 with TalkBack):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
+  - 68,528 bytes, SHA-256 `79d2afd43788efac24d8da11c204bf0c8657c6d6ea22c169e581cfed9d858355`.
+  - How to install it: see [Installing the APK](#installing-the-apk).
+- **Source code:** https://github.com/matusbob/direction-assistant
 
-Open it on a phone over HTTPS (required for the compass/motion sensors) and grant motion/orientation and location permission when asked.
+## Stručne po slovensky
+**Webová aplikácia** (verzia 43, https://matusbob.github.io/direction-assistant/) vie:
 
-## Features
-- Straight-line walking assistant: set a direction, get audio/vibration/voice alerts when you drift, in degrees or real GPS-based meters. A distinct, quiet confirmation tick plays every couple of seconds while you're on track (so silence never has to mean "did this stop working?"), plus a separate quiet warning tick once you're within 70% of your set limit — before you actually cross it. Optional "Doing good" announcement every X meters. GPS fixes with poor accuracy (over 20m - common in parking lots, under cover, or near large metal objects) are quietly rejected rather than used, same as before; now, if that keeps happening for 15+ seconds while meters mode or route navigation needs a GPS-based distance, the app says so (speech, accessible announcement, and a visible message) instead of silently sitting still - so a stuck "doing nothing" moment reads as a weak-signal warning, not a mystery. Drift correction vibration now encodes direction by feel, not just by sound: drifting right vibrates as one continuous buzz, drifting left as a pulsing on-off pattern (both get longer/faster the more you've drifted) - so which way to correct is readable by touch alone, without needing to hear the panned beep or voice.
-- Saved routes: record a route once - just walk, and turns are detected automatically from your GPS track, with optional live voice feedback while you walk ("Straight, 15m... 30m... You turned right..."); you no longer have to choose upfront between "automatic" and "manual" - at any point during that same recording you can also mark your own named point (entrance, platform, stairs, obstacle, or a custom note), and it's merged into the route at the right spot alongside the auto-detected turns. Navigate it again later with turn-by-turn guidance — distance countdown to the next point at your chosen interval ("23m, turn right" ... "now turn right"), a spoken confirmation once you've actually turned, a chime and vibration on arrival, and a warning (spoken, its own distinct descending tone, plus a distinct vibration pattern) if you drift off the route, with a "back on route" confirmation (its own distinct ascending tone) and vibration once you recover - so straying off the route is never silent even with speech and vibration both off. Distance-to-next-point announcements now track your real distance in either direction, so doubling back or looping around still gives sensible readouts instead of a countdown that only makes sense if you approach in a straight line. Fine-grained heading correction (the same beeping as the straight-line mode) is off by default during route navigation so it doesn't talk over the turn-by-turn narration — there's a setting to turn it back on if you want both at once.
-- Optional obstacle mode (off by default): for places where you have to weave around things - a parking lot full of cars, a crowd - short sidesteps no longer set off drift alerts. The app only warns once your direction has stayed off for longer than a duration you choose (2-10 s, default 5 s), which catches the real risk in those places: gradually losing your bearing after many detours. Zigzagging that evens out to straight stays silent. It works on the median of recent headings rather than a simple average, so one sharp, brief sidestep can't push it over the threshold, and facing backwards still always reads as a hard drift. Applies wherever drift correction runs (straight-line walking, straight-hold segments, and route navigation's optional fine correction). The cane still does the obstacle-avoiding; this only keeps you heading the right way overall.
-- Straight-hold segments: while recording a route, mark a stretch as "hold a straight line for X meters" instead of a point. During navigation the app automatically locks onto your current heading at that spot, uses the same drift correction as the main straight-line mode for exactly that distance, then automatically hands off to normal point-to-point navigation again. There's also a GPS-free variant, "Straight, I'll confirm the end myself": the app still holds your heading and beeps/vibrates on drift purely from the compass, but instead of the app measuring the distance (which needs GPS), you tap "Done with this stretch" yourself when you've reached the end - meant for places GPS can't reach at all, like walking through an indoor station hall or a school corridor. It's entirely optional, marked as its own separate point type when recording, and changes nothing about the regular GPS-metered version. There's also a second, clearly-marked-experimental GPS-free variant, "Straight, estimate by steps": the app counts your footsteps via the phone's motion sensor and multiplies by a step-length setting to estimate distance, instead of you confirming the end yourself. This is fundamentally less certain than everything else in the app - step detection accuracy depends on your gait and how the phone is carried, and small errors accumulate over a stretch with nothing to correct them - so it's separately labeled "experimental" everywhere it appears (the recording button, the settings label, the spoken announcement when a segment starts), and does not replace the "confirm the end myself" option, which stays the more dependable choice for GPS-free stretches.
-- Navigate a saved route in reverse ("Navigate back") — e.g. record home → restaurant once, then use the same route to get back.
-- Optional setting: skip the automatic "Xm, turn right" distance countdown during route navigation and rely only on your own point notes instead (off-route warnings, turn confirmations, and the arrival announcement - which reads your note - still happen either way). Off by default; everything works as before unless you turn it on. Useful for routes where you've written detailed step-by-step notes at each point (e.g. "grab the left tactile paving, follow it until it ends, then turn toward the stairs") and don't want the generic distance countdown talking over them.
-- Pause/Resume during route navigation, and a periodic "total distance to destination" announcement alongside the per-point one.
-- Edit a saved route's points afterwards (rename or delete individual points) without re-recording the whole thing.
-- Assign prepared notes afterwards: if you'd rather not touch the phone at all while walking (cold weather, phone in a pocket), record the route hands-free - automatic turn detection needs no taps at all - and then in "Edit route" each point gets a "From list" button that drops your next prepared note onto it, in order. The button tells a screen reader which note it's about to apply, so you can skip points that don't need one.
-- Prepared notes list: write your route instructions in advance (at home, in any notes app), paste them into "Prepare a list of notes" - one per line - and then while recording the route just tap "Next note" at each spot to attach them to your position in order. The button says which note is coming next and how many are left, so you know what you're about to place without opening anything. A plain text list can't be imported as a route on its own (text has no GPS coordinates), but this way the writing you already did still gets used.
-- "Custom name..." is the first option when naming a point, so writing your own note takes one swipe instead of scrolling past every preset; the presets keep their fixed order below it, so their positions stay memorable.
-- Import and export routes as GPX files, for use with other GPS apps or to back them up.
-- A basic compass-reliability check: if the heading readings jump erratically, the app suggests recalibrating (figure-8 motion).
-- Practice mode ("Try at home") to learn the audio/vibration signals without needing to walk outside.
-- Main screen order: Start/Set Direction, then Saved routes / What's nearby / Try at home, with the full Settings list moved after them - so the things you use every walk come first, and configuration (set once, revisit rarely) no longer sits between them.
-- Settings (units, sensitivity, voice mode, language, etc.) are remembered between sessions.
-- The sensitivity/distance sliders are swipe-adjustable with VoiceOver like any native slider (announcing the value with its unit on every change), and the decorative "Precise"/"Loose"/min/max labels around them no longer show up as separate dead stops when exploring the screen by touch - only the actual controls do.
-- Screen-reader friendly by design: every spoken announcement (drift alerts, back-on-track, doing-good, turn-by-turn, off-route warnings, total distance, compass warning, route recording feedback) is also pushed through a dedicated accessible live region, so a screen reader like VoiceOver announces the exact same information even with the app's own voice output turned off — no need to run both at once. The visible status panel no longer speaks on its own (it used to, via its own live region), so with the app voice off VoiceOver announces each event exactly once, precisely and without an echoing second utterance.
-- "Save a point here" — quickly save your current GPS location with a label (entrance, platform, stairs, obstacle, or your own text) without going through the full route-recording flow. Great for things like "which side the train doors open on at this station" or "where the stairs are from this platform" — mark it once, ever after the app can navigate you straight to it.
-- "What's nearby?" — checks your current GPS position against everything you've saved and lists any saved points within about 150m, closest first; tap one to start navigating to it immediately.
-- Requests a screen wake lock while walking, navigating a route, or recording one, so the phone's screen doesn't auto-lock and stop GPS/compass tracking mid-use (on browsers that support it). This does not fix the deeper platform limit that a web app's sensors stop entirely if it's minimized/backgrounded - keep it in the foreground while actively using it.
-- Hands-free launch: open the app with `?go=1` on the end of the URL (e.g. as a Siri Shortcut/Shortcuts.app action that opens that link) and it starts the straight-line walking assistant immediately, with no button press needed - first-run compass/location permission prompts still apply once per device.
-- Quick actions on the main screen ("Where am I?" and "Repeat" are on the recording screen too), with a setting to hide them:
-  - **My location** - the first button in quick actions. Its label is the live line "My location: street, number, city. Intersection X and Y, 30 m." (plus "Saved point: Entrance, 12 m" when one of your own points is within 50 m). It fills in from the GPS the app is already using while you walk, navigate or record (looked up again after you've moved 25 m, at most every 15 s) and never announces itself. Pressing it opens the **My location** screen: the full description is read out (address, nearest intersection and where it is from you, which way you're facing, GPS accuracy, nearest saved point), with a **Read the nearest address** button to hear it again, a list of **intersections nearby** (up to 8 within 200 m, each with distance and direction - press one to navigate to it, track it or save it), **Share my location** and **Save this place**. Once you've opened it, the line on the button keeps itself up to date for the rest of the session while the app is in front; there's also a setting to keep it updated from the moment the app opens. The address is read as soon as it's known (typically within 2 seconds); the nearest intersections (where two differently named streets meet) are worked out from the routing service's street data for the 200 m around you (dependable, usually within a second; one download is reused while you stay nearby, and automatic refreshes while walking download again only after about 150 m, to save mobile data). The detailed OpenStreetMap servers (Overpass), which also know pedestrian-only streets but are often busy, improve the list when they do answer. Intersections are never waited for: if it arrives later it is said as a follow-up ("Intersection X and Y, 30 m") and filled into the list, and if the servers don't answer the screen says so. While waiting, the app says what it is waiting for ("Still waiting for the position - if the phone is asking whether to allow location, allow it", "Position found, looking up the address"). If precise GPS takes more than 4 seconds, a rougher network position is accepted and its accuracy is read out.
-  - **Compass** - right after My location. A toggle: turn the phone and it says North, North-east, East... It only speaks once you've stopped on a direction (not every direction swept past), and it doesn't flip-flop when you're right on the edge between two directions. Compass words are not added to the history.
-  - **Save this place** - saves where you're standing as one of your points, reachable from the main screen at any time, including while walking or navigating. Saved points now also remember their **address** (looked up in the background), shown in Saved routes, What's nearby and Places nearby.
-  - **Places nearby (map)** - places around you from OpenStreetMap. Choose how far to look (200 m, 500 m, 1, 2, 5, 10 or 30 km - remembered) and a category: My saved points, **Streets and roads** (every named street around you, with the distance and direction to its nearest point), **Intersections** (every place where differently named streets meet), Everything nearby (places of every kind together with the streets and intersections, with the counts read out), Food and drink, Groceries, Shops, Public transport stops and stations, Pedestrian crossings, Health care, Pharmacies, Schools and universities, Banks and cash machines, Post office and authorities, Toilets, Accommodation, Culture and sights, Parks and sport. Results are listed nearest first, 60 at a time with a "Show more" button at the end (nothing is cut off silently) as "name, kind, distance, direction"; stops include their platform letter, crossings say whether they have traffic lights, a sound signal, tactile paving or a refuge island when the map knows. With a big radius the search starts close and widens only as far as needed. Named places come from the Photon service (fast and dependable; the 50 nearest within the radius); if nothing is in range the app looks further out by itself (up to 30 km) and says how far it had to look. Pedestrian crossings and toilets, and extra details of a place you open (opening hours, platform, lines), come from the detailed Overpass servers: four of them are used, starting with the one that answered last, and if one hasn't answered within 3.5 seconds the next is asked as well. If none answers, the app says so and offers Refresh. Limits, said out loud whenever they apply: of each kind of place only the 50 nearest can be loaded ("Everything nearby" asks in four groups, so up to about 200), and streets and intersections are looked up to 1 km (500 m inside "Everything nearby"), because that download grows quickly with distance (about 0.5 MB for 500 m, nearly 2 MB for 1 km). Streets come from the routing service's data (roads open to cars); named service roads and pedestrian streets are added from Photon with an approximate position.
-  - **Search for a place** - type a name or an address ("Hlavná stanica", "Obchodná 10 Bratislava"); results are biased to your surroundings and listed nearest first. If the first search service fails or finds nothing, a second one (Photon, more forgiving with spelling) is tried. Typing a general word such as "zastávka", "lekáreň", "bankomat", "wc" or "priechod" lists the nearest ones of that kind instead. Works without a location too (then without distances).
-  - **Places without a name, from the app's own map data** (setting, off by default; Slovakia only) - most things around you are on the map without a name (around Lesná 6 in Nové Zámky only 11 of the 80 mapped objects within 500 m have one), and the map services the app uses list only named places. With this on, Places nearby also lists, from the app's own copy of OpenStreetMap: pedestrian crossings (with traffic lights / sound signal / tactile paving when mapped), crossings over tracks and level crossings, traffic lights, steps (number of steps, handrail), bollards and barriers on paths, bus and tram stops, unnamed shops, pharmacies, cafés and other places, benches, recycling containers, playgrounds, wayside crosses and shrines, defibrillators, and named places the services miss (sports clubs, speech therapists, observatory...). It adds a **Steps and obstacles** category. These points are included up to 2 km (said out loud when the radius is bigger); places already in the list are not repeated. Even with the setting off, Pedestrian crossings and Toilets use this data when the detailed map servers don't answer, instead of only saying they failed. Sports clubs and health care (speech therapists, physiotherapists...) are now also asked from Photon.
-  - **What you can do with any place** (from Places nearby, Search, or an intersection): see its details (kind, address, platform, lines, opening hours as written on the map, distance and direction), **Navigate straight to it** (direction and distance, like one of your own points), **Plan a walking route along streets** (experimental, see below), **Track this place**, **Save to my points**, or **Open public transport directions in Google Maps**.
-  - **Track this place** - the app keeps telling you how far the place is and which way, as you move: every 10 m when you're within 100 m, every 25 m within 500 m, less often further away, and "You are at ..." within 15 m. It runs alongside walking or navigating; a "Stop tracking" button appears in quick actions while it's on.
-  - **How directions to places are said** (setting): left / right / ahead / behind (default), clock face ("at 2 o'clock"), or compass directions ("to the north-east"). Left/right and clock need the compass; if the phone doesn't allow it, compass directions are used.
-  - **Repeat last announcement** and **Announcement history** - every announcement is kept (last 100), the history lists them newest first, each as its own heading, so the VoiceOver rotor set to Headings steps through them one by one.
-  - **Share my location** - opens the iPhone share sheet with a map link (and the address, if known) to send by message. If the location has to be looked up first, iOS doesn't allow the share sheet that late after the tap, so the app says "Location found - press again" and the second press shares immediately. Without a share sheet the link is copied to the clipboard.
-  - **Route points** (only during route navigation) - lists every point of the route with its distance from you, marks which is the current target and which are already passed, and lets you pick a different point as the target (for example if GPS skipped one).
-- Walking routes along streets (experimental): from any place, "Plan a walking route along streets" asks a routing service (Valhalla, running on OpenStreetMap data) for a pedestrian route from where you are. You get up to three variants, each with its length, time and number of instructions: **along named streets** (first, because street names give far more to orient by than a chain of unnamed sidewalks - e.g. "turn left onto Lesná, then right onto S. H. Vajanského"), **along footpaths (the map's default)**, and the **shortest** - variants that turn out identical are offered only once. Opening one shows every instruction with its distance before you start. Unnamed sidewalks and footpaths get the street they run along added ("turn left onto the walkway, along G. Bethlena"), looked up one at a time while you read the list; sharp bends inside a long stretch are announced ("The route bends left"), gentle ones are followed silently; and on arrival the app says which side the destination is on when the map knows - and tells you that already at the start ("At the end: your destination is on the left"). **Pedestrian crossings**: the router is also asked where exactly the route uses mapped pedestrian crossings; each becomes part of the instructions ("Turn left onto the walkway, over a pedestrian crossing across S. H. Vajanského, then along G. Bethlena", or on its own "Cross at the pedestrian crossing across ..."), and each variant says how many crossings it has. Only crossings drawn in the map are known; the route can still cross a street where none is mapped. Navigation then uses the same engine as your own recorded routes, in the form "50 m, turn right onto Laurinská" ... "Turn right onto Laurinská", including what the map knows about crossings, steps and escalators. At the start it also tells you which way the first instruction is from where the phone points ("That is behind you"). Stretches shorter than 15 m are joined into one instruction ("... Then turn left ..."), and bends in a long stretch are followed silently so the countdown stays smooth. It is experimental: the route comes from the map, which doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off - it doesn't replace a cane, a guide dog or your own judgement. Planned routes aren't saved yet.
-- During any route navigation (planned or your own recorded route), all points of the route are listed on the main screen under "Route instructions", with the current target marked and passed ones labelled; pressing one makes it the target. The list is redrawn only when the target changes, so a screen reader's place in it isn't disturbed. A setting turns it off.
-- Leaving the route says more (setting, on by default): besides "You are off the route" the app adds that you're moving away from the next point, probably the wrong way, and where that point is and how far ("It is behind you, 40 m").
-- A **Back** button is at the top of every screen (before the title) as well as at the bottom; screens that are two or more steps deep also have **Main screen**, which closes everything at once. At the end of the main screen there is "Back to the top of the screen".
-- Optional finer route-navigation controls (both off / unchanged by default):
-  - **Faster position updates** - process a GPS fix every second instead of every 3 seconds (more battery). With a 1-4 m countdown interval, the countdown then says just the number ("38m", "37m"...) between the 10 m marks so speech keeps up; GPS itself is still only accurate to a few meters.
-  - **Off-route warning distance** - "Automatically (as before)" or 5/10/15/20/30 m: warn once you're that much further from the next point than the closest you've been to it, and say "Back on the route" once you've come back about half that distance.
-- Addresses, intersections, places, search and planned routes use OpenStreetMap data (© OpenStreetMap contributors, credited in the app footer) through the public Nominatim, Photon, Overpass and Valhalla services; they need an internet connection, and are only called when you ask for something (or, for the My location line, after you've moved).
-- Optional auto-start (off by default): a setting that starts the straight-line walking assistant as soon as the app opens - the same as `?go=1`, but it also works when you open the home-screen icon (which ignores URL tricks). If the phone refuses the compass permission without a tap (iOS can do this), the app says so out loud and on screen ("Press Start once") instead of silently waiting.
-- Optional "stop when I leave, start when I come back" (off by default): switching to the home screen, another app, or locking the phone stops the straight-line assistant cleanly; coming back starts it again and locks onto the direction you're facing at that moment. If you stopped it yourself before leaving, it stays stopped. Route navigation and route recording are never stopped by this. Combined with a Shortcuts/Back Tap launcher, that means: launch = start, lock the phone = stop.
-- Installable as a home-screen app (PWA) and works offline. Updates now arrive reliably: when online, the app page is always loaded fresh from the web (with the saved copy used offline, or if the network takes more than 5 seconds), the app checks for a new version every time it's opened or brought back to the front, and a new version can no longer store a stale copy of the page from the browser's cache (which previously could leave a phone stuck on an older version). A phone that is still stuck on one of those older versions (before 38) is reloaded automatically, once, as soon as it picks up the current one - so opening the link in Safari ends up on the current version without having to open it twice. A Wi-Fi login page is never saved in place of the app. The app's version number is shown at the bottom of the screen, next to the language button, so you can check which version is running.
-- Note for iPhone: Safari and the home-screen icon keep separate saved routes and settings, and Safari may clear a website's data if it isn't opened for about a week - the home-screen icon doesn't. Use the home-screen icon as your main way in, and export routes as GPX now and then as a backup. The icon always loads the latest version; right after an update the first launch can still show the previous one, so close and reopen it.
+- **Rovný smer.** Štart → po chvíli sa zapamätá smer, ktorým telefón mieri. Pri vybočení pípa zo strany, kam uhýbaš, vibruje (doprava jedno súvislé zabzučanie, doľava prerušované) a povie „Vybočenie vpravo, 20 stupňov“. Keď ideš dobre, tichý tik každých pár sekúnd.
+  - Citlivosť v stupňoch alebo v metroch podľa GPS.
+  - „Ideš dobre“ každých X metrov a štatistika po zastavení.
+  - Voliteľný režim medzi prekážkami: krátke obchádzanie áut nevadí.
+- **Vlastné trasy.** Nahráš trasu chôdzou. Odbočky sa zistia samy a môžeš pridávať vlastné body s poznámkou (vchod, nástupište, schody...).
+  - Potom ťa trasa vedie: odpočítavanie „23 m, odbočte vpravo“, potvrdenie odbočky, varovanie pri odchode z trasy, cieľ.
+  - Navigácia aj späť, úprava bodov a vopred pripravené poznámky.
+  - Úseky „drž rovno X metrov“, aj bez GPS (koniec potvrdíš sám, alebo odhad podľa krokov).
+  - Import a export GPX.
+- **Rýchle akcie na hlavnej obrazovke:**
+  - **Moja poloha** (ulica, číslo, mesto, najbližšia križovatka a zoznam križovatiek okolo)
+  - **Kompas** (otáčaš telefónom a povie sever, severovýchod...)
+  - **Uložiť toto miesto**
+  - **Okolie z mapy**
+  - **Hľadať miesto**
+  - **Zopakovať posledné hlásenie**
+  - **História hlásení**
+  - **Zdieľať moju polohu**
+  - **Body trasy** (počas navigácie)
+- **Okolie z mapy.** Okruh 200 m až 30 km a kategórie:
+  - moje body, ulice, križovatky, všetko
+  - jedlo, potraviny, obchody, zastávky MHD
+  - priechody pre chodcov
+  - zdravotníctvo, lekárne
+  - školy, banky, pošta a úrady, toalety, ubytovanie
+  - kultúra, parky a šport
+  - schody a prekážky
+  
+  Výsledky idú od najbližšieho, každý s menom, druhom, vzdialenosťou a smerom.
+- **Miesta bez názvu** (nové vo verzii 43, treba zapnúť v Nastaveniach, len Slovensko). Z vlastných mapových dát aplikácie do 2 km:
+  - priechody pre chodcov (so semaforom alebo bez), priechody cez koľaje
+  - schody, stĺpiky
+  - zastávky, lekárne a obchody bez názvu, lavičky, ihriská a ďalšie
+- **Čo sa dá s každým miestom:**
+  - navigovať priamo (smer a vzdialenosť)
+  - naplánovať pešiu trasu po uliciach (skúšobné): po pomenovaných uliciach, po chodníkoch alebo najkratšia, s názvami ulíc a priechodmi pre chodcov
+  - sledovať miesto (priebežne hovorí, ako je ďaleko a kde)
+  - uložiť ho
+  - otvoriť spojenie MHD v Google Mapách
+- **Na každej obrazovke** je tlačidlo Späť, na hlbších aj Hlavná obrazovka.
+- **Bez dotyku:**
+  - odkaz s `?go=1` (napr. v Skratkách) spustí rovný smer hneď
+  - voliteľne aj automatický štart po otvorení
+  - voliteľne vypnutie pri odchode z aplikácie a zapnutie po návrate
+
+**Aplikácia pre Android** (verzia 1.0) je zatiaľ len rovný smer, ale funguje aj so zamknutou obrazovkou a telefónom vo vrecku:
+
+- veľké tlačidlo **Štart / Stop**, **Nastaviť smer** a **Nastavenia**
+- v nastaveniach: povolená odchýlka, zvuky, vibrácie, hlas, „Ideš dobre“ a jazyk (podľa telefónu, slovenčina, angličtina)
+- Stop a Nastaviť smer sú aj v upozornení na zamknutej obrazovke
+
+**Čo ešte nie je overené na skutočnom telefóne:** pozri [Testing status](#testing-status).
+
+## Web app
+### Getting started
+- Open https://matusbob.github.io/direction-assistant/ in Safari (iPhone) or Chrome (Android). The compass and motion sensors need HTTPS, so use this link.
+- When asked, allow motion and orientation (for the compass) and location (for GPS).
+- Add it to the home screen (Safari: Share → Add to Home Screen) and use that icon as your main way in. See [Updates, offline use and storage](#updates-offline-use-and-storage).
+- New to the sounds? Use **Try at home (no walking needed)** to learn the beeps, vibrations and voice messages without walking outside.
+- Main screen order:
+  1. Start / Set Direction.
+  2. Route instructions, shown during route navigation.
+  3. Quick actions.
+  4. Saved routes, What's nearby?, Try at home.
+  5. Settings.
+  6. Back to the top of the screen.
+
+### Straight-line walking
+- **Start:** the app takes the direction the phone points to and guides you along it. **Set Direction** takes a new direction at any time.
+- **Drift warnings**, by audio, vibration and voice, either in degrees or in real meters measured by GPS:
+  - Sound comes from the side you're drifting to.
+  - Vibration says which way by feel: drifting right is one continuous buzz, drifting left is an on-off pulse. Both get longer or faster the more you drift.
+  - The voice says, for example, "Drift right, 20 degrees".
+- **On track:** a distinct, quiet confirmation tick plays every couple of seconds, so silence never has to mean "did this stop working?". A separate quiet warning tick plays once you're within 70 % of your limit, before you actually cross it.
+- **Optional:** "Doing good" every X meters, and statistics when you stop.
+- **Weak GPS:** fixes with poor accuracy (over 20 m, common in parking lots, under cover or near large metal objects) are rejected. If that lasts 15 seconds or more while meters mode or route navigation needs GPS distance, the app says so out loud, in an accessible announcement and on screen, instead of sitting silently.
+- **Compass check:** if the heading readings jump erratically, the app suggests recalibrating with a figure-8 motion.
+- **Obstacle mode** (optional, off by default): for places where you have to weave around things, such as a parking lot full of cars or a crowd.
+  - Short sidesteps no longer set off drift alerts. The app warns only once your direction has stayed off for longer than a duration you choose (2–10 s, default 5 s).
+  - That catches the real risk in those places: slowly losing your bearing after many detours. Zigzagging that evens out to straight stays silent.
+  - It uses the median of recent headings, so one sharp, brief sidestep can't push it over the threshold. Facing backwards always counts as a hard drift.
+  - It works wherever drift correction runs. The cane still does the obstacle-avoiding; this only keeps you heading the right way overall.
+
+### Your own routes
+- **Record a route** by just walking.
+  - Turns are detected from your GPS track. Optional live voice feedback while you walk: "Straight, 15 m... 30 m... You turned right...".
+  - At any point you can also mark a named point: entrance, platform, stairs, obstacle, or a custom note. It is merged into the route in the right place. "Custom name..." is the first option, so writing your own note takes one swipe.
+- **Navigate a route** with turn-by-turn guidance:
+  - A distance countdown to the next point at your chosen interval ("23 m, turn right" ... "now turn right").
+  - A spoken confirmation once you've actually turned, and a chime and vibration on arrival.
+  - **Leaving the route:** a spoken warning with its own descending tone and vibration, and "Back on the route" with its own ascending tone when you recover. Straying off the route is never silent, even with speech and vibration both off.
+  - The distance to the next point follows your real distance in either direction, so doubling back still reads sensibly.
+  - The fine heading beeps from straight-line mode are off by default during route navigation, so they don't talk over the instructions. A setting turns them on.
+- **Straight-hold segments:** while recording, mark a stretch as "hold a straight line for X meters". During navigation the app locks onto your heading there, corrects drift for exactly that distance, then hands back to point-to-point navigation. There are two GPS-free variants, meant for indoor station halls, corridors and other places without GPS:
+  - **"Straight, I'll confirm the end myself":** the app holds your heading from the compass alone, and you press **Done with this stretch** at the end. This is the dependable choice.
+  - **"Straight, estimate by steps"** (experimental): the app counts your footsteps and multiplies by a step length you set. It is less certain, because errors add up, and it is labelled experimental everywhere it appears.
+- **Navigate back** follows a saved route in reverse. Record home → restaurant once and use the same route to get back.
+- **Pause / Resume** during navigation, and an optional total distance to the destination.
+- **Edit a route:** rename or delete individual points without recording the route again.
+- **Prepared notes:**
+  - Write your instructions in advance in any notes app and paste them into "Prepare a list of notes", one per line.
+  - While recording, **Next note** attaches the next one to your position. The button says which note comes next and how many are left.
+  - Or record hands-free, and afterwards press **From list** at each point in Edit route.
+- **Notes only** (optional): skip the automatic distance countdown and rely on your own point notes. Off-route warnings, turn confirmations and the arrival note still work.
+- **Save a point here:** save your current position with a label in one step. Every saved point remembers its **address**.
+- **What's nearby?** lists your saved points within about 150 m, closest first. Press one to navigate to it.
+- **Import and export routes as GPX**, for other GPS apps or as a backup.
+
+### Quick actions
+Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are on the recording screen too.
+
+- **My location**:
+  - **The button's label is the live line**, for example "My location: street, number, city. Intersection X and Y, 30 m.", plus "Saved point: Entrance, 12 m" when one of your points is within 50 m.
+    - It fills in from the GPS the app is already using while you walk, navigate or record. It looks up again after you've moved 25 m, at most every 15 s, and it never announces itself.
+  - **Pressing it opens the My location screen**, which reads out:
+    - the address
+    - the nearest intersection and where it is from you
+    - which way you're facing, the GPS accuracy and the nearest saved point
+  - **The screen also has:**
+    - **Read the nearest address**, to hear it again
+    - a list of **intersections nearby**, up to 8 within 200 m, each with distance and direction (press one to navigate to it, track it or save it)
+    - **Share my location** and **Save this place**
+  - **Timing:**
+    - The address comes first, usually within 2 seconds.
+    - Intersections come from the routing service's street data, usually within a second. If they arrive later, they are said as a follow-up.
+    - While waiting, the app says what it is waiting for, for example "Still waiting for the position - if the phone is asking whether to allow location, allow it".
+    - If precise GPS takes more than 4 seconds, a rougher network position is used and its accuracy is read out.
+- **Compass:** a toggle. Turn the phone and it says North, North-east, East... It speaks only once you've stopped on a direction, and it doesn't flip-flop on the edge between two directions.
+- **Save this place:** saves where you're standing as one of your points, at any time, including while walking or navigating.
+- **Places nearby (map):** see [Places nearby](#places-nearby).
+- **Search for a place:** see [Search](#search).
+- **Repeat last announcement** and **Announcement history.**
+  - The last 100 announcements are kept, newest first, each as its own heading, so the VoiceOver rotor set to Headings steps through them.
+- **Share my location:** opens the share sheet with a map link and the address.
+  - If the position has to be looked up first, iOS doesn't allow the share sheet that late after the tap. The app then says "Location found - press again", and the second press shares at once.
+  - Without a share sheet, the link is copied to the clipboard.
+- **Route points** (only during route navigation): every point of the route with its distance from you, which one is the current target and which are passed. You can pick a different point as the target, for example if GPS skipped one.
+- **Stop tracking:** appears while you track a place.
+
+### Places nearby
+- **Choose how far to look:** 200 m, 500 m, 1, 2, 5, 10 or 30 km. The choice is remembered.
+- **Categories:**
+  - My saved points
+  - **Streets and roads:** every named street around you, with the distance and direction to its nearest point
+  - **Intersections:** every place where differently named streets meet
+  - **Everything nearby:** places of every kind together with the streets and intersections, with the counts read out
+  - Food and drink, Groceries, Shops
+  - Public transport stops and stations
+  - Pedestrian crossings
+  - Health care, Pharmacies
+  - Schools and universities, Banks and cash machines, Post office and authorities, Toilets, Accommodation
+  - Culture and sights
+  - **Steps and obstacles** (only with the own map data on)
+  - Parks and sport
+- **How results are listed:** nearest first, as "name, kind, distance, direction".
+  - They come 60 at a time, with a **Show more** button at the end, so nothing is cut off silently.
+  - Stops include their platform letter.
+  - Crossings say whether they have traffic lights, a sound signal, tactile paving or a refuge island, when the map knows.
+  - If nothing is in range, the app looks further out by itself (up to 30 km) and says how far it had to look.
+- **Where the data comes from:**
+  - Named places come from Photon: fast and dependable, the 50 nearest of each kind within the radius. "Everything nearby" asks in four groups, so up to about 200.
+  - Streets and intersections come from the routing service (Valhalla), up to 1 km (500 m inside Everything nearby). Named service roads and pedestrian streets are added from Photon, with an approximate position.
+  - Pedestrian crossings and toilets, and extra details of a place you open (opening hours, platform, lines), come from the detailed Overpass servers.
+    - Four servers are used, starting with the one that answered last. If one hasn't answered within 3.5 s, the next is asked as well.
+    - If none answers, the app says so and offers Refresh.
+  - These limits are said out loud whenever they apply.
+- **Places without a name, from the app's own map data** (setting, off by default; Slovakia only):
+  - **Why:** most things around you are on the map without a name, and the map services list only named places. Around Lesná 6 in Nové Zámky only 11 of the 80 mapped objects within 500 m have a name.
+  - **What it adds**, from the app's own copy of OpenStreetMap:
+    - pedestrian crossings, with traffic lights, sound signal and tactile paving when mapped
+    - crossings over tracks, level crossings, traffic lights
+    - steps (number of steps, handrail), bollards and barriers on paths
+    - bus and tram stops
+    - unnamed shops, pharmacies, cafés and other places
+    - benches, recycling containers, playgrounds, wayside crosses and shrines, defibrillators
+    - named places the services miss: sports clubs, speech therapists, an observatory...
+  - **Range:** up to 2 km. The app says so when the radius is bigger. Places already in the list are not repeated.
+  - **With the setting off:** Pedestrian crossings and Toilets still use this data when the Overpass servers don't answer, instead of only reporting a failure.
+  - **Data:** taken from OpenStreetMap on 15 November 2026 and not updated by itself.
+- **What you can do with any place** (from Places nearby, Search, My location or an intersection):
+  - see its details: kind, address, platform, lines, opening hours as written on the map, distance and direction
+  - **Navigate straight to it**, by direction and distance, like one of your own points
+  - **Plan a walking route along streets** (experimental, see below)
+  - **Track this place**
+  - **Save to my points**
+  - **Open public transport directions in Google Maps**
+- **Track this place:** the app keeps telling you how far the place is and which way as you move.
+  - Updates come every 10 m within 100 m, every 25 m within 500 m, and less often further away. Within 15 m it says "You are at ...".
+  - It runs alongside walking or navigating.
+- **How directions to places are said** (setting):
+  - left / right / ahead / behind (the default)
+  - clock face ("at 2 o'clock")
+  - compass directions ("to the north-east")
+  
+  Left/right and clock need the compass. If the phone doesn't allow it, compass directions are used.
+
+### Search
+- Type a name or an address, such as "Hlavná stanica" or "Obchodná 10 Bratislava". Results favour your surroundings and are listed nearest first.
+- If the first search service (Nominatim) fails or finds nothing, a second one (Photon) is tried. It is more forgiving with spelling.
+- A general word such as "zastávka", "lekáreň", "bankomat", "wc" or "priechod" lists the nearest ones of that kind instead.
+- It works without a location too, just without distances.
+
+### Walking routes along streets (experimental)
+- **Planning:** from any place, **Plan a walking route along streets** asks the Valhalla routing service (OpenStreetMap data) for a pedestrian route from where you are.
+- **Up to three variants**, each with its length, time and number of instructions. Variants that turn out identical are offered only once.
+  1. **Along named streets.** This comes first, because street names give far more to orient by: "turn left onto Lesná, then right onto S. H. Vajanského".
+  2. **Along footpaths**, the map's default.
+  3. **The shortest.**
+- **Before you start**, opening a variant shows every instruction with its distance.
+- **How the instructions read:**
+  - Unnamed sidewalks get the street they run along: "turn left onto the walkway, along G. Bethlena".
+  - Sharp bends inside a long stretch are announced ("The route bends left"); gentle ones are followed silently.
+  - Stretches shorter than 15 m are joined into one instruction ("... Then turn left ...").
+  - **Pedestrian crossings** the route uses become part of the instructions, for example "over a pedestrian crossing across S. H. Vajanského". Each variant says how many crossings it has. Only crossings drawn in the map are known.
+  - At the start the app says which way the first instruction is from where the phone points ("That is behind you"), and which side the destination is on ("At the end: your destination is on the left").
+- **Navigation** uses the same engine as your own routes: "50 m, turn right onto Laurinská" ... "Turn right onto Laurinská", including what the map knows about crossings, steps and escalators.
+- **Limits:** the route comes from the map. The map doesn't know about obstacles, road works or which crossings are safe, and GPS can be several meters off. It doesn't replace a cane, a guide dog or your own judgement. Planned routes aren't saved yet.
+
+### During any route navigation
+- **Route instructions** on the main screen list all points of the route, with the current target marked and passed ones labelled. Pressing one makes it the target. The list is redrawn only when the target changes, so a screen reader's place in it isn't disturbed. A setting turns it off.
+- **Leaving the route says more** (setting, on by default): besides "You are off the route", the app adds that you're moving away from the next point, probably the wrong way, and where that point is ("It is behind you, 40 m").
+
+### Hands-free start and stop
+- **`?go=1`:** https://matusbob.github.io/direction-assistant/?go=1 starts the straight-line assistant at once, for example from a Siri Shortcut or Back Tap. The first-run permission prompts still apply once per device.
+- **Auto-start** (setting, off by default): the same, but it also works with the home-screen icon. If the phone refuses the compass without a tap (iOS can do this), the app says "Press Start once" instead of waiting silently.
+- **Stop when I leave, start when I come back** (setting, off by default):
+  - Going to the home screen or another app, or locking the phone, stops the straight-line assistant.
+  - Coming back starts it again, facing the direction you're pointing at that moment. If you stopped it yourself, it stays stopped.
+  - Route navigation and recording are never stopped by this.
+- A screen wake lock is requested while walking, navigating or recording, so the screen doesn't lock by itself.
+- A web app's sensors stop completely when it's in the background or the phone is locked, so keep it in front while you use it. The Android app doesn't have this limit.
+
+### Accessibility
+- Every announcement also goes through an accessible live region. That covers drift alerts, back on track, doing good, turn-by-turn, off-route, total distance, the compass warning and recording feedback. VoiceOver reads it even with the app's own voice turned off, so you don't need both. Each event is read once, without an echo.
+- The sliders adjust by swiping, like native sliders, and announce the value with its unit. Each also has a **Menu** button with a list of values.
+- Decorative labels are hidden from the screen reader.
+- **Back** is at the top of every screen (before the title) and at the bottom. Screens two or more steps deep also have **Main screen**.
+- Language: Slovak or English, with the button at the bottom of the screen.
+
+### Settings
+All settings are remembered. New features are off by default, so nothing changes unless you turn them on.
+
+| Setting (Slovak name in the app) | Default |
+|---|---|
+| Units: degrees or meters | degrees |
+| Citlivosť (stupne) - sensitivity in degrees, 5–40 | 15 |
+| Citlivosť (metre) - sensitivity in meters, 0.5–15 | 5 m |
+| Režim medzi prekážkami - obstacle mode, and how long a drift must last (2–10 s) | off, 5 s |
+| Režim hlasového výstupu - voice: off / only when drifting / always | only when drifting |
+| Pípanie pri vybočení - spatial audio beeps | on |
+| Vibrácie pri vybočení - vibrations | on |
+| Oznámiť štatistiku po zastavení - statistics on stop | on |
+| Ideš dobre každých X metrov - "Doing good" every X meters (1–50) | off, 10 m |
+| Jemná korekcia smeru počas navigácie trasy - fine correction during route navigation | off |
+| Vynechať automatické odpočítavanie - rely on my own point notes only | off |
+| Rýchlejšie aktualizácie polohy - GPS every second instead of every 3 s | off |
+| Keď odídem z trasy, povedať aj... - say where the next point is when off the route | on |
+| Upozorniť, že sa vzďaľujem od trasy - off-route distance: automatic / 5–30 m | automatic |
+| Hlasová spätná väzba počas automatického nahrávania - voice while recording | on |
+| Oznámiť celkovú vzdialenosť do cieľa - total distance to destination | on |
+| Po otvorení aplikácie hneď spustiť asistenta - auto-start | off |
+| Vypnúť asistenta, keď odídem z aplikácie... - stop when I leave, start when I come back | off |
+| Zobraziť všetky body trasy - route instructions on the main screen | on |
+| Zobraziť rýchle tlačidlá - quick actions | on |
+| Ako hovoriť, kde sa miesto nachádza - directions: sides / clock face / compass | sides |
+| Priebežne aktualizovať „Moja poloha“ - keep My location updated all the time | off |
+| V Okolí ukazovať aj miesta bez názvu - places without a name from own map data | off |
+| Dĺžka kroku - step length for the step estimate (0.4–1.2 m) | 0.7 m |
+
+### Updates, offline use and storage
+- **Installable and offline:** the app installs as a home-screen app (PWA) and opens offline. The map features need the internet.
+- **Updates arrive reliably:**
+  - When online, the page is always loaded fresh. The saved copy is used offline, or if the network takes more than 5 seconds.
+  - The app checks for a new version every time it's opened or brought to the front. An update can't store a stale copy from the browser's cache.
+  - Phones stuck on a version before 38 are reloaded once automatically.
+  - A Wi-Fi login page is never saved in place of the app.
+- **iPhone note:**
+  - Safari and the home-screen icon keep separate saved routes and settings.
+  - Safari may clear a website's data if it isn't opened for about a week; the home-screen icon doesn't.
+  - Use the icon as your main way in, and export routes as GPX now and then as a backup.
+  - Right after an update, the first launch can still show the previous version. Close the app and open it again.
+
+### Map data and services
+- Addresses, intersections, places, search and planned routes use OpenStreetMap data (© OpenStreetMap contributors, credited in the app footer).
+- They come through the public Nominatim, Photon, Overpass and Valhalla services, plus the app's own copy of OpenStreetMap in `data/poi1/`.
+- These services need an internet connection. They are called only when you ask for something, or, for the My location line, after you've moved.
+- Map data can be incomplete or out of date. It doesn't know about obstacles or road works.
 
 ## Android app (experimental)
-A separate, deliberately simple native Android app for the core feature - holding a straight line - that keeps working with the screen locked and the phone in a pocket, which the web app can't do.
+A separate, deliberately simple native app for the core feature: holding a straight line. It keeps working with the screen locked and the phone in a pocket, which the web app can't do.
 
-**Download:** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk (Android 10 or newer; built for and meant to be tried first on a Pixel 7 with TalkBack).
+**Download (version 1.0):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
 
-- One screen: a large **Start / Stop** button, **Set direction**, and **Settings**. While it runs, the notification has **Set direction** and **Stop** too, including on the lock screen.
-- Same behaviour as the web app's straight-line mode: the direction is taken 1.2 s after Start; within the allowed deviation a quiet tick every 2.5 s and one warning tick at 70 % of it; beyond it, beeps from the side you drift to (faster and higher the further off), vibration (drifting right: one continuous buzz, left: pulses; stronger when hard), and a spoken message at most every 3 s ("Drift right, 20 degrees", "Back on track."); a summary on Stop ("You drifted 2 times.").
-- **Doing good** every 10/20/50/100 m from GPS (off by default; asks for location only when turned on), with a weak-GPS warning; a compass-calibration warning when readings jump or the sensor reports low accuracy.
-- Works however the phone is carried: lying flat it follows the top edge, held or carried upright (e.g. in a front pocket, either way up) it follows the back of the phone - whichever is closer to level when the direction is set, kept for the whole walk. Carry it the same way throughout; if you change how you hold it, press Set direction again.
-- Settings: allowed deviation (5-40 degrees, default 15), sounds, vibrations, voice (off / only when drifting / always), Doing good, language (phone / Slovak / English). With the app's own voice off, messages go to TalkBack through a live region while the app is open, so they aren't read twice.
-- Slovak and English throughout, including the voice (needs the phone's text-to-speech voice for that language).
-- Runs as a foreground service with a partial wake lock while guiding; nothing runs after Stop.
+### Installing the APK
+1. On the phone, open the link above in Chrome and download the file.
+2. Open the downloaded file (from the download notification, or Files → Downloads).
+3. If Android asks, allow **Install unknown apps** for Chrome, then go back and choose **Install**.
+4. Google Play Protect may warn that the app is from an unknown developer, because it isn't from the Play Store. Choose **Install anyway**.
+5. On the first Start, allow notifications. If you turn on "Doing good", also allow location.
 
-Status: tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone** - compass behaviour in a pocket, with the screen off, and vibration strength need to be checked on the device, at home first and then outside with someone sighted nearby. Source, build and test instructions: [`android/`](android/README.md).
+A newer APK installs over the old one and keeps your settings.
+
+### What it does
+- **One screen:** a large **Start / Stop** button, **Set direction** and **Settings**. While it runs, the notification has Set direction and Stop too, including on the lock screen.
+- **The same straight-line behaviour as the web app:**
+  - The direction is taken 1.2 s after Start.
+  - Within the allowed deviation: a quiet tick every 2.5 s, and one warning tick at 70 % of it.
+  - Beyond it:
+    - beeps from the side you drift to, faster and higher the further off
+    - vibration: drifting right is one continuous buzz, left is pulses, both stronger when you're far off
+    - a spoken message at most every 3 s ("Drift right, 20 degrees", "Back on track.")
+  - A summary on Stop ("You drifted 2 times.").
+- **"Ideš dobre" / Doing good** every 10, 20, 50 or 100 m from GPS. It is off by default and asks for location only when you turn it on. It includes a weak-GPS warning.
+- **Compass calibration warning** when readings jump or the sensor reports low accuracy.
+- **However you carry the phone:**
+  - Lying flat, it follows the top edge.
+  - Held or carried upright, for example in a front pocket either way up, it follows the back of the phone.
+  - The way that is closer to level when you set the direction is kept for the whole walk. If you change how you hold the phone, press Set direction again.
+- **Settings:**
+  - Povolená odchýlka - allowed deviation, 5–40 degrees (default 15)
+  - Zvuky - sounds
+  - Vibrácie - vibrations
+  - Hlas - voice: off / only when drifting / always
+  - Ideš dobre - Doing good
+  - Jazyk - language: phone / Slovak / English
+  
+  With the app's own voice off, messages go to TalkBack while the app is open, so nothing is read twice.
+- **Languages:** Slovak and English throughout, including the voice. This needs the phone's text-to-speech voice for that language.
+- **Background:** it runs as a foreground service while guiding; nothing runs after Stop.
+
+Source, build and test instructions: [`android/`](android/README.md).
+
+## Testing status
+- **Web app.** Every version is tested before it is published:
+  - automated browser tests of every feature, with recorded map answers
+  - comparison against the previous version, so nothing changes by accident
+  - checks against the real map services around Lesná 6, Nové Zámky
+  - real use on an iPhone with VoiceOver by the author: saved points, and being told when you reach one, were reported to work dependably
+  - **Places without a name (version 43) and planned walking routes still need checking outside.**
+- **Android app.** Tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone**. Still to check on the device, at home first and then outside with someone sighted nearby:
+  - how the compass behaves in a pocket
+  - how it works with the screen off
+  - vibration strength
 
 ## Files
-- `index.html` — the current app (same as `smerasistentv3.html`, kept in sync so the link above always shows the latest version).
-- `smerasistentv3.html` — latest version, source of truth for `index.html`.
-- `v2.html` — earlier iteration, kept for reference.
-- `data/poi1/` — the app's own map data: points of interest in Slovakia as small tiles (0.02° × 0.03°, about 2 × 2 km) with `meta.json` (date, tile list). Derived from OpenStreetMap (© OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/)); made with `tools/poi/` (see its README).
-- `android/` — the Android app's source; `downloads/smerovy-asistent.apk` — its latest build.
+- `index.html`: the current web app, the same as `smerasistentv3.html`. It is kept in sync, so the link above always shows the latest version.
+- `smerasistentv3.html`: the latest version and the source of truth for `index.html`.
+- `sw.js`: the service worker, which handles updates and offline use. `manifest.json` and the icons are for installing the app.
+- `v2.html`: an earlier version, kept for reference.
+- `data/poi1/`: the app's own map data.
+  - Points of interest in Slovakia as small tiles (0.02° × 0.03°, about 2 × 2 km), with `meta.json` (date, tile list).
+  - Derived from OpenStreetMap (© OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/)), made with `tools/poi/` (see [its README](tools/poi/README.md)).
+- `android/`: the Android app's source. `downloads/smerovy-asistent.apk` is its latest build.
