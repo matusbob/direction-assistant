@@ -2,18 +2,19 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 50:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 51:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
-- **Android app (APK), version 1.1, for Android 10 and newer (made for a Pixel 7 with TalkBack):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
-  - 92,736 bytes, SHA-256 `502da91846593a7db53061fc188f246c38396d5bb896e274a21bc07164769082`.
-  - From version 1.1 on, the app updates itself (see [Updates](#updates)). Version 1.0 has to be updated to 1.1 by hand once, by installing the APK from the link again.
+- **Android app (APK), version 1.2, for Android 10 and newer (made for a Pixel 7 with TalkBack):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
+  - 116,312 bytes, SHA-256 `4b07c18d408472f5e933eacb9e357ba4f20d6256d6aec4caae71530a2353c34f`.
+  - Version 1.2 has the whole web app inside it, and its straight line keeps working with the screen locked (see [Android app](#android-app-experimental)).
+  - From version 1.1 on, the app updates itself (see [Updates](#updates)). Version 1.0 has to be updated by hand once, by installing the APK from the link again.
   - How to install it: see [Installing the APK](#installing-the-apk).
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 50, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 51, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Spoľahlivejší kompas pri Štart / Stop** (oprava vo verzii 47):
   - smer sa nastaví vždy z nových údajov kompasu, ako priemer viacerých, aj keď iPhone pošle prvé údaje neskôr (predtým v takom prípade smer ostal nenastavený a vybočenie sa nehlásilo); nikdy sa nepoužije smer z predchádzajúceho spustenia;
@@ -93,8 +94,13 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - voliteľne aj automatický štart po otvorení
   - voliteľne vypnutie pri odchode z aplikácie a zapnutie po návrate
 
-**Aplikácia pre Android** (verzia 1.1) je zatiaľ len rovný smer, ale funguje aj so zamknutou obrazovkou a telefónom vo vrecku:
+**Aplikácia pre Android** (verzia 1.2):
 
+- **má v sebe celú webovú aplikáciu** (nové vo verzii 1.2): Moja poloha, Rýchle akcie, Monitorovanie miest, Čo je blízko, hľadanie, Uložené trasy, plánovanie trás, Nastavenia, všetko ako na iPhone; novinky webu sú v nej hneď, bez novej APK
+- **rovný smer spustený v nej beží v Android aplikácii**, takže funguje aj so zamknutou obrazovkou a telefónom vo vrecku, s vibráciami; nastavenia (stupne/metre, citlivosť, hlas, zvuky, vibrácie, „Ideš dobre“, jazyk) sa berú z webovej časti
+- hlas, vibrácie, zdieľanie polohy a uloženie GPX idú cez Android aplikáciu
+- **navigácia po trase zatiaľ potrebuje zapnutú obrazovku** (aplikácia ju nechá zapnutú); so zamknutou obrazovkou bude v ďalšom kroku
+- tlačidlo **Android aplikácia: jednoduchá obrazovka a aktualizácie** dole pri jazyku otvorí pôvodnú jednoduchú obrazovku:
 - veľké tlačidlo **Štart / Stop**, **Nastaviť smer** a **Nastavenia**
 - vybočenie v **stupňoch** (len kompas, funguje aj vnútri) alebo v **metroch** (nové vo verzii 1.1: kompas a prejdená vzdialenosť z GPS, vonku); kým GPS nie je, vedie podľa stupňov a povie to
 - v nastaveniach: merať vybočenie v stupňoch alebo metroch, povolená odchýlka v stupňoch a v metroch, zvuky, vibrácie, hlas, „Ideš dobre“, jazyk (podľa telefónu, slovenčina, angličtina) a automatické aktualizácie
@@ -390,9 +396,9 @@ All settings are remembered. New features are usually off by default, so nothing
 - Map data can be incomplete or out of date. It doesn't know about obstacles or road works.
 
 ## Android app (experimental)
-A separate, deliberately simple native app for the core feature: holding a straight line. It keeps working with the screen locked and the phone in a pocket, which the web app can't do.
+From version 1.2 the app shows the whole web app (the same as on the iPhone, always the newest version) and adds what a web page can't do: the straight line keeps working with the screen locked and the phone in a pocket, with vibration. The earlier native screen is still there as the **simple screen**.
 
-**Download (version 1.1):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
+**Download (version 1.2):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
 
 ### Installing the APK
 1. On the phone, open the link above in Chrome and download the file.
@@ -412,8 +418,17 @@ From version 1.1 the app looks for a new version itself (setting **Automatické 
 - Android then usually asks you to confirm **Update**. Once the app has installed an update itself, Android 12 and newer may install later ones without asking, but that's up to the phone.
 - Fully silent updates in the background are only possible from an app store such as Google Play, so the app always asks first.
 
-### What it does
-- **One screen:** a large **Start / Stop** button, **Set direction** and **Settings**. While it runs, the notification has Set direction and Stop too, including on the lock screen.
+### The web app inside (version 1.2)
+- **Opening the app shows the web app** from this site (`https://matusbob.github.io/direction-assistant/`) with everything it has. It keeps itself up to date like the web app; after the first start it works offline too. Without a connection the first time, the app offers **Skúsiť znova** or the simple screen.
+- **Straight line:** Start in the web app starts the guidance in the app's service, with the web app's settings (degrees or meters and their sensitivity, voice, sounds, vibrations, Doing good, language). From then on it's the Android guidance described below: it keeps going with the screen locked, says its messages with its own voice (or gives them to TalkBack with the voice off) and vibrates. The page shows its state and messages, and **Repeat last announcement** has them. Set direction and Stop work in the page and in the notification; a setting changed in the page while guiding is used at once. Opening the app again while it guides shows it running. "Stop when I leave the app or lock the phone" doesn't stop it in the Android app.
+- **Voice, vibration, sharing and files** of the web app go through the app: the phone's text-to-speech voice, its vibration, Android's share sheet for My location, and choosing where to save an exported GPX. Importing a GPX file opens the phone's file picker.
+- **Route navigation, planned routes, places nearby, search** work as in the web app, **with the screen on** (the app keeps it on during a route). Route navigation with the screen locked is the next step.
+- **The phone's Back** closes the web app's open window, as its Back button does; on the main screen it leaves the app running in the background.
+- **Links to other sites** (maps, OpenStreetMap) open in the browser. Only the project's own pages can use the app's bridge.
+- **Android aplikácia: jednoduchá obrazovka a aktualizácie** (at the bottom, next to the language button) opens the simple screen.
+
+### The simple screen
+- **One screen:** a large **Start / Stop** button, **Set direction** and **Settings**, including the update settings. While it runs, the notification has Set direction and Stop too, including on the lock screen.
 - **Drift in degrees or meters** (meters are new in version 1.1, setting **Merať vybočenie v**, degrees by default):
   - **Degrees:** the compass only, so it works indoors too.
   - **Meters:** as in the web app, how far to the side you'd be if you'd walked the whole way from where the direction was set at your current angle: the compass angle times the distance walked from GPS. It's said in meters ("Drift right, 3 meters"). Allowed drift 1, 2 (default), 3, 4, 5, 7, 10 or 15 m.
@@ -437,7 +452,7 @@ From version 1.1 the app looks for a new version itself (setting **Automatické 
 - **Settings:**
   - Merať vybočenie v - measure drift in: degrees / meters (default degrees)
   - Povolená odchýlka - allowed deviation, 5–40 degrees (default 15)
-  - Povolená odchýlka v metroch - allowed drift in meters, 1–15 m (default 2)
+  - Povolená odchýlka v metroch - allowed drift in meters, 1–15 m (default 2; from the web app also halves, such as 1.5 m)
   - Zvuky - sounds
   - Vibrácie - vibrations
   - Hlas - voice: off / only when drifting / always
@@ -465,6 +480,7 @@ Source, build and test instructions: [`android/`](android/README.md).
   - how it works with the screen off
   - vibration strength
   - **version 1.1:** meters outside (GPS distance is only as good as the GPS, a few meters either way), the GPS messages, the update from 1.1 to a later version on the phone (the installer and its questions can only be simulated here), and that the name is now read once
+  - **version 1.2:** the web app inside the app with TalkBack (it's Chrome's engine, so it should read as in Chrome), the straight line started from the web app with the screen locked, the app's voice and vibration for the web app, sharing, saving and opening GPX files, and the phone's Back. The bridge is tested on both sides here (the app on a simulated Android, the web app in Chromium with a stand-in for the app), but not the two together on a phone.
 
 ## Files
 - `index.html`: the current web app, the same as `smerasistentv3.html`. It is kept in sync, so the link above always shows the latest version.
@@ -475,4 +491,4 @@ Source, build and test instructions: [`android/`](android/README.md).
   - Points of interest in Slovakia as small tiles (0.02° × 0.03°, about 2 × 2 km), with `meta.json` (date, tile list).
   - Derived from OpenStreetMap (© OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/)), made with `tools/poi/` (see [its README](tools/poi/README.md)).
 - `android/`: the Android app's source. `downloads/smerovy-asistent.apk` is its latest build, and `downloads/version.json` says its version and SHA-256 for the app's updates.
-- `tests/`: automated tests of the web app with recorded map answers (see [its README](tests/README.md)).
+- `tests/`: automated tests of the web app with recorded map answers (see [its README](tests/README.md)); `tests/test_android.js` tests the web app's side of the Android bridge.

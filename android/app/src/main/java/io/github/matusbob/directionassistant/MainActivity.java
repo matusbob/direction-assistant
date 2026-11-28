@@ -7,10 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Insets;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
@@ -23,15 +21,12 @@ import java.util.List;
 public class MainActivity extends Activity implements DirectionService.Listener {
     private static final int REQ_START = 1;
     private static final int REQ_LOCATION = 2;
-    static final long UPDATE_CHECK_EVERY_MS = 6 * 60 * 60 * 1000L;
 
     private Prefs prefs;
     private TextView statusMain, statusSub, lastMessage;
     private Button startButton, setDirectionButton;
     private boolean running;
-    // An update waiting for "Install unknown apps" to be allowed in the phone's settings
-    private Updater.Info pendingUpdate;
-    private AlertDialog updateProgress;
+    private UpdateFlow updates;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -43,6 +38,7 @@ public class MainActivity extends Activity implements DirectionService.Listener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         prefs = new Prefs(this);
+        updates = new UpdateFlow(this, prefs, () -> running);
         statusMain = findViewById(R.id.status_main);
         statusSub = findViewById(R.id.status_sub);
         lastMessage = findViewById(R.id.last_message);
@@ -75,23 +71,18 @@ public class MainActivity extends Activity implements DirectionService.Listener 
         render(s != null ? s : new DirectionService.Status(false, getString(R.string.ready), getString(R.string.ready_sub), null));
         DirectionService.setListener(this);
         applyAnnouncerMode();
-        maybeCheckForUpdate();
+        updates.maybeCheck();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Back from the phone's settings with installing allowed: go on with the update
-        if (pendingUpdate != null && getPackageManager().canRequestPackageInstalls()) {
-            Updater.Info i = pendingUpdate;
-            pendingUpdate = null;
-            downloadAndInstall(i);
-        }
+        updates.onResume();
     }
 
     @Override
     protected void onStop() {
-        DirectionService.setListener(null);
+        DirectionService.clearListener(this);
         super.onStop();
     }
 
@@ -177,8 +168,10 @@ public class MainActivity extends Activity implements DirectionService.Listener 
         return getString(Prefs.UNIT_METERS.equals(u) ? R.string.unit_meters : R.string.unit_degrees);
     }
 
-    private String metersName(int m) {
-        return getResources().getQuantityString(R.plurals.meters_n, m, m);
+    private String metersName(float m) {
+        int r = Math.round(m);
+        if (Math.abs(m - r) > 0.01f) return getString(R.string.meters_decimal, String.format(getResources().getConfiguration().getLocales().get(0), "%.1f", m));
+        return getResources().getQuantityString(R.plurals.meters_n, r, r);
     }
 
     private void showSettings() {
@@ -207,7 +200,7 @@ public class MainActivity extends Activity implements DirectionService.Listener 
                         case 6: chooseGood(); break;
                         case 7: chooseLanguage(); break;
                         case 8: chooseAutoUpdate(); break;
-                        default: checkForUpdate(true); break;
+                        default: updates.check(true); break;
                     }
                 })
                 .setNegativeButton(R.string.close, null)
@@ -257,7 +250,7 @@ public class MainActivity extends Activity implements DirectionService.Listener 
         int checked = 0;
         for (int i = 0; i < opts.length; i++) {
             opts[i] = metersName(Prefs.THRESHOLDS_M[i]);
-            if (Prefs.THRESHOLDS_M[i] == prefs.thresholdMeters()) checked = i;
+            if (Math.abs(Prefs.THRESHOLDS_M[i] - prefs.thresholdMeters()) < 0.01f) checked = i;
         }
         choose(R.string.threshold_m, opts, checked, i -> {
             prefs.setThresholdMeters(Prefs.THRESHOLDS_M[i]);
@@ -316,92 +309,6 @@ public class MainActivity extends Activity implements DirectionService.Listener 
             prefs.setLang(Prefs.LANGS[i]);
             // Rebuild the screen in the new language
             recreate();
-        });
-    }
-
-    // ---------- Updates ----------
-
-    private void maybeCheckForUpdate() {
-        if (!prefs.autoUpdate() || running) return;
-        if (System.currentTimeMillis() - prefs.lastUpdateCheck() < UPDATE_CHECK_EVERY_MS) return;
-        checkForUpdate(false);
-    }
-
-    private void info(String text) {
-        new AlertDialog.Builder(this).setMessage(text).setPositiveButton(R.string.close, null).show();
-    }
-
-    /** manual: asked from the settings, so say the result also when there's nothing new. */
-    void checkForUpdate(boolean manual) {
-        AlertDialog checking = manual ? new AlertDialog.Builder(this).setMessage(R.string.update_checking).setCancelable(false).show() : null;
-        Updater.executor.execute(() -> {
-            Updater.Info found;
-            try {
-                found = Updater.fetchInfo();
-            } catch (java.io.IOException | RuntimeException e) {
-                found = null;
-            }
-            final Updater.Info i = found;
-            runOnUiThread(() -> {
-                if (checking != null) checking.dismiss();
-                if (isFinishing() || isDestroyed()) return;
-                if (i == null) {
-                    if (manual) info(getString(R.string.update_failed));
-                    return;
-                }
-                prefs.setLastUpdateCheck(System.currentTimeMillis());
-                if (Updater.isNewer(i)) offerUpdate(i);
-                else if (manual) info(getString(R.string.update_latest, BuildConfig.VERSION_NAME));
-            });
-        });
-    }
-
-    private void offerUpdate(Updater.Info i) {
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.update_title, i.versionName))
-                .setMessage(getString(R.string.update_available, i.versionName, BuildConfig.VERSION_NAME, i.notes(this)).trim())
-                .setPositiveButton(R.string.update_now, (d, w) -> startUpdate(i))
-                .setNegativeButton(R.string.later, null)
-                .show();
-    }
-
-    private void startUpdate(Updater.Info i) {
-        if (running) {
-            info(getString(R.string.update_running));
-            return;
-        }
-        if (!getPackageManager().canRequestPackageInstalls()) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.update_allow_title)
-                    .setMessage(R.string.update_allow)
-                    .setPositiveButton(R.string.open_settings, (d, w) -> {
-                        pendingUpdate = i;
-                        startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
-                    })
-                    .setNegativeButton(R.string.later, null)
-                    .show();
-            return;
-        }
-        downloadAndInstall(i);
-    }
-
-    private void downloadAndInstall(Updater.Info i) {
-        updateProgress = new AlertDialog.Builder(this).setMessage(R.string.update_downloading).setCancelable(false).show();
-        Updater.executor.execute(() -> {
-            String error = null;
-            try {
-                byte[] apk = Updater.download(i);
-                Updater.install(getApplicationContext(), apk);
-            } catch (java.io.IOException | RuntimeException e) {
-                error = getString(R.string.update_download_failed);
-            }
-            final String err = error;
-            runOnUiThread(() -> {
-                if (updateProgress != null) updateProgress.dismiss();
-                updateProgress = null;
-                if (isFinishing() || isDestroyed()) return;
-                info(err != null ? err : getString(R.string.update_installing));
-            });
         });
     }
 }

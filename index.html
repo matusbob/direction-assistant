@@ -572,13 +572,25 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 50</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<button id="androidBtn" type="button" hidden>Android app: simple screen and updates</button>
+<div id="osmAttrib"><span id="appVersion">Version 51</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 50;
+const APP_VERSION = 51;
+// Inside the Android app (version 1.2 and newer) the page gets a bridge to the app: its voice, vibration,
+// sharing and files, and the straight-line guidance runs in the app's service, which keeps going with the
+// screen locked. In a browser there is no bridge and nothing here changes.
+const NATIVE = (typeof window.SmerovyAsistentAndroid === 'object' && window.SmerovyAsistentAndroid && typeof window.SmerovyAsistentAndroid.info === 'function') ? window.SmerovyAsistentAndroid : null;
+let nativeStraight = false, nativeStopping = false;
+function nativeCall(name){
+const args = Array.prototype.slice.call(arguments, 1);
+try{ return NATIVE[name].apply(NATIVE, args); }catch(e){ return undefined; }
+}
+let NATIVE_VERSION = '';
+if(NATIVE){ try{ NATIVE_VERSION = JSON.parse(nativeCall('info') || '{}').version || ''; }catch(e){} }
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -683,6 +695,7 @@ crossHoldEnd: "You have crossed.", crossFar: "You seem to be {d} from the start 
 nearestCrossing: "Nearest crossing: {p}, {d}, {dir}.", crossAtStart: "start", crossAtEnd: "end",
 lblPointDistOn: "At each point of a route, also say how far it is to the next one",
 lblPieceDistOn: "In joined instructions of a planned route (\"... Then turn left ...\"), also say the distance of each short piece (for routes planned after turning it on)", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
+androidBtn: "Android app: simple screen and updates", nativeStartFailed: "The Android app couldn't start the guidance. Open the app's simple screen and press Start there.",
 lblNearbyKinds: "In \"What's nearby?\", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are",
 lblRecalc: "Recalculate the route", recalcWorking: "Recalculating the route from where you are...", recalcDone: "Route recalculated.", recalcFailed: "The route couldn't be recalculated (no internet or the service is busy). Navigation goes on as before.",
 recalcNearest: "Going on to the nearest point of the route: {p}, {d}, {dir}.", thenDist: "then {d}",
@@ -899,6 +912,7 @@ crossHoldEnd: "Prešli ste priechod.", crossFar: "Zdá sa, že ste {d} od začia
 nearestCrossing: "Najbližší priechod: {p}, {d}, {dir}.", crossAtStart: "začiatok", crossAtEnd: "koniec",
 lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší",
 lblPieceDistOn: "Pri spojených pokynoch plánovanej trasy („… Potom odbočte vľavo …“) povedať vzdialenosť aj ku každému krátkemu kúsku (platí pre trasy naplánované po zapnutí)", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
+androidBtn: "Android aplikácia: jednoduchá obrazovka a aktualizácie", nativeStartFailed: "Android aplikácia nevedela spustiť vedenie. Otvorte jednoduchú obrazovku aplikácie a stlačte tam Štart.",
 lblNearbyKinds: "V „Čo je blízko?“ povedať, pri ktorom mojom bode som a kde sú moje najbližšie schody, vchod, východ, výťah a nástupište",
 lblRecalc: "Prepočítať trasu", recalcWorking: "Prepočítavam trasu od miesta, kde ste...", recalcDone: "Trasa prepočítaná.", recalcFailed: "Trasu sa nepodarilo prepočítať (nie je internet alebo je služba vyťažená). Navigácia pokračuje ako doteraz.",
 recalcNearest: "Pokračujem k najbližšiemu bodu trasy: {p}, {d}, {dir}.", thenDist: "potom {d}",
@@ -1051,7 +1065,7 @@ document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
 ['lblOwnCrossOnRoutes','lblCrossIxOn','lblReportMap','lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblPieceDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
-document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
+document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION + (NATIVE_VERSION ? ' · Android ' + NATIVE_VERSION : '');
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
 document.getElementById('historyTitle').textContent = t('lblHistory');
@@ -1113,6 +1127,7 @@ document.getElementById('lblMarkPoint').textContent = t('lblMarkPoint');
 document.getElementById('lblFinishRoute').textContent = t('lblFinishRoute');
 document.getElementById('lblCancelRecord').textContent = t('lblCancelRecord');
 document.getElementById('langBtn').textContent = t('langBtn');
+document.getElementById('androidBtn').textContent = t('androidBtn');
 
 document.getElementById('voiceMode').options[0].text = t('voiceOff');
 document.getElementById('voiceMode').options[1].text = t('voiceDrift');
@@ -1430,6 +1445,8 @@ function chimeVibrate(p){ if(!vibrateOn.checked || !navigator.vibrate) return; t
 
 let wakeLock = null;
 async function requestWakeLock(){
+// In the Android app the straight line runs in its service, so the screen may go off; routes still need it on
+if(NATIVE){ if(!nativeStraight) nativeCall('keepScreenOn', true); return; }
 if(!('wakeLock' in navigator)) return;
 try{
 wakeLock = await navigator.wakeLock.request('screen');
@@ -1437,6 +1454,7 @@ wakeLock.addEventListener('release', () => { wakeLock = null; });
 }catch(e){ wakeLock = null; }
 }
 async function releaseWakeLock(){
+if(NATIVE){ if(!trackTarget) nativeCall('keepScreenOn', false); return; }
 if(!wakeLock || trackTarget) return;
 try{ await wakeLock.release(); }catch(e){}
 wakeLock = null;
@@ -1467,6 +1485,7 @@ setTimeout(() => beep(0, 523, 0.14, 'sine'), 110);
 }
 
 function speak(text) {
+if(NATIVE){ nativeCall('speak', String(text), lang === 'sk' ? 'sk-SK' : 'en-US'); return; }
 if ('speechSynthesis' in window) {
 window.speechSynthesis.cancel();
 const u = new SpeechSynthesisUtterance(text);
@@ -2473,6 +2492,7 @@ totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; l
 lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 nextDistAnnounce = parseInt(distRange.value, 10);
 
+if(NATIVE && navMode !== 'route'){ startNativeStraight(); return; }
 if(!window.isSecureContext){ permMsg.textContent = t('errNoSecure'); return; }
 
 if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
@@ -3108,6 +3128,7 @@ return 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ','
 async function shareFix(fix){
 const url = locationLink(fix.lat, fix.lon);
 const text = t('shareTitle') + (fix.address ? ': ' + fix.address : '');
+if(NATIVE && nativeCall('share', t('shareTitle'), text + ' ' + url) === true) return;
 if(navigator.share){
 try{
 await navigator.share({ title: t('shareTitle'), text: text, url: url });
@@ -4658,7 +4679,7 @@ renderNavSteps();
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
 if(document.visibilityState === 'hidden'){ hiddenAt = running ? performance.now() : 0; return; }
-if(hiddenAt && running && !pauseOnLeave.checked){
+if(hiddenAt && running && !pauseOnLeave.checked && !nativeStraight){
 const secs = Math.round((performance.now() - hiddenAt) / 1000);
 if(secs >= 2) setTimeout(() => { if(running) sayEvent(t('guidanceInterrupted').replace('{n}', secs)); }, 300);
 }
@@ -4674,11 +4695,12 @@ if(!running){ permMsg.textContent = t('autoStartNeedsTap'); announceEvent(t('aut
 document.addEventListener('visibilitychange', () => {
 if(!pauseOnLeave.checked) return;
 if(document.visibilityState === 'hidden'){
-if(running && navMode !== 'route' && !recording && !demoRunning){
+if(running && navMode !== 'route' && !recording && !demoRunning && !nativeStraight){
 resumeOnReturn = true;
 stop();
 // The stop summary would otherwise be spoken late, once the app is back in front
 if(window.speechSynthesis) speechSynthesis.cancel();
+if(NATIVE) nativeCall('stopSpeaking');
 }
 } else if(document.visibilityState === 'visible' && resumeOnReturn){
 resumeOnReturn = false;
@@ -4686,7 +4708,76 @@ setTimeout(autoStartStraight, 400);
 }
 });
 
+function nativeSettings(){
+return JSON.stringify({ unit: currentUnit(), thresholdDeg: parseFloat(thresholdDeg.value), thresholdMet: parseFloat(thresholdMet.value),
+voice: voiceMode.value, sound: soundOn.checked, vibrate: vibrateOn.checked, goodEvery: distOn.checked ? parseInt(distRange.value, 10) : 0, lang: lang });
+}
+function nativeButtons(on){
+mainBtn.textContent = t(on ? 'stop' : 'start');
+mainBtn.classList.toggle('stop', on);
+mainBtn.setAttribute('aria-label', t(on ? 'stop' : 'start'));
+resetBtn.disabled = !on;
+demoBtn.disabled = on;
+routesBtn.disabled = on;
+nearbyBtn.disabled = on;
+}
+function startNativeStraight(){
+if(nativeCall('startStraight', nativeSettings()) !== true){
+permMsg.textContent = t('nativeStartFailed');
+announceEvent(t('nativeStartFailed'));
+return;
+}
+nativeStraight = true; nativeStopping = false; running = true;
+nativeButtons(true);
+announce(t('scanning'), t('scanningSub'));
+statusBox.className = 'status off';
+renderNavSteps();
+}
+// From the app's service: {running, main, sub, state: "OK" | "RIGHT" | "LEFT" | null}
+window.__androidStatus = function(st){
+if(!st) return;
+if(st.running){
+if(!nativeStraight){
+if(running || navMode === 'route' || recording) return;
+nativeStraight = true; running = true;
+nativeButtons(true);
+}
+announce(st.main, st.sub);
+statusBox.className = 'status ' + (st.state === 'OK' ? 'ok' : st.state === 'RIGHT' ? 'right' : st.state === 'LEFT' ? 'left' : 'off');
+} else if(nativeStraight || nativeStopping){
+// Stopped here, or from the notification
+nativeStraight = false; nativeStopping = false; running = false;
+nativeButtons(false);
+statusBox.className = 'status off';
+announce(st.main, st.sub);
+renderNavSteps();
+}
+};
+// The phone's Back: closes the open window as its own Back button does; false on the main screen
+window.__androidBack = function(){
+const open = Array.from(document.querySelectorAll('.picker-overlay')).filter((o) => !o.hidden);
+if(!open.length) return false;
+const top = open[open.length - 1];
+const b = top.querySelector('.topback') || top.querySelector('.picker-close');
+// Without a close button (recording a route) Back does nothing, rather than leaving the app
+if(b) b.click();
+return true;
+};
+// A message of the service: with the app's voice off it's for the screen reader, otherwise it's been said already
+window.__androidMessage = function(m){
+if(!m || !m.text) return;
+if(m.voiceOff) announceEvent(m.text);
+else { announceHistory.push({ text: m.text, time: new Date() }); if(announceHistory.length > 100) announceHistory.shift(); }
+};
+
 function stop(){
+if(nativeStraight){
+nativeStraight = false; nativeStopping = true; running = false;
+nativeCall('stopStraight');
+nativeButtons(false);
+statusBox.className = 'status off';
+return;
+}
 running = false;
 releaseWakeLock();
 if(straightWatchId !== null){ navigator.geolocation.clearWatch(straightWatchId); straightWatchId = null; }
@@ -4748,6 +4839,7 @@ if(voiceMode.value !== 'off') speak(t('routeResumed'));
 
 resetBtn.addEventListener('click', () => {
 if(navMode === 'route'){ togglePauseRoute(); return; }
+if(nativeStraight){ nativeCall('setDirection'); return; }
 setTarget();
 });
 
@@ -4806,6 +4898,7 @@ demoBtn.addEventListener('click', runDemo);
 
 const SETTINGS_KEY = 'directionAssistantSettings';
 function saveSettings(){
+if(nativeStraight) nativeCall('updateSettings', nativeSettings());
 try{
 localStorage.setItem(SETTINGS_KEY, JSON.stringify({
 unit: currentUnit(),
@@ -5280,6 +5373,7 @@ return gpx;
 
 function exportRouteGPX(route){
 const gpx = routeToGPX(route);
+if(NATIVE && nativeCall('saveFile', (route.name || 'route').replace(/[^\w\- ]/g, '') + '.gpx', 'application/gpx+xml', gpx) === true) return;
 const blob = new Blob([gpx], { type: 'application/gpx+xml' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
@@ -5686,6 +5780,15 @@ cancelRecordBtn.addEventListener('click', cancelRecording);
 
 loadSettings();
 applyLang();
+if(NATIVE){
+// Vibrations through the app (the phone's vibration API may be missing in an app's web view)
+try{ Object.defineProperty(navigator, 'vibrate', { configurable: true, value: (p) => { nativeCall('vibrate', JSON.stringify(Array.isArray(p) ? p : [p])); return true; } }); }catch(e){}
+const androidBtn = document.getElementById('androidBtn');
+androidBtn.hidden = false;
+androidBtn.addEventListener('click', () => nativeCall('openSimpleScreen'));
+// Guidance that kept running while the page was closed
+try{ const st = JSON.parse(nativeCall('straightState') || 'null'); if(st && st.running) window.__androidStatus(st); }catch(e){}
+}
 quickBar.hidden = !showQuickBar.checked;
 quickResult.hidden = !showQuickBar.checked;
 updateLiveWatcher();

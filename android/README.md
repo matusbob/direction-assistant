@@ -1,6 +1,6 @@
 # Direction Assistant for Android
 
-Straight-line walking guidance that keeps running with the screen locked. Plain Android framework (no libraries), Java, minSdk 29, targetSdk 36.
+The web app in a web view, plus straight-line walking guidance that keeps running with the screen locked. Plain Android framework (no libraries), Java, minSdk 29, targetSdk 36.
 
 ## Build and test
 
@@ -18,7 +18,8 @@ Raise `versionCode` / `versionName` in `app/build.gradle` for each new release s
 - `Heading`, `HeadingFilter` - compass heading of the phone's top edge or back from the rotation-vector sensor, smoothed.
 - `DistanceTracker` - GPS distance for "Doing good" and for drift in meters; `CompassCheck` - jumping-compass warning.
 - `DirectionService` - foreground service: sensors, GPS, notification, `Beeper` (stereo tones), `Haptics`, `Speaker` (text-to-speech).
-- `MainActivity` - the one screen, the settings dialogs and the update dialogs. `Prefs`, `Lang` - settings and in-app language.
+- `WebActivity` - the main screen: the web app from the project site in a web view, with the `SmerovyAsistentAndroid` bridge (voice, vibration, share, save file, keep the screen on, and the straight line in `DirectionService` with the web app's settings; the service's status and messages go back to the page as `__androidStatus` / `__androidMessage`). Only pages under the project URL can use the bridge; other links open in the browser.
+- `MainActivity` - the simple screen, the settings dialogs. `UpdateFlow` - the update dialogs on either screen. `Prefs`, `Lang` - settings and in-app language.
 - `Updater`, `UpdateReceiver` - updates: `version.json` and the APK from the project site, the SHA-256 check, Android's package installer.
 
 ## Signing

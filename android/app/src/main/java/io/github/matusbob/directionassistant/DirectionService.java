@@ -74,6 +74,11 @@ public class DirectionService extends Service implements SensorEventListener, Lo
         if (l != null && status != null) l.onStatus(status);
     }
 
+    /** Forgets the listener only if it's still this one (the other screen may have taken over). */
+    static void clearListener(Listener l) {
+        if (listener == l) listener = null;
+    }
+
     static Status currentStatus() {
         return status;
     }
@@ -459,7 +464,7 @@ public class DirectionService extends Service implements SensorEventListener, Lo
     }
 
     private Notification buildNotification() {
-        Intent open = new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        Intent open = new Intent(this, WebActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent setPi = PendingIntent.getService(this, 1, new Intent(this, DirectionService.class).setAction(ACTION_SET_DIRECTION), PendingIntent.FLAG_IMMUTABLE);
         PendingIntent stopPi = PendingIntent.getService(this, 2, new Intent(this, DirectionService.class).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE);

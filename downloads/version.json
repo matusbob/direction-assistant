@@ -1,8 +1,8 @@
 {
-"versionCode": 2,
-"versionName": "1.1",
+"versionCode": 3,
+"versionName": "1.2",
 "apk": "smerovy-asistent.apk",
-"sha256": "502da91846593a7db53061fc188f246c38396d5bb896e274a21bc07164769082",
-"notes_sk": "Novinky: vybočenie aj v metroch (Nastavenia, Merať vybočenie v), automatické aktualizácie, názov aplikácie sa už nečíta dvakrát.",
-"notes_en": "New: drift in meters too (Settings, Measure drift in), automatic updates, the app's name is no longer read twice."
+"sha256": "4b07c18d408472f5e933eacb9e357ba4f20d6256d6aec4caae71530a2353c34f",
+"notes_sk": "Novinky: v aplikácii je celá webová aplikácia (Moja poloha, Rýchle akcie, Čo je blízko, Uložené trasy, plánovanie trás a ďalšie) a rovný smer spustený v nej funguje aj so zamknutou obrazovkou. Navigácia po trase zatiaľ potrebuje zapnutú obrazovku.",
+"notes_en": "New: the whole web app is inside the app (My location, Quick actions, What's nearby, Saved routes, route planning and more), and the straight line started there keeps working with the screen locked. Route navigation still needs the screen on for now."
 }

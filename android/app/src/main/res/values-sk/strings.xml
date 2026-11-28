@@ -135,4 +135,11 @@
     <string name="update_allow">Aby sa aplikácia vedela sama aktualizovať, potrebuje povolenie inštalovať aplikácie. Otvoria sa nastavenia telefónu: zapnite Povoliť z tohto zdroja a vráťte sa späť.</string>
     <string name="open_settings">Otvoriť nastavenia</string>
     <string name="update_running">Najprv zastavte vedenie, potom aktualizujte.</string>
+    <string name="meters_decimal">%1$s m</string>
+    <string name="simple_screen">Jednoduchá obrazovka</string>
+    <string name="web_failed_title">Bez pripojenia</string>
+    <string name="web_failed">Obrazovky aplikácie sa prvýkrát načítajú z internetu, potom fungujú aj bez neho. Skúste to znova po pripojení, alebo použite jednoduchú obrazovku s rovným smerom.</string>
+    <string name="try_again">Skúsiť znova</string>
+    <string name="file_saved">Uložené.</string>
+    <string name="file_save_failed">Súbor sa nepodarilo uložiť.</string>
 </resources>

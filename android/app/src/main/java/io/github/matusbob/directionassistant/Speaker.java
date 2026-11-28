@@ -22,6 +22,8 @@ final class Speaker implements TextToSpeech.OnInitListener {
     private Runnable afterPending;
     private Runnable afterUtterance;
     private int counter;
+    // Language asked for by the web part of the app (BCP 47); null: the app's language
+    private String langTag;
 
     Speaker(Context ctx, LanguageProblem problem) {
         this.ctx = ctx;
@@ -35,7 +37,7 @@ final class Speaker implements TextToSpeech.OnInitListener {
             if (problem != null) problem.onMissing();
             return;
         }
-        int res = tts.setLanguage(Locale.forLanguageTag(ctx.getString(R.string.tts_lang)));
+        int res = tts.setLanguage(Locale.forLanguageTag(langTag != null ? langTag : ctx.getString(R.string.tts_lang)));
         if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
             if (problem != null) problem.onMissing();
         }
@@ -62,6 +64,19 @@ final class Speaker implements TextToSpeech.OnInitListener {
 
     void say(String text) {
         say(text, null);
+    }
+
+    /** Speaks in this language from now on, e.g. "sk-SK". */
+    void setLanguage(String tag) {
+        if (tag == null || tag.equals(langTag)) return;
+        langTag = tag;
+        if (ready) tts.setLanguage(Locale.forLanguageTag(tag));
+    }
+
+    void stop() {
+        pending = null;
+        afterPending = null;
+        if (ready) tts.stop();
     }
 
     /** Speaks, replacing whatever is being said; "after" runs when this text has been spoken (or failed). */
