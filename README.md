@@ -6,8 +6,9 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
-- **Android app (APK), version 1.0, for Android 10 and newer (made for a Pixel 7 with TalkBack):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
-  - 68,528 bytes, SHA-256 `79d2afd43788efac24d8da11c204bf0c8657c6d6ea22c169e581cfed9d858355`.
+- **Android app (APK), version 1.1, for Android 10 and newer (made for a Pixel 7 with TalkBack):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
+  - 92,736 bytes, SHA-256 `502da91846593a7db53061fc188f246c38396d5bb896e274a21bc07164769082`.
+  - From version 1.1 on, the app updates itself (see [Updates](#updates)). Version 1.0 has to be updated to 1.1 by hand once, by installing the APK from the link again.
   - How to install it: see [Installing the APK](#installing-the-apk).
 - **Source code:** https://github.com/matusbob/direction-assistant
 
@@ -92,11 +93,13 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - voliteľne aj automatický štart po otvorení
   - voliteľne vypnutie pri odchode z aplikácie a zapnutie po návrate
 
-**Aplikácia pre Android** (verzia 1.0) je zatiaľ len rovný smer, ale funguje aj so zamknutou obrazovkou a telefónom vo vrecku:
+**Aplikácia pre Android** (verzia 1.1) je zatiaľ len rovný smer, ale funguje aj so zamknutou obrazovkou a telefónom vo vrecku:
 
 - veľké tlačidlo **Štart / Stop**, **Nastaviť smer** a **Nastavenia**
-- v nastaveniach: povolená odchýlka, zvuky, vibrácie, hlas, „Ideš dobre“ a jazyk (podľa telefónu, slovenčina, angličtina)
+- vybočenie v **stupňoch** (len kompas, funguje aj vnútri) alebo v **metroch** (nové vo verzii 1.1: kompas a prejdená vzdialenosť z GPS, vonku); kým GPS nie je, vedie podľa stupňov a povie to
+- v nastaveniach: merať vybočenie v stupňoch alebo metroch, povolená odchýlka v stupňoch a v metroch, zvuky, vibrácie, hlas, „Ideš dobre“, jazyk (podľa telefónu, slovenčina, angličtina) a automatické aktualizácie
 - Stop a Nastaviť smer sú aj v upozornení na zamknutej obrazovke
+- **sama sa aktualizuje** (nové vo verzii 1.1): po otvorení pozrie, či je nová verzia, a ponúkne ju nainštalovať
 
 **Čo ešte nie je overené na skutočnom telefóne:** pozri [Testing status](#testing-status).
 
@@ -389,19 +392,34 @@ All settings are remembered. New features are usually off by default, so nothing
 ## Android app (experimental)
 A separate, deliberately simple native app for the core feature: holding a straight line. It keeps working with the screen locked and the phone in a pocket, which the web app can't do.
 
-**Download (version 1.0):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
+**Download (version 1.1):** https://matusbob.github.io/direction-assistant/downloads/smerovy-asistent.apk
 
 ### Installing the APK
 1. On the phone, open the link above in Chrome and download the file.
 2. Open the downloaded file (from the download notification, or Files → Downloads).
 3. If Android asks, allow **Install unknown apps** for Chrome, then go back and choose **Install**.
 4. Google Play Protect may warn that the app is from an unknown developer, because it isn't from the Play Store. Choose **Install anyway**.
-5. On the first Start, allow notifications. If you turn on "Doing good", also allow location.
+5. On the first Start, allow notifications. If you choose meters or turn on "Doing good", also allow location.
 
 A newer APK installs over the old one and keeps your settings.
 
+### Updates
+From version 1.1 the app looks for a new version itself (setting **Automatické aktualizácie**, on by default):
+- When you open the app, at most once every 6 hours and never while it's guiding, it reads `downloads/version.json` on this site. **Skontrolovať aktualizáciu teraz** in Settings checks at once and also tells you when you already have the latest version.
+- If there is a newer version, it says which one and what's new, with **Aktualizovať** and **Neskôr**.
+- **Aktualizovať** downloads the APK from this site, checks it against the SHA-256 in `version.json` (a different file is not installed), and hands it to Android's installer.
+- The first time, Android asks you to allow **Install unknown apps** for Smerový asistent: the app explains it and opens that setting; turn on **Allow from this source** and go back, and the update goes on.
+- Android then usually asks you to confirm **Update**. Once the app has installed an update itself, Android 12 and newer may install later ones without asking, but that's up to the phone.
+- Fully silent updates in the background are only possible from an app store such as Google Play, so the app always asks first.
+
 ### What it does
 - **One screen:** a large **Start / Stop** button, **Set direction** and **Settings**. While it runs, the notification has Set direction and Stop too, including on the lock screen.
+- **Drift in degrees or meters** (meters are new in version 1.1, setting **Merať vybočenie v**, degrees by default):
+  - **Degrees:** the compass only, so it works indoors too.
+  - **Meters:** as in the web app, how far to the side you'd be if you'd walked the whole way from where the direction was set at your current angle: the compass angle times the distance walked from GPS. It's said in meters ("Drift right, 3 meters"). Allowed drift 1, 2 (default), 3, 4, 5, 7, 10 or 15 m.
+  - Right after setting the direction you haven't walked yet, so a turn of 45 degrees or more is a hard drift at once, said in degrees.
+  - Meters need GPS. Until there is a good fix (20 m or better, in the last 10 s), it guides in degrees with the degrees setting, so it's never silent; it says "No GPS yet. Guiding in degrees until it's ready.", "GPS ready, guiding in meters." and "GPS lost. Guiding in degrees until it's back." Without location access it says so together with "Direction set" and guides in degrees.
+  - The choice applies from the next Start. It works with the screen locked too.
 - **The same straight-line behaviour as the web app:**
   - The direction is taken 1.2 s after Start.
   - Within the allowed deviation: a quiet tick every 2.5 s, and one warning tick at 70 % of it.
@@ -417,16 +435,21 @@ A newer APK installs over the old one and keeps your settings.
   - Held or carried upright, for example in a front pocket either way up, it follows the back of the phone.
   - The way that is closer to level when you set the direction is kept for the whole walk. If you change how you hold the phone, press Set direction again.
 - **Settings:**
+  - Merať vybočenie v - measure drift in: degrees / meters (default degrees)
   - Povolená odchýlka - allowed deviation, 5–40 degrees (default 15)
+  - Povolená odchýlka v metroch - allowed drift in meters, 1–15 m (default 2)
   - Zvuky - sounds
   - Vibrácie - vibrations
   - Hlas - voice: off / only when drifting / always
   - Ideš dobre - Doing good
   - Jazyk - language: phone / Slovak / English
+  - Automatické aktualizácie - automatic updates: on / off (default on)
+  - Skontrolovať aktualizáciu teraz - check for an update now
   
   With the app's own voice off, messages go to TalkBack while the app is open, so nothing is read twice.
 - **Languages:** Slovak and English throughout, including the voice. This needs the phone's text-to-speech voice for that language.
 - **Background:** it runs as a foreground service while guiding; nothing runs after Stop.
+- **The app's name is said once** (version 1.1): there is no title bar any more, only the heading on the screen, so TalkBack doesn't read "Smerový asistent" twice.
 
 Source, build and test instructions: [`android/`](android/README.md).
 
@@ -437,10 +460,11 @@ Source, build and test instructions: [`android/`](android/README.md).
   - checks against the real map services around Lesná 6, Nové Zámky
   - real use on an iPhone with VoiceOver by the author: saved points, and being told when you reach one, were reported to work dependably
   - **Places without a name (43), saving planned routes and the moved VoiceOver cursor (44), and in version 45 the new kinds of route, the walking-direction and missed-point messages, Recalculate the route and the station points, the version 46 countdown ("5 m", "now"), and the version 47 marked crossings (how well the iPhone compass holds the direction outside, and when "You have crossed" comes) still need checking on the iPhone and outside.** GPS jumps of a few meters can make "walked past the point" or the walking direction wrong now and then.
-- **Android app.** Tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone**. Still to check on the device, at home first and then outside with someone sighted nearby:
+- **Android app.** Tested on a simulated Android (Robolectric) and with unit tests. Version 1.0 was installed and started on a Pixel 7 with TalkBack by the author; degrees work dependably indoors. Still to check on the device, at home first and then outside with someone sighted nearby:
   - how the compass behaves in a pocket
   - how it works with the screen off
   - vibration strength
+  - **version 1.1:** meters outside (GPS distance is only as good as the GPS, a few meters either way), the GPS messages, the update from 1.1 to a later version on the phone (the installer and its questions can only be simulated here), and that the name is now read once
 
 ## Files
 - `index.html`: the current web app, the same as `smerasistentv3.html`. It is kept in sync, so the link above always shows the latest version.
@@ -450,5 +474,5 @@ Source, build and test instructions: [`android/`](android/README.md).
 - `data/poi1/`: the app's own map data.
   - Points of interest in Slovakia as small tiles (0.02° × 0.03°, about 2 × 2 km), with `meta.json` (date, tile list).
   - Derived from OpenStreetMap (© OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/)), made with `tools/poi/` (see [its README](tools/poi/README.md)).
-- `android/`: the Android app's source. `downloads/smerovy-asistent.apk` is its latest build.
+- `android/`: the Android app's source. `downloads/smerovy-asistent.apk` is its latest build, and `downloads/version.json` says its version and SHA-256 for the app's updates.
 - `tests/`: automated tests of the web app with recorded map answers (see [its README](tests/README.md)).

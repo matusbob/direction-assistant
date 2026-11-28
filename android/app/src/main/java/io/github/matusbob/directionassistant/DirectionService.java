@@ -40,6 +40,10 @@ public class DirectionService extends Service implements SensorEventListener, Lo
     private static final int NOTIFICATION_ID = 1;
     // Same as the web app: the direction is taken 1.2 s after Start, once the compass has settled
     private static final long LOCK_DELAY_MS = 1200;
+    // Meters mode: a GPS fix older than this means no GPS (guided in degrees meanwhile)
+    static final long GPS_FRESH_MS = 10000;
+    // Meters mode: turned this far (degrees) counts as a hard drift at once, even before you've walked far
+    static final float METERS_MAX_ANGLE = 45f;
 
     /** What the screen shows. */
     public static final class Status {
@@ -92,14 +96,34 @@ public class DirectionService extends Service implements SensorEventListener, Lo
     private boolean running, locked, gpsOn, stopping;
     private int axis;
     private float target;
-    private long lockAt, lastNotification;
+    private long lockAt, lastNotification, firstLockTime;
     private String stateKey;
+    // Meters mode (chosen at Start): which measure is used now, and what was last said about it
+    private boolean useMeters, metersNow, angleOnly;
+    private float lastDiff, lastOffset;
+    private static final int GPS_UNKNOWN = 0, GPS_METERS = 1, GPS_DEGREES = 2;
+    private int gpsSaid;
+    // Said together with "Direction set" (a message said before it would be cut off by it)
+    private String startNote;
 
     private final Runnable gpsWatch = new Runnable() {
         @Override public void run() {
             if (!running) return;
-            if (distance.shouldWarnPoorGps(SystemClock.elapsedRealtime())) message(getString(R.string.poor_gps));
-            handler.postDelayed(this, 5000);
+            long now = SystemClock.elapsedRealtime();
+            if (distance.shouldWarnPoorGps(now)) message(getString(R.string.poor_gps));
+            if (useMeters && locked) {
+                if (distance.fresh(now, GPS_FRESH_MS)) {
+                    if (gpsSaid != GPS_METERS) {
+                        gpsSaid = GPS_METERS;
+                        message(getString(R.string.meters_ready));
+                    }
+                } else if (gpsSaid == GPS_METERS || (gpsSaid == GPS_UNKNOWN && now - firstLockTime >= GPS_FRESH_MS)) {
+                    boolean lost = gpsSaid == GPS_METERS;
+                    gpsSaid = GPS_DEGREES;
+                    message(getString(lost ? R.string.meters_lost : R.string.meters_wait_gps));
+                }
+            }
+            handler.postDelayed(this, 1000);
         }
     };
     private final Runnable notificationUpdate = this::refreshNotification;
@@ -147,7 +171,9 @@ public class DirectionService extends Service implements SensorEventListener, Lo
     }
 
     private void startGuidance() {
-        boolean wantGps = prefs.goodEvery() > 0 && hasLocation();
+        useMeters = prefs.meters();
+        boolean needGps = prefs.goodEvery() > 0 || useMeters;
+        boolean wantGps = needGps && hasLocation();
         int type = 0;
         if (Build.VERSION.SDK_INT >= 34) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
         if (wantGps) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
@@ -155,6 +181,10 @@ public class DirectionService extends Service implements SensorEventListener, Lo
         stopping = false;
         locked = false;
         stateKey = null;
+        metersNow = angleOnly = false;
+        gpsSaid = GPS_UNKNOWN;
+        startNote = null;
+        firstLockTime = 0;
         setStatus(getString(R.string.scanning), getString(R.string.scanning_sub), null);
         try {
             if (type != 0) startForeground(NOTIFICATION_ID, buildNotification(), type);
@@ -190,17 +220,23 @@ public class DirectionService extends Service implements SensorEventListener, Lo
         lockAt = now + LOCK_DELAY_MS;
         sensors.registerListener(this, rot, SensorManager.SENSOR_DELAY_GAME);
 
-        if (prefs.goodEvery() > 0) {
+        if (needGps) {
             if (wantGps && locations != null && locations.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 try {
                     locations.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this, Looper.getMainLooper());
                     gpsOn = true;
-                    handler.postDelayed(gpsWatch, 5000);
+                    handler.postDelayed(gpsWatch, 1000);
                 } catch (SecurityException e) {
-                    message(getString(R.string.need_location));
+                    gpsOn = false;
                 }
-            } else {
-                message(getString(R.string.need_location));
+            }
+            if (!gpsOn) {
+                StringBuilder note = new StringBuilder();
+                if (useMeters) note.append(getString(R.string.meters_need_gps));
+                if (prefs.goodEvery() > 0) note.append(note.length() > 0 ? " " : "").append(getString(R.string.need_location));
+                startNote = note.toString();
+                // Without GPS, meters can't be measured: this walk is guided in degrees
+                useMeters = false;
             }
         }
     }
@@ -217,12 +253,18 @@ public class DirectionService extends Service implements SensorEventListener, Lo
         axis = filter.bestAxis();
         target = filter.heading(axis);
         locked = true;
+        if (firstLockTime == 0) firstLockTime = now;
+        // Drift in meters is counted from where the direction was set
+        distance.resetSince();
         engine.resetState();
         compassCheck.reset();
         stateKey = null;
         if (prefs.sound()) beeper.chime();
         setStatus(getString(R.string.dir_set), getString(R.string.dir_set_sub), DriftEngine.State.OK);
-        message(getString(R.string.dir_set_speech));
+        String text = getString(R.string.dir_set_speech);
+        if (startNote != null && !startNote.isEmpty()) text += " " + startNote;
+        startNote = null;
+        message(text);
     }
 
     @Override
@@ -238,9 +280,29 @@ public class DirectionService extends Service implements SensorEventListener, Lo
         // The chosen axis points up or down (phone taken out, turned flat...): no usable direction for now
         if (!filter.usable(axis)) return;
         if (compassCheck.add(Heading.headingOf(rotation, axis), now)) message(getString(R.string.compass_warning));
-        engine.setThreshold(prefs.threshold());
         engine.setSpeakStraight(prefs.voice() == Prefs.VOICE_ALWAYS);
-        apply(engine.update(Heading.angleDiff(filter.heading(axis), target), now));
+        float diff = Heading.angleDiff(filter.heading(axis), target);
+        lastDiff = diff;
+        metersNow = useMeters && distance.fresh(now, GPS_FRESH_MS);
+        angleOnly = false;
+        float value;
+        if (metersNow) {
+            // As in the web app: how far to the side you'd be if you had walked the whole way at this angle
+            float th = prefs.thresholdMeters();
+            float off = (float) (distance.since() * Math.sin(Math.toRadians(diff)));
+            lastOffset = off;
+            value = off;
+            if (Math.abs(diff) >= METERS_MAX_ANGLE && Math.abs(off) <= th * 2) {
+                // Turned far, but not walked far yet: a hard drift all the same, told in degrees
+                value = Math.signum(diff) * (th * 2 + 0.01f);
+                angleOnly = true;
+            }
+            engine.setThreshold(th);
+        } else {
+            engine.setThreshold(prefs.threshold());
+            value = diff;
+        }
+        apply(engine.update(value, now));
     }
 
     @Override
@@ -267,9 +329,16 @@ public class DirectionService extends Service implements SensorEventListener, Lo
             message(getString(R.string.back_on_track));
         } else if (o.speech == DriftEngine.Speech.DRIFT) {
             boolean right = o.state == DriftEngine.State.RIGHT;
-            int res = o.hard ? (right ? R.string.hard_drift_right : R.string.hard_drift_left)
-                    : (right ? R.string.drift_right : R.string.drift_left);
-            message(getString(res, o.degrees));
+            if (metersNow && !angleOnly) {
+                int res = o.hard ? (right ? R.plurals.hard_drift_right_m : R.plurals.hard_drift_left_m)
+                        : (right ? R.plurals.drift_right_m : R.plurals.drift_left_m);
+                int m = Math.max(1, Math.round(Math.abs(lastOffset)));
+                message(getResources().getQuantityString(res, m, m));
+            } else {
+                int res = o.hard ? (right ? R.string.hard_drift_right : R.string.hard_drift_left)
+                        : (right ? R.string.drift_right : R.string.drift_left);
+                message(getString(res, Math.round(Math.abs(lastDiff))));
+            }
         } else if (o.speech == DriftEngine.Speech.STRAIGHT && prefs.voice() != Prefs.VOICE_OFF) {
             // Only spoken (as in the web app), not added for the screen reader
             speaker.say(getString(R.string.straight));

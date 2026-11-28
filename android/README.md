@@ -10,15 +10,16 @@ export ANDROID_HOME=/path/to/android-sdk   # needs platforms;android-36 and buil
 ./gradlew lintRelease assembleRelease       # app/build/outputs/apk/release/app-release.apk
 ```
 
-Copy the APK to `../downloads/smerovy-asistent.apk` to publish it on the project's GitHub Pages site, and raise `versionCode` / `versionName` in `app/build.gradle` for each new release so it installs as an update.
+Raise `versionCode` / `versionName` in `app/build.gradle` for each new release so it installs as an update. To publish it on the project's GitHub Pages site, copy the APK to `../downloads/smerovy-asistent.apk` and update `../downloads/version.json` (`versionCode`, `versionName`, the APK's `sha256`, `notes_sk`, `notes_en`): the installed apps read that file to offer the update, and refuse an APK whose SHA-256 differs.
 
 ## Code
 
 - `DriftEngine` - what to beep, vibrate and say for each compass reading (same rules as the web app).
 - `Heading`, `HeadingFilter` - compass heading of the phone's top edge or back from the rotation-vector sensor, smoothed.
-- `DistanceTracker` - GPS distance for "Doing good"; `CompassCheck` - jumping-compass warning.
+- `DistanceTracker` - GPS distance for "Doing good" and for drift in meters; `CompassCheck` - jumping-compass warning.
 - `DirectionService` - foreground service: sensors, GPS, notification, `Beeper` (stereo tones), `Haptics`, `Speaker` (text-to-speech).
-- `MainActivity` - the one screen and the settings dialogs. `Prefs`, `Lang` - settings and in-app language.
+- `MainActivity` - the one screen, the settings dialogs and the update dialogs. `Prefs`, `Lang` - settings and in-app language.
+- `Updater`, `UpdateReceiver` - updates: `version.json` and the APK from the project site, the SHA-256 check, Android's package installer.
 
 ## Signing
 

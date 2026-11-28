@@ -59,6 +59,9 @@ public class AppFlowTest {
         app.getSharedPreferences(Prefs.FILE, 0).edit().clear().commit();
         rotationSensor = ShadowSensor.newInstance(Sensor.TYPE_ROTATION_VECTOR);
         shadowOf(app.getSystemService(SensorManager.class)).addSensor(rotationSensor);
+        // No real internet in the tests: the update check finds nothing
+        Updater.executor = Runnable::run;
+        Updater.net = url -> { throw new java.io.IOException("offline"); };
     }
 
     @After
@@ -207,19 +210,21 @@ public class AppFlowTest {
         AlertDialog d = ShadowAlertDialog.getLatestAlertDialog();
         List<String> items = new ArrayList<>();
         for (CharSequence cs : shadowOf(d).getItems()) items.add(cs.toString());
-        assertEquals(Arrays.asList("Allowed deviation: 15 degrees", "Sounds: on", "Vibrations: on",
-                "Voice: only when drifting", "Doing good: off", "Language: phone language"), items);
+        assertEquals(Arrays.asList("Measure drift in: degrees (compass only, works indoors too)",
+                "Allowed deviation: 15 degrees", "Allowed drift in meters: 2 meters", "Sounds: on", "Vibrations: on",
+                "Voice: only when drifting", "Doing good: off", "Language: phone language", "Automatic updates: on",
+                "Check for an update now"), items);
 
         // Allowed deviation -> 25 degrees, then back on the settings list
-        shadowOf(d).clickOnItem(0);
+        shadowOf(d).clickOnItem(1);
         shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(4);
         assertEquals(25, new Prefs(app).threshold());
-        assertEquals("Allowed deviation: 25 degrees", shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getItems()[0].toString());
+        assertEquals("Allowed deviation: 25 degrees", shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getItems()[1].toString());
 
         // Voice off -> the message line becomes a live region for TalkBack
         TextView msg = a.findViewById(R.id.last_message);
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_NONE, msg.getAccessibilityLiveRegion());
-        shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(3);
+        shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(5);
         shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(0);
         assertEquals(Prefs.VOICE_OFF, new Prefs(app).voice());
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, msg.getAccessibilityLiveRegion());
@@ -227,7 +232,7 @@ public class AppFlowTest {
         assertEquals("Back on track.", msg.getText().toString());
 
         // Language -> Slovak
-        shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(5);
+        shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(7);
         shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(1);
         assertEquals("sk", new Prefs(app).lang());
         MainActivity sk = Robolectric.buildActivity(MainActivity.class).setup().get();

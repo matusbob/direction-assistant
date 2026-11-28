@@ -76,4 +76,54 @@
     <string name="lang_system">phone language</string>
     <string name="lang_sk" translatable="false">Slovenčina</string>
     <string name="lang_en" translatable="false">English</string>
+    <string name="unit">Measure drift in</string>
+    <string name="set_unit">Measure drift in: %1$s</string>
+    <string name="unit_degrees">degrees (compass only, works indoors too)</string>
+    <string name="unit_meters">meters (compass and GPS distance, outdoors)</string>
+    <string name="threshold_m">Allowed drift in meters</string>
+    <string name="set_threshold_m">Allowed drift in meters: %1$s</string>
+    <plurals name="meters_n">
+        <item quantity="one">%1$d meter</item>
+        <item quantity="other">%1$d meters</item>
+    </plurals>
+    <plurals name="drift_right_m">
+        <item quantity="one">Drift right, %1$d meter</item>
+        <item quantity="other">Drift right, %1$d meters</item>
+    </plurals>
+    <plurals name="drift_left_m">
+        <item quantity="one">Drift left, %1$d meter</item>
+        <item quantity="other">Drift left, %1$d meters</item>
+    </plurals>
+    <plurals name="hard_drift_right_m">
+        <item quantity="one">Hard drift right, %1$d meter</item>
+        <item quantity="other">Hard drift right, %1$d meters</item>
+    </plurals>
+    <plurals name="hard_drift_left_m">
+        <item quantity="one">Hard drift left, %1$d meter</item>
+        <item quantity="other">Hard drift left, %1$d meters</item>
+    </plurals>
+    <string name="meters_need_gps">Meters need location access and location turned on. Guiding in degrees.</string>
+    <string name="meters_wait_gps">No GPS yet. Guiding in degrees until it\'s ready.</string>
+    <string name="meters_ready">GPS ready, guiding in meters.</string>
+    <string name="meters_lost">GPS lost. Guiding in degrees until it\'s back.</string>
+
+    <string name="auto_update">Automatic updates</string>
+    <string name="set_auto_update">Automatic updates: %1$s</string>
+    <string name="auto_update_on">on (when the app opens, it looks for a new version at most every 6 hours)</string>
+    <string name="check_update">Check for an update now</string>
+    <string name="update_title">New version %1$s</string>
+    <string name="update_available">Version %1$s is available, you have %2$s. %3$s</string>
+    <string name="update_now">Update</string>
+    <string name="later">Later</string>
+    <string name="update_checking">Checking for an update…</string>
+    <string name="update_downloading">Downloading the update…</string>
+    <string name="update_installing">Installing the update. If the phone asks, confirm Update.</string>
+    <string name="update_latest">You have the latest version, %1$s.</string>
+    <string name="update_failed">Couldn\'t check for an update. Check the internet connection.</string>
+    <string name="update_download_failed">Couldn\'t download the update. Try again later.</string>
+    <string name="update_install_failed">The update wasn\'t installed: %1$s</string>
+    <string name="update_allow_title">Allow updates</string>
+    <string name="update_allow">To update itself, the app needs permission to install apps. The phone\'s settings will open: turn on Allow from this source, then go back.</string>
+    <string name="open_settings">Open settings</string>
+    <string name="update_running">Stop the guidance first, then update.</string>
 </resources>
