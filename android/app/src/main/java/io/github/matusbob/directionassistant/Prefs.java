@@ -8,6 +8,8 @@ final class Prefs {
     static final String FILE = "settings";
     static final int VOICE_OFF = 0, VOICE_DRIFT = 1, VOICE_ALWAYS = 2;
     static final int[] THRESHOLDS = {5, 10, 15, 20, 25, 30, 40};
+    static final int[] THRESHOLDS_M = {1, 2, 3, 4, 5, 7, 10, 15};
+    static final String UNIT_DEGREES = "degrees", UNIT_METERS = "meters";
     static final int[] GOOD_EVERY = {0, 10, 20, 50, 100};
     static final String[] LANGS = {"system", "sk", "en"};
 
@@ -24,12 +26,24 @@ final class Prefs {
     /** "Doing good" every this many meters; 0 = off */
     int goodEvery() { return sp.getInt("goodEvery", 0); }
     String lang() { return sp.getString("lang", "system"); }
+    /** How drifting is measured: degrees (compass only) or meters (compass and GPS distance) */
+    String unit() { return sp.getString("unit", UNIT_DEGREES); }
+    boolean meters() { return UNIT_METERS.equals(unit()); }
+    /** Allowed sideways drift in meters, in meters mode */
+    int thresholdMeters() { return sp.getInt("thresholdMeters", 2); }
+    /** Look for a new version of the app when it opens */
+    boolean autoUpdate() { return sp.getBoolean("autoUpdate", true); }
+    long lastUpdateCheck() { return sp.getLong("lastUpdateCheck", 0); }
 
     void setThreshold(int v) { sp.edit().putInt("threshold", v).apply(); }
     void setSound(boolean v) { sp.edit().putBoolean("sound", v).apply(); }
     void setVibrate(boolean v) { sp.edit().putBoolean("vibrate", v).apply(); }
     void setVoice(int v) { sp.edit().putInt("voice", v).apply(); }
     void setGoodEvery(int v) { sp.edit().putInt("goodEvery", v).apply(); }
+    void setUnit(String v) { sp.edit().putString("unit", v).apply(); }
+    void setThresholdMeters(int v) { sp.edit().putInt("thresholdMeters", v).apply(); }
+    void setAutoUpdate(boolean v) { sp.edit().putBoolean("autoUpdate", v).apply(); }
+    void setLastUpdateCheck(long v) { sp.edit().putLong("lastUpdateCheck", v).apply(); }
     // Written at once: the screen is rebuilt in the new language right after this
     @android.annotation.SuppressLint("ApplySharedPref")
     void setLang(String v) { sp.edit().putString("lang", v).commit(); }

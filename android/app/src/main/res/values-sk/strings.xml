@@ -75,4 +75,64 @@
     <string name="language">Jazyk</string>
     <string name="set_language">Jazyk: %1$s</string>
     <string name="lang_system">podľa telefónu</string>
+    <string name="unit">Merať vybočenie v</string>
+    <string name="set_unit">Merať vybočenie v: %1$s</string>
+    <string name="unit_degrees">stupňoch (len kompas, funguje aj vnútri)</string>
+    <string name="unit_meters">metroch (kompas a vzdialenosť z GPS, vonku)</string>
+    <string name="threshold_m">Povolená odchýlka v metroch</string>
+    <string name="set_threshold_m">Povolená odchýlka v metroch: %1$s</string>
+    <plurals name="meters_n">
+        <item quantity="one">%1$d meter</item>
+        <item quantity="few">%1$d metre</item>
+        <item quantity="many">%1$d metra</item>
+        <item quantity="other">%1$d metrov</item>
+    </plurals>
+    <plurals name="drift_right_m">
+        <item quantity="one">Vybočenie doprava, %1$d meter</item>
+        <item quantity="few">Vybočenie doprava, %1$d metre</item>
+        <item quantity="many">Vybočenie doprava, %1$d metra</item>
+        <item quantity="other">Vybočenie doprava, %1$d metrov</item>
+    </plurals>
+    <plurals name="drift_left_m">
+        <item quantity="one">Vybočenie doľava, %1$d meter</item>
+        <item quantity="few">Vybočenie doľava, %1$d metre</item>
+        <item quantity="many">Vybočenie doľava, %1$d metra</item>
+        <item quantity="other">Vybočenie doľava, %1$d metrov</item>
+    </plurals>
+    <plurals name="hard_drift_right_m">
+        <item quantity="one">Silné vybočenie doprava, %1$d meter</item>
+        <item quantity="few">Silné vybočenie doprava, %1$d metre</item>
+        <item quantity="many">Silné vybočenie doprava, %1$d metra</item>
+        <item quantity="other">Silné vybočenie doprava, %1$d metrov</item>
+    </plurals>
+    <plurals name="hard_drift_left_m">
+        <item quantity="one">Silné vybočenie doľava, %1$d meter</item>
+        <item quantity="few">Silné vybočenie doľava, %1$d metre</item>
+        <item quantity="many">Silné vybočenie doľava, %1$d metra</item>
+        <item quantity="other">Silné vybočenie doľava, %1$d metrov</item>
+    </plurals>
+    <string name="meters_need_gps">Metre potrebujú prístup k polohe a zapnutú polohu. Vediem podľa stupňov.</string>
+    <string name="meters_wait_gps">Zatiaľ nemám GPS. Kým nebude, vediem podľa stupňov.</string>
+    <string name="meters_ready">GPS je pripravené, vediem v metroch.</string>
+    <string name="meters_lost">Stratil som GPS. Kým sa nevráti, vediem podľa stupňov.</string>
+
+    <string name="auto_update">Automatické aktualizácie</string>
+    <string name="set_auto_update">Automatické aktualizácie: %1$s</string>
+    <string name="auto_update_on">zapnuté (po otvorení aplikácie pozrie novú verziu, najviac raz za 6 hodín)</string>
+    <string name="check_update">Skontrolovať aktualizáciu teraz</string>
+    <string name="update_title">Nová verzia %1$s</string>
+    <string name="update_available">Je dostupná verzia %1$s, máte %2$s. %3$s</string>
+    <string name="update_now">Aktualizovať</string>
+    <string name="later">Neskôr</string>
+    <string name="update_checking">Hľadám aktualizáciu…</string>
+    <string name="update_downloading">Sťahujem aktualizáciu…</string>
+    <string name="update_installing">Inštalujem aktualizáciu. Ak sa telefón opýta, potvrďte Aktualizovať.</string>
+    <string name="update_latest">Máte najnovšiu verziu %1$s.</string>
+    <string name="update_failed">Nepodarilo sa zistiť, či je nová verzia. Skontrolujte pripojenie na internet.</string>
+    <string name="update_download_failed">Aktualizáciu sa nepodarilo stiahnuť. Skúste to neskôr.</string>
+    <string name="update_install_failed">Aktualizácia sa nenainštalovala: %1$s</string>
+    <string name="update_allow_title">Povoliť aktualizácie</string>
+    <string name="update_allow">Aby sa aplikácia vedela sama aktualizovať, potrebuje povolenie inštalovať aplikácie. Otvoria sa nastavenia telefónu: zapnite Povoliť z tohto zdroja a vráťte sa späť.</string>
+    <string name="open_settings">Otvoriť nastavenia</string>
+    <string name="update_running">Najprv zastavte vedenie, potom aktualizujte.</string>
 </resources>
