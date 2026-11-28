@@ -14,6 +14,17 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
 - `test_v46.js` - version 46: the countdown before each point ("10 m", "5 m", "now") walked at 1 m/s: where each cue
   comes, other choices of distances, "now" 3 m before, GPS passing beside the point, the setting off (as before),
   a planned route, and the settings. (The older suites run with the countdown off, to keep testing what they test.)
+- `test_v47.js` - version 47: marking a crossing (compass direction while walking across, GPS length, too-short
+  ends), crossing it there and back, starting far away, What's nearby, and the crossings of a planned route.
+- `test_crossing_safety.js` - crossing safety, each situation with the voice on and off: pointing right at once,
+  walking straight with compass noise (no warning), turning guidance, a small drift over the limit said and vibrated
+  within 0.5 s, under the limit silent, a second drift right after coming back, a lasting drift repeated every 2 s,
+  change of side, a big drift, obstacle mode not delaying, "direction right" every 3 m, and the start-of-route advice.
+- `test_compass.js` - how the compass is read with Start / Stop, with iPhone-like compass events, voice on and off:
+  a compass that starts 3 s late, no compass at all, an old direction from the last run, the compass stopping and
+  coming back, back from a locked screen, the direction as an average of noisy readings, an uncalibrated compass,
+  holding the phone differently, Set Direction without fresh readings, the plain case, a new drift 1 s after coming
+  back, and a lasting drift repeated every 3 s while under the limit stays silent.
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and

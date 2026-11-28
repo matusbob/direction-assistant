@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 46:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 47:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,8 +12,14 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 46, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 47, https://matusbob.github.io/direction-assistant/) vie:
 
+- **Spoľahlivejší kompas pri Štart / Stop** (oprava vo verzii 47):
+  - smer sa nastaví vždy z nových údajov kompasu, ako priemer viacerých, aj keď iPhone pošle prvé údaje neskôr (predtým v takom prípade smer ostal nenastavený a vybočenie sa nehlásilo); nikdy sa nepoužije smer z predchádzajúceho spustenia;
+  - každé nové vybočenie (aj hneď po „Vrátil si sa do pôvodného smeru“) sa povie hneď, nie až po 3 s;
+  - nahlas a cez VoiceOver povie, keď kompas neposiela údaje, keď prestane posielať počas chôdze (a keď znova funguje), keď je nekalibrovaný (osmička), keď telefón držíš úplne inak ako pri nastavení smeru, a po návrate zo zamknutej obrazovky, ako dlho navádzanie nefungovalo;
+  - pípanie a hlas aj pri prepínači ticha na boku iPhonu (nastavenie, zapnuté; Safari 17 a novší).
+  - iPhone vo webovej aplikácii nevibruje (vibrácie fungujú na Androide).
 - **Rovný smer.** Štart → po chvíli sa zapamätá smer, ktorým telefón mieri. Pri vybočení pípa zo strany, kam uhýbaš, vibruje (doprava jedno súvislé zabzučanie, doľava prerušované) a povie „Vybočenie vpravo, 20 stupňov“. Keď ideš dobre, tichý tik každých pár sekúnd.
   - Citlivosť v stupňoch alebo v metroch podľa GPS.
   - „Ideš dobre“ každých X metrov a štatistika po zastavení.
@@ -27,10 +33,24 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - Navigácia aj späť, úprava bodov a vopred pripravené poznámky.
   - Úseky „drž rovno X metrov“, aj bez GPS (koniec potvrdíš sám, alebo odhad podľa krokov).
   - Import a export GPX.
+- **Označený priechod** (nové vo verzii 47). V Rýchlych akciách stlač **Označiť priechod**:
+  1. postav sa na začiatok priechodu a stlač Začiatok priechodu,
+  2. prejdi priechod, najlepšie s vidiacim, telefón drž pred sebou,
+  3. na druhej strane stlač Koniec priechodu a pomenuj ho.
+
+  Aplikácia si zapamätá presný smer z kompasu (aj šikmý priechod) a dĺžku z GPS. Potom ho v Uložených trasách alebo v Čo je blízko? prejdeš oboma smermi (Prejsť / Prejsť späť):
+  - hneď povie, či mieriš správne („Smer správny, choďte.“), alebo „Najprv sa otočte doľava asi o 40 stupňov“ a kým sa otáčaš, „Ešte doľava, 15 stupňov“, až kým nepovie „Smer správny, choďte.“;
+  - počas prechodu hneď (do pol sekundy) povie každé vybočenie nad nastavenú hranicu (predvolene 10°), opakuje ho každé 2 s, kým trvá, a povie aj návrat; pod hranicou je ticho; režim medzi prekážkami sa na priechode nepoužije, aby nič nemeškalo;
+  - voliteľne každé 2, 3 alebo 5 m potvrdí „Smer správny.“;
+  - na druhej strane povie „Prešli ste priechod.“ (podľa GPS, môže to byť o pár metrov skôr alebo neskôr).
+  - Aplikácia vie, kam mieri telefón; posun o 2 m do strany, keď telefón stále mieri rovno, spoľahlivo nepozná (GPS sa mýli o 3 – 5 m). Telefón preto drž stále rovnako pred sebou.
+- **Priechody z mapy na plánovanej trase** (experimentálne, treba zapnúť): pri každom priechode, ktorý pozná mapa, sa sám zapne rovný smer podľa tvaru priechodu v mape.
+- **Na začiatku trasy** povie, kam sa otočiť („Otočte sa doľava asi o 60 stupňov“ alebo „Choďte rovno“) a potom „Smer správny, choďte.“ (nové vo verzii 47, dá sa vypnúť).
 - **Rýchle akcie na hlavnej obrazovke:**
   - **Moja poloha** (ulica, číslo, mesto, najbližšia križovatka a zoznam križovatiek okolo)
   - **Kompas** (otáčaš telefónom a povie sever, severovýchod...)
   - **Uložiť toto miesto**
+  - **Označiť priechod**
   - **Okolie z mapy**
   - **Hľadať miesto**
   - **Zopakovať posledné hlásenie**
@@ -96,6 +116,12 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - The voice says, for example, "Drift right, 20 degrees".
 - **On track:** a distinct, quiet confirmation tick plays every couple of seconds, so silence never has to mean "did this stop working?". A separate quiet warning tick plays once you're within 70 % of your limit, before you actually cross it.
 - **Optional:** "Doing good" every X meters, and statistics when you stop.
+- **How the compass is read** (version 47 fixes, after a real walk where a drift wasn't said):
+  - Start takes the direction from compass readings that come after the press: the average of the last readings once there are at least 5 (from about 1.2 s). If the iPhone sends its first reading later (common right after allowing motion, or with an uncalibrated compass), the direction is set and said as soon as readings come. Before, it said "Waiting for compass..." once and then never set the direction, so no drift was ever said. A direction from the previous run is never used. Set Direction without fresh readings waits for them in the same way, without warning against the old direction meanwhile.
+  - Every new drift, or a change of side, is said at once (before, a drift within 3 s of the last message, for example right after "Back on track", was only beeped). A lasting drift is repeated every 3 s (every 2 s on a crossing).
+  - Said aloud and through the screen reader: no compass readings within 3 s of Start (check motion and orientation in Settings, Safari); the compass stopping for 2 s while guiding, and coming back; an uncalibrated compass (iPhone accuracy negative or over 30 degrees: move the phone in a figure-8); holding the phone very differently from when the direction was set (tilted more than 45 degrees, e.g. flat to upright: press Set Direction); and, back from a locked screen or another app, for how many seconds guidance wasn't working.
+  - Beeps and speech also with the iPhone's side switch on silent (setting, on; uses the audio session of Safari 17 and newer, so other audio may pause).
+  - iPhone web apps cannot vibrate at all (Apple doesn't allow it); vibrations work on Android only.
 - **Weak GPS:** fixes with poor accuracy (over 20 m, common in parking lots, under cover or near large metal objects) are rejected. If that lasts 15 seconds or more while meters mode or route navigation needs GPS distance, the app says so out loud, in an accessible announcement and on screen, instead of sitting silently.
 - **Compass check:** if the heading readings jump erratically, the app suggests recalibrating with a figure-8 motion.
 - **Obstacle mode** (optional, off by default): for places where you have to weave around things, such as a parking lot full of cars or a crowd.
@@ -127,6 +153,12 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - While recording, **Next note** attaches the next one to your position. The button says which note comes next and how many are left.
   - Or record hands-free, and afterwards press **From list** at each point in Edit route.
 - **Notes only** (optional): skip the automatic distance countdown and rely on your own point notes. Off-route warnings, turn confirmations and the arrival note still work.
+- **Marked crossings** (version 47): **Mark a crossing** in Quick actions. Stand at the start of the crossing and press Start of the crossing, walk across (best with someone sighted) holding the phone in front of you, and press End of the crossing on the other side; then name it. The app keeps the exact direction from the compass while you walked (so a slanting crossing is fine) and the length from GPS (if GPS puts the ends closer than 4 m, the direction is kept and the length set to 8 m, and it says so). In Saved routes the crossing has **Cross** and **Cross back**; What's nearby? lists it from its nearer end and names your nearest crossing. Crossing it:
+  - At once it says whether the phone points the right way ("Direction right, go."), or "First turn left by about 40 degrees, then go." and, while you turn, "More to the left, 15 degrees." until "Direction right, go." If you started far from the crossing it says how far you seem to be.
+  - While crossing, every drift over the crossing's own limit ("On a crossing, warn when I drift by more than", 5-20 degrees, default 10) is said and vibrated at once (in the tests within 0.1 s), repeated every 2 s while it lasts, and coming back is said too; a new drift right after coming back, or a change of side, is said at once as well. Under the limit nothing is said. Obstacle mode never delays warnings on a crossing.
+  - Optionally "Direction right." every 2, 3 or 5 m ("While crossing, confirm direction right").
+  - On the other side: "You have crossed." (from GPS, so it can come a few meters early or late).
+  - The app knows where the phone points, at once; a sideways shift of 2 m while the phone still points straight cannot be told reliably (GPS is 3-5 m off). Keep the phone in front of you the same way.
 - **Save a point here:** save your current position with a label in one step. Every saved point remembers its **address**.
 - **What's nearby?** lists your saved points within about 150 m, closest first, each with its direction. Press one to navigate to it.
   - **At a station** (setting, on by default): it first says which of your points you are at ("You are at: Platform 3, 3 m"), then where your nearest stairs, entrance, exit, lift and platform are ("Nearest stairs: West stairs, 20 m, to the west."). Kinds are recognised by a word in the point's name (Slovak or English: schody/stairs, vchod/entrance, východ/exit, výťah/lift, nástupište/platform). Mark each platform, its stairs and entrances once; GPS works outside on the platforms, not inside the hall.
@@ -254,6 +286,8 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 
 ### During any route navigation
 - **Route instructions** on the main screen list all points of the route, with the current target marked and passed ones labelled. Pressing one makes it the target. The list is redrawn only when the target changes, so a screen reader's place in it isn't disturbed. A setting turns it off.
+- **Crossings of a planned route** (experimental setting, off by default): arriving at a pedestrian crossing the map knows, the app holds the crossing's direction from the map ("I'll hold the direction across the crossing, 12 m."), with the same warnings as on a marked crossing, until "You have crossed."; then the route goes on.
+- **At the start of a route** (setting, on by default): which way to turn to the first point ("Start. Turn left by about 60 degrees, then 60 m." or "Go straight on"), then "Direction right, go." once the phone points that way.
 - **The screen reader is moved to the current point** when route navigation starts (setting, on by default): VoiceOver lands on "1. ..., current target" in Route instructions instead of staying where you were. While it is on the current point, it moves on with it when the next point becomes current. If you are elsewhere on the screen, it is left alone.
 - **Leaving the route says more** (setting, on by default): besides "You are off the route", the app adds that you're moving away from the next point, probably the wrong way, and where that point is ("It is behind you, 40 m").
 - **Which way you walk, and a point you walked past** (setting, on by default): the off-route message also says which way you have been walking (from your last 8 m or more of GPS) and which way the point is ("You are walking south-west; the point is to the north-east."). If you came within 25 m of the next point without reaching it and are now moving away, it says "You have probably walked past the point: Turn left onto Lesná. It is behind you to the left, 26 m." When the warning comes is set with "Warn that I'm leaving the route once I've walked away from the next point by" (automatically, or 5–30 m).
@@ -276,7 +310,7 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 - Language: Slovak or English, with the button at the bottom of the screen.
 
 ### Settings
-All settings are remembered. New features are usually off by default, so nothing changes unless you turn them on. The exceptions were asked for as the normal behaviour and can each be turned off: moving the screen reader to the current point (44), in version 45 the distance at each point, the walking direction / missed point when off the route, and which of your points you're at in What's nearby, and in version 46 the countdown "10 m, 5 m and now".
+All settings are remembered. New features are usually off by default, so nothing changes unless you turn them on. The exceptions were asked for as the normal behaviour and can each be turned off: moving the screen reader to the current point (44), in version 45 the distance at each point, the walking direction / missed point when off the route, and which of your points you're at in What's nearby, in version 46 the countdown "10 m, 5 m and now", and in version 47 the turn advice at the start of a route.
 
 | Setting (Slovak name in the app) | Default |
 |---|---|
@@ -286,6 +320,7 @@ All settings are remembered. New features are usually off by default, so nothing
 | Režim medzi prekážkami - obstacle mode, and how long a drift must last (2–10 s) | off, 5 s |
 | Režim hlasového výstupu - voice: off / only when drifting / always | only when drifting |
 | Pípanie pri vybočení - spatial audio beeps | on |
+| Pípanie a hlas aj pri prepínači ticha na iPhone - beeps and voice with the side switch on silent | on |
 | Vibrácie pri vybočení - vibrations | on |
 | Oznámiť štatistiku po zastavení - statistics on stop | on |
 | Ideš dobre každých X metrov - "Doing good" every X meters (1–50) | off, 10 m |
@@ -299,6 +334,10 @@ All settings are remembered. New features are usually off by default, so nothing
 | Pred každou odbočkou, priechodom alebo bodom odpočítavať - countdown before each point: off / 10, 5 / 10, 3 / 15, 10, 5 / 20, 10, 5, 3 / 5, 3 / 5, 2 m and now | 10 m, 5 m and now |
 | Kedy povedať „teraz“ - at the point (as close as GPS can tell) / 1 / 2 / 3 m before | at the point |
 | Pri každom bode trasy povedať aj, ako ďaleko je ďalší - distance to the next point at each point | on |
+| Na začiatku trasy povedať, kam sa otočiť - turn advice at the start of a route | on |
+| Na priechode upozorniť, keď vybočím o viac ako - crossing limit: 5 / 8 / 10 / 15 / 20 degrees | 10 degrees |
+| Počas prechodu potvrdzovať „smer správny“ - no / every 2 / 3 / 5 m | no |
+| Experimentálne: na plánovanej trase držať smer cez každý priechod, ktorý pozná mapa - map crossings | off |
 | Potvrdiť, keď som odbočil správne - turn confirmation | on |
 | V „Čo je blízko?“ povedať, pri ktorom mojom bode som... - which point I'm at, nearest stairs / entrance / platform | on |
 | Hlasová spätná väzba počas automatického nahrávania - voice while recording | on |
@@ -382,7 +421,7 @@ Source, build and test instructions: [`android/`](android/README.md).
   - comparison against the previous version, so nothing changes by accident
   - checks against the real map services around Lesná 6, Nové Zámky
   - real use on an iPhone with VoiceOver by the author: saved points, and being told when you reach one, were reported to work dependably
-  - **Places without a name (43), saving planned routes and the moved VoiceOver cursor (44), and in version 45 the new kinds of route, the walking-direction and missed-point messages, Recalculate the route and the station points, and the version 46 countdown ("5 m", "now") still need checking on the iPhone and outside.** GPS jumps of a few meters can make "walked past the point" or the walking direction wrong now and then.
+  - **Places without a name (43), saving planned routes and the moved VoiceOver cursor (44), and in version 45 the new kinds of route, the walking-direction and missed-point messages, Recalculate the route and the station points, the version 46 countdown ("5 m", "now"), and the version 47 marked crossings (how well the iPhone compass holds the direction outside, and when "You have crossed" comes) still need checking on the iPhone and outside.** GPS jumps of a few meters can make "walked past the point" or the walking direction wrong now and then.
 - **Android app.** Tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone**. Still to check on the device, at home first and then outside with someone sighted nearby:
   - how the compass behaves in a pocket
   - how it works with the screen off

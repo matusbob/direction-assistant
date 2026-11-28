@@ -32,7 +32,7 @@ const toward = (a, b, fromEndM) => { const d = dist(a, b); const f = 1 - fromEnd
     await page.addInitScript((a) => {
       if (sessionStorage.getItem('__seeded')) return;
       sessionStorage.setItem('__seeded', '1');
-      localStorage.setItem('directionAssistantSettings', JSON.stringify(Object.assign({ lang: 'sk' }, a.settings)));
+      localStorage.setItem('directionAssistantSettings', JSON.stringify(Object.assign({ lang: 'sk', startAlignOn: false }, a.settings)));
       if (a.routes) localStorage.setItem('directionAssistantRoutes', JSON.stringify(a.routes));
     }, { settings: opts.settings || {}, routes: opts.routes || null });
     const log = await install(page, {});
@@ -143,8 +143,8 @@ const toward = (a, b, fromEndM) => { const d = dist(a, b); const f = 1 - fromEnd
     const o2 = await page.$$eval('#approachNow option', (els) => els.map((e) => e.textContent));
     check('A7: Slovak options', o1[0] === 'Vypnuté (ako doteraz: „teraz“ asi 10 m pred bodom)' && o1[1] === '10 m, 5 m a teraz' && o1[4] === '20 m, 10 m, 5 m, 3 m a teraz' && o2[0] === 'Keď som pri bode (čo najpresnejšie, ako dovolí GPS)' && o2[2] === '2 m pred bodom', [o1, o2]);
     check('A7: Slovak labels', (await page.textContent('#lblApproachCues')) === 'Pred každou odbočkou, priechodom alebo bodom odpočítavať' && (await page.textContent('#lblApproachNow')) === 'Kedy povedať „teraz“');
-    await page.selectOption('#approachCues', '5,2'); await page.selectOption('#approachNow', '1'); await page.waitForTimeout(200);
-    await page.reload(); await page.waitForTimeout(400);
+    await page.selectOption('#approachCues', '5,2'); await page.selectOption('#approachNow', '1'); await page.waitForTimeout(300);
+    await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(1000);
     check('A7: remembered', (await page.inputValue('#approachCues')) === '5,2' && (await page.inputValue('#approachNow')) === '1');
     await ctx.close(); }
 
