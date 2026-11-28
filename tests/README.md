@@ -1,12 +1,17 @@
 # Tests of the web app
 
 Browser tests (Playwright with Chromium) of `smerasistentv3.html`. The map services are replaced by real answers
-recorded around Lesná 6, Nové Zámky (`fixtures/`: Valhalla routes Lesná 6 → G. Bethlena 30 in Slovak and English,
-and their crossing checks), so the tests don't depend on the internet. GPS and compass are simulated.
+recorded with `record_fixtures.sh` (`fixtures/`: Valhalla routes Lesná 6 → G. Bethlena 30 in Nové Zámky and
+Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind of route, and what the router knows about each path), so the tests don't depend on the internet. GPS and compass are simulated.
 
 - `test_plan_routes.js` - planned walking routes: all three kinds listed (and "same route as"), a kind that failed,
   saving a route to Saved routes, notes on its points, navigating it there and back, a recorded route back,
   and the screen reader moved to (and following) the current point. `node tests/test_plan_routes.js [R4]` runs one test.
+- `test_v45.js` - version 45: the six kinds of route in Bratislava (traffic lights, a gate, bollards; and an answer
+  without node data), distance at each point, walking direction and a missed point when off the route, turn confirmation
+  on/off, distance every 5 s, Recalculate the route (planned, failed, recorded), which saved point you're at and the
+  nearest stairs/entrance/platform, and the new settings.
+- `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and
   vibrations must be the same (intended changes are listed in the test). `OLD=file.html` compares against another file,

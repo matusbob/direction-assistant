@@ -1,17 +1,20 @@
-// Map services replaced by real answers recorded around Lesná 6, Nové Zámky (tests/fixtures)
+// Map services replaced by real answers recorded with tests/record_fixtures.sh:
+// nz = Lesná 6 -> G. Bethlena 30 (Nové Zámky), ba = Nedbalova -> Hodžovo námestie (Bratislava)
 const fs = require('fs');
 const path = require('path');
 const FX = path.join(__dirname, 'fixtures');
 const read = (f) => fs.readFileSync(path.join(FX, f), 'utf8');
 const hdr = { 'Access-Control-Allow-Origin': '*' };
 const LESNA = { latitude: 47.9766298, longitude: 18.1608662, accuracy: 6 };
+const NEDBALOVA = { latitude: 48.1440, longitude: 17.1110, accuracy: 6 };
 const BETHLENA = { lat: 47.9793543, lon: 18.1627105 };
+const HODZOVO = { lat: 48.1486, lon: 17.1077 };
 const shapeOf = (f) => JSON.parse(read(f)).trip.legs[0].shape;
+const TRACES = JSON.parse(read('traces.json'));
 
 async function install(page, mode = {}) {
   const log = { route: [], trace: 0, nomi: 0, search: 0 };
   const json = (r, body, status = 200) => r.fulfill({ status, contentType: 'application/json', headers: hdr, body });
-  const trace = { [shapeOf('route_named_sk-SK.json')]: 'trace_named.json', [shapeOf('route_default_sk-SK.json')]: 'trace_default.json' };
   await page.route('https://valhalla1.openstreetmap.de/**', (r) => {
     const u = new URL(r.request().url());
     if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } });
@@ -19,15 +22,21 @@ async function install(page, mode = {}) {
       log.trace++;
       if (mode.traceFail) return r.abort();
       const body = JSON.parse(r.request().postData() || '{}');
-      return json(r, trace[body.encoded_polyline] ? read(trace[body.encoded_polyline]) : '{"edges":[]}');
+      let txt = TRACES[body.encoded_polyline] ? read(TRACES[body.encoded_polyline]) : '{"edges":[]}';
+      // An older answer without what the router knows about nodes (traffic lights, bollards...)
+      if (mode.traceNoNodes) { const d = JSON.parse(txt); (d.edges || []).forEach((e) => delete e.end_node); txt = JSON.stringify(d); }
+      return json(r, txt);
     }
-    if (u.pathname === '/locate') return mode.locateFail !== false ? r.abort() : json(r, '[]');
+    if (u.pathname === '/locate') return r.abort();
     const req = JSON.parse(u.searchParams.get('json'));
     const ped = (req.costing_options && req.costing_options.pedestrian) || {};
-    const kind = ped.walkway_factor ? 'named' : ped.shortest ? 'shortest' : 'default';
-    log.route.push(kind);
+    const kind = ped.walkway_factor ? 'named' : ped.shortest ? 'shortest' : ped.step_penalty ? 'nosteps' : 'default';
+    log.route.push(kind + (req.alternates ? '+alt' : ''));
     if (mode.routeFail && mode.routeFail.includes(kind)) return r.abort();
-    return json(r, read('route_' + kind + '_' + req.directions_options.language + '.json'));
+    const place = req.locations[0].lat < 48.05 ? 'nz' : 'ba';
+    const d = JSON.parse(read(place + '_route_' + kind + '_' + req.directions_options.language + '.json'));
+    if (!req.alternates) delete d.alternates;
+    return json(r, JSON.stringify(d));
   });
   await page.route('https://nominatim.openstreetmap.org/**', (r) => {
     const u = new URL(r.request().url());
@@ -36,10 +45,13 @@ async function install(page, mode = {}) {
       if (mode.nomiFail) return r.abort();
       // The street a crossing goes across / a sidewalk runs along
       const lat = parseFloat(u.searchParams.get('lat'));
-      const road = lat > 47.9785 ? 'G. Bethlena' : lat > 47.9772 ? 'S. H. Vajanského' : 'Lesná';
+      const road = lat > 48.1 ? 'Obchodná' : lat > 47.9785 ? 'G. Bethlena' : lat > 47.9772 ? 'S. H. Vajanského' : 'Lesná';
       return json(r, JSON.stringify({ address: { road: road, house_number: '6', city: 'Nové Zámky' } }));
     }
     log.search++;
+    const q = u.searchParams.get('q') || '';
+    if (/hod/i.test(q)) return json(r, JSON.stringify([{ place_id: 78, lat: String(HODZOVO.lat), lon: String(HODZOVO.lon), category: 'place', type: 'square', name: 'Hodžovo námestie',
+      display_name: 'Hodžovo námestie, Bratislava', address: { road: 'Hodžovo námestie', city: 'Bratislava' } }]));
     return json(r, JSON.stringify([{ place_id: 77, lat: String(BETHLENA.lat), lon: String(BETHLENA.lon), category: 'place', type: 'house', name: '',
       display_name: '32/30, G. Bethlena, Nové Zámky', address: { house_number: '32/30', road: 'G. Bethlena', city: 'Nové Zámky' } }]));
   });
@@ -72,4 +84,4 @@ function decode(str) {
   }
   return out;
 }
-module.exports = { install, INIT, LESNA, BETHLENA, read, shapeOf, decode };
+module.exports = { install, INIT, LESNA, NEDBALOVA, BETHLENA, HODZOVO, read, shapeOf, decode };

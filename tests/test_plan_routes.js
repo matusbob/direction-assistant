@@ -52,18 +52,18 @@ const only = process.argv[2];
       await ctx.setGeolocation({ latitude: p.lat + 0.000001, longitude: p.lon, accuracy: 5 }); await page.waitForTimeout(1100);
     }
   }
-  const namedShape = decode(shapeOf('route_named_sk-SK.json'));
+  const namedShape = decode(shapeOf('nz_route_named_sk-SK.json'));
 
   // ===== R1: every kind of route is listed
   if (run('R1')) { const { ctx, page, log, errs } = await open();
     await openPlan(page);
     const v = await page.$$eval('#sheetBody [data-variant]', (els) => els.map((e) => e.dataset.variant + ' | ' + e.tagName + ' | ' + e.textContent));
-    check('R1: three kinds of route asked for', JSON.stringify(log.route) === JSON.stringify(['named', 'default', 'shortest']), log.route);
-    check('R1: all three are listed, in order', v.length === 3 && /^planNamed \| BUTTON \| Po pomenovaných uliciach: /.test(v[0]) && /^planRecommended \| BUTTON \| Po chodníkoch \(podľa mapy\): \d/.test(v[1]) && /^planShortest \| BUTTON \| Najkratšia trasa: /.test(v[2]), v);
+    check('R1: four kinds asked for, the map default with alternatives', JSON.stringify(log.route) === JSON.stringify(['named', 'default+alt', 'shortest', 'nosteps']), log.route);
+    check('R1: all six are listed, in order', v.length === 6 && /^planNamed \| BUTTON \| Po pomenovaných uliciach: /.test(v[0]) && /^planRecommended \| BUTTON \| Po chodníkoch \(podľa mapy\): \d/.test(v[1]) && /^planShortest \| BUTTON \| Najkratšia trasa: /.test(v[2]) && /^planNoSteps \| BUTTON \| Bez schodov: rovnaká trasa ako Po chodníkoch/.test(v[3]) && /^planFewestSignals \| BUTTON \| Najmenej semaforov: rovnaká trasa ako Po chodníkoch \(podľa mapy\), 425 m.*, bez semaforov$/.test(v[4]) && /^planFewestTurns \| BUTTON \| Najmenej odbočiek: rovnaká trasa ako Po chodníkoch/.test(v[5]), v);
     check('R1: the shortest says it is the same as the footpath route', /Najkratšia trasa: rovnaká trasa ako Po chodníkoch \(podľa mapy\), /.test(v[2]), v[2]);
     const msg = await page.textContent('#planMsg');
-    check('R1: the spoken summary names all three', /Po pomenovaných uliciach: .*Po chodníkoch .*Najkratšia trasa: rovnaká trasa ako Po chodníkoch/.test(msg), msg);
-    check('R1: the crossing check is asked once per different path', log.trace === 2, log.trace);
+    check('R1: the spoken summary names all six', /Po pomenovaných uliciach: .*Po chodníkoch .*Najkratšia trasa: rovnaká trasa ako Po chodníkoch.*Bez schodov: .*Najmenej semaforov: .*Najmenej odbočiek: /.test(msg), msg);
+    check('R1: the router is asked about each different path once (2 kinds + 2 alternatives)', log.trace === 4, log.trace);
     await page.click('#sheetBody [data-variant="planShortest"]');
     check('R1: the same route opens with its own name', (await page.textContent('#sheetTitle')) === 'Najkratšia trasa' && await page.isVisible('#planStartBtn') && await page.isVisible('#planSaveBtn'));
     check('R1: no page errors', errs.length === 0, errs);
@@ -72,7 +72,7 @@ const only = process.argv[2];
   if (run('R1b')) { const { ctx, page, errs } = await open({ routeFail: ['shortest'] });
     await openPlan(page);
     const v = await page.$$eval('#sheetBody [data-variant]', (els) => els.map((e) => e.tagName + ' | ' + e.textContent));
-    check('R1b: a kind that could not be loaded says so and is not a button', v.length === 3 && v[2] === 'P | Najkratšia trasa: nepodarilo sa načítať.', v);
+    check('R1b: a kind that could not be loaded says so and is not a button', v.length === 6 && v[2] === 'P | Najkratšia trasa: nepodarilo sa načítať.' && /^BUTTON \| Bez schodov: /.test(v[3]), v);
     check('R1b: no page errors', errs.length === 0, errs);
     await ctx.close(); }
 
@@ -202,7 +202,7 @@ const only = process.argv[2];
     await page.waitForTimeout(400);
     const steps = await btns(page, '#navStepsList .sheet-btn');
     check('R6: on the way back no instruction of the way there is used', !steps.some((x) => /Odbočte|Choďte/.test(x)), steps);
-    check('R6: it starts at Start and ends at the original start (Cieľ), turns worked out again', /^1\. Štart, aktuálny cieľ$/.test(steps[0]) && /^\d+\. Cieľ$/.test(steps[steps.length - 1]) && steps.some((x) => /Odbočka (vpravo|vľavo) 1/.test(x)), steps);
+    check('R6: it starts at Start and ends at the original start (Cieľ), turns worked out again', /^1\. Štart, \d+ m, aktuálny cieľ$/.test(steps[0]) && /^\d+\. Cieľ$/.test(steps[steps.length - 1]) && steps.some((x) => /Odbočka (vpravo|vľavo) 1/.test(x)), steps);
     check('R6: your note is kept on the way back', steps.some((x) => /Pozor na obrubník/.test(x)), steps);
     // and it can be walked
     await walk(page, ctx, edited.waypoints.slice().reverse());
@@ -219,7 +219,7 @@ const only = process.argv[2];
     await page.click('#routeList .menubtn >> text=/Navigovať späť/');
     await page.waitForTimeout(400);
     const steps = await btns(page, '#navStepsList .sheet-btn');
-    check('R7: recorded route back: the same points, reversed, names unchanged', JSON.stringify(steps) === JSON.stringify(['1. Cieľ, aktuálny cieľ', '2. Vchod do parku', '3. Štart']), steps);
+    check('R7: recorded route back: the same points, reversed, names unchanged, each with the distance to the next', /^1\. Cieľ, \d+ m, aktuálny cieľ$/.test(steps[0]) && /^2\. Vchod do parku, \d+ m$/.test(steps[1]) && steps[2] === '3. Štart' && steps.length === 3, steps);
     await page.click('#mainBtn'); await page.waitForTimeout(200);
     await page.click('#routesBtn');
     const list = await btns(page, '#routeList .picker-item');
