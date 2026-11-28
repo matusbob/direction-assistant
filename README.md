@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 45:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 46:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,7 +12,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 45, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 46, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Rovný smer.** Štart → po chvíli sa zapamätá smer, ktorým telefón mieri. Pri vybočení pípa zo strany, kam uhýbaš, vibruje (doprava jedno súvislé zabzučanie, doľava prerušované) a povie „Vybočenie vpravo, 20 stupňov“. Keď ideš dobre, tichý tik každých pár sekúnd.
   - Citlivosť v stupňoch alebo v metroch podľa GPS.
@@ -20,6 +20,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - Voliteľný režim medzi prekážkami: krátke obchádzanie áut nevadí.
 - **Vlastné trasy.** Nahráš trasu chôdzou. Odbočky sa zistia samy a môžeš pridávať vlastné body s poznámkou (vchod, nástupište, schody...).
   - Potom ťa trasa vedie: odpočítavanie „23 m, odbočte vpravo“ (každých X metrov, alebo nové: každých 5–30 sekúnd), potvrdenie odbočky (dá sa vypnúť), cieľ.
+  - **Pred každou odbočkou, priechodom alebo bodom odpočítava** (nové vo verzii 46, zapnuté, dá sa zmeniť alebo vypnúť): „10 m, odbočte vľavo.“ – „5 m.“ – „Teraz odbočte vľavo.“ Na výber je aj 10 m, 3 m a teraz; 15, 10, 5 m a teraz; 20, 10, 5, 3 m a teraz; 5, 3 m a teraz; 5, 2 m a teraz. „Teraz“ povie, keď si pri bode, tak presne, ako dovolí GPS (zvyčajne do 1 – 2 m; ak ťa GPS ukáže bokom, hneď ako sa začneš od bodu vzďaľovať), alebo 1, 2 či 3 m pred bodom. Počas odpočítavania nič iné nehovorí, aby „5 m“ a „teraz“ prišli včas. Presnosť GPS v meste je asi 3 – 5 m, takže pol metra nezaručí nič.
   - Pri každom bode povie aj vzdialenosť k ďalšiemu („Vchod do parku. Teraz odbočte vľavo, potom 81 m.“) a v Pokynoch trasy je pri každom bode vzdialenosť (nové vo verzii 45).
   - **Keď odídeš z trasy**, povie to, kde je ďalší bod a ako ďaleko, a nové: ktorým smerom ideš a ktorým máš ísť („Idete na juhozápad, bod je smerom na severovýchod.“), a keď si prešiel okolo bodu, povie „Pravdepodobne ste prešli okolo bodu: …“. Kedy sa to povie, si nastavíš (automaticky alebo po 5–30 m).
   - Nové tlačidlo **Prepočítať trasu** počas navigácie: plánovanú trasu naplánuje znova od miesta, kde si; pri nahranej trase pokračuje k najbližšiemu bodu, ktorý si ešte neprešiel.
@@ -109,6 +110,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - At any point you can also mark a named point: entrance, platform, stairs, obstacle, or a custom note. It is merged into the route in the right place. "Custom name..." is the first option, so writing your own note takes one swipe.
 - **Navigate a route** with turn-by-turn guidance:
   - A distance countdown to the next point at your chosen interval ("23 m, turn right" ... "now turn right"): every so many meters (the "Meters distance" slider), or every 5, 10, 15, 20 or 30 seconds (setting), which keeps telling you even while you stand still.
+  - **Counting down to each point** (setting, on by default since version 46): before each turn, crossing or point "10 m, turn left." - "5 m." - "Now turn left." (planned routes: "Now." and the instruction). Choose 10/5, 10/3, 15/10/5, 20/10/5/3, 5/3 or 5/2 m, or Off (as before: "now" about 10 m before the point). "Now" is said when you are at the point, as close as GPS can tell: the app takes one position a second, says it a moment early at walking pace (about 1 m), and if GPS never shows you right at the point it says it as soon as you start moving away from it. It can also be said 1, 2 or 3 m before the point. Within the countdown nothing else is said, so the cues come on time. Phone GPS is usually 3-5 m off in a city, so this is as precise as the phone allows, not to half a meter.
   - At each point it also says how far the next one is ("Park entrance. Now turn left, then 81 m."; setting, on by default), and the Route instructions list shows that distance at every point.
   - A spoken confirmation once you've actually turned ("Great, you turned left"; setting, on by default), and a chime and vibration on arrival.
   - **Leaving the route:** a spoken warning with its own descending tone and vibration, and "Back on the route" with its own ascending tone when you recover. Straying off the route is never silent, even with speech and vibration both off.
@@ -274,7 +276,7 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 - Language: Slovak or English, with the button at the bottom of the screen.
 
 ### Settings
-All settings are remembered. New features are usually off by default, so nothing changes unless you turn them on. The exceptions were asked for as the normal behaviour and can each be turned off: moving the screen reader to the current point (44), and in version 45 the distance at each point, the walking direction / missed point when off the route, and which of your points you're at in What's nearby.
+All settings are remembered. New features are usually off by default, so nothing changes unless you turn them on. The exceptions were asked for as the normal behaviour and can each be turned off: moving the screen reader to the current point (44), in version 45 the distance at each point, the walking direction / missed point when off the route, and which of your points you're at in What's nearby, and in version 46 the countdown "10 m, 5 m and now".
 
 | Setting (Slovak name in the app) | Default |
 |---|---|
@@ -294,6 +296,8 @@ All settings are remembered. New features are usually off by default, so nothing
 | Upozorniť, že sa vzďaľujem od trasy - off-route distance: automatic / 5–30 m | automatic |
 | Keď odídem z trasy, povedať aj, ktorým smerom idem... - walking direction and a missed point when off the route | on |
 | Počas navigácie trasy hlásiť vzdialenosť k ďalšiemu bodu - every N meters / every 5–30 seconds | every N meters |
+| Pred každou odbočkou, priechodom alebo bodom odpočítavať - countdown before each point: off / 10, 5 / 10, 3 / 15, 10, 5 / 20, 10, 5, 3 / 5, 3 / 5, 2 m and now | 10 m, 5 m and now |
+| Kedy povedať „teraz“ - at the point (as close as GPS can tell) / 1 / 2 / 3 m before | at the point |
 | Pri každom bode trasy povedať aj, ako ďaleko je ďalší - distance to the next point at each point | on |
 | Potvrdiť, keď som odbočil správne - turn confirmation | on |
 | V „Čo je blízko?“ povedať, pri ktorom mojom bode som... - which point I'm at, nearest stairs / entrance / platform | on |
@@ -378,7 +382,7 @@ Source, build and test instructions: [`android/`](android/README.md).
   - comparison against the previous version, so nothing changes by accident
   - checks against the real map services around Lesná 6, Nové Zámky
   - real use on an iPhone with VoiceOver by the author: saved points, and being told when you reach one, were reported to work dependably
-  - **Places without a name (43), saving planned routes and the moved VoiceOver cursor (44), and in version 45 the new kinds of route, the walking-direction and missed-point messages, Recalculate the route and the station points still need checking on the iPhone and outside.** GPS jumps of a few meters can make "walked past the point" or the walking direction wrong now and then.
+  - **Places without a name (43), saving planned routes and the moved VoiceOver cursor (44), and in version 45 the new kinds of route, the walking-direction and missed-point messages, Recalculate the route and the station points, and the version 46 countdown ("5 m", "now") still need checking on the iPhone and outside.** GPS jumps of a few meters can make "walked past the point" or the walking direction wrong now and then.
 - **Android app.** Tested on a simulated Android (Robolectric) and with unit tests, **not yet on a real phone**. Still to check on the device, at home first and then outside with someone sighted nearby:
   - how the compass behaves in a pocket
   - how it works with the screen off

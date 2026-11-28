@@ -30,7 +30,7 @@ const at = (p, north, east) => ({ lat: p.lat + north * M_LAT, lon: p.lon + east 
       sessionStorage.setItem('__seeded', '1');
       localStorage.setItem(a.sk, JSON.stringify(Object.assign({ lang: 'sk' }, a.settings)));
       if (a.routes) localStorage.setItem(a.rk, JSON.stringify(a.routes));
-    }, { sk: SETTINGS_KEY, rk: ROUTES_KEY, settings: Object.assign({ fastGps: true }, opts.settings || {}), routes: opts.routes || null });
+    }, { sk: SETTINGS_KEY, rk: ROUTES_KEY, settings: Object.assign({ fastGps: true, approachCues: 'off' }, opts.settings || {}), routes: opts.routes || null });
     const log = await install(page, mode);
     await page.goto(APP);
     await face(page, opts.heading === undefined ? 45 : opts.heading);

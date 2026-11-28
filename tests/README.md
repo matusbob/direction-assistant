@@ -11,6 +11,9 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
   without node data), distance at each point, walking direction and a missed point when off the route, turn confirmation
   on/off, distance every 5 s, Recalculate the route (planned, failed, recorded), which saved point you're at and the
   nearest stairs/entrance/platform, and the new settings.
+- `test_v46.js` - version 46: the countdown before each point ("10 m", "5 m", "now") walked at 1 m/s: where each cue
+  comes, other choices of distances, "now" 3 m before, GPS passing beside the point, the setting off (as before),
+  a planned route, and the settings. (The older suites run with the countdown off, to keep testing what they test.)
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and
