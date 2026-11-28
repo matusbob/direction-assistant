@@ -12,7 +12,7 @@ if (!oldFile) {
 }
 const OLD = 'file://' + oldFile;
 // New settings of this version turned off, so the rest can be compared with the published version
-const NEW_OFF = { pointDistOn: false, offRouteCourse: false, nearbyKinds: false };
+const NEW_OFF = { pointDistOn: false, offRouteCourse: false, nearbyKinds: false, approachCues: 'off' };
 const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: [
   { lat: 47.97663, lon: 18.16087, label: 'Štart' }, { lat: 47.97720, lon: 18.16150, label: 'Vchod do parku' },
   { lat: 47.97790, lon: 18.16120, label: 'Lavička' }, { lat: 47.97840, lon: 18.16200, label: 'Cieľ' }] };
@@ -89,11 +89,9 @@ const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: 
       await ctx.close();
     }
     const [o, n] = res;
-    // Intended changes in version 45: the route summary names three more kinds of route, and the route
-    // instructions list has the distance to the next point at each point
-    const known = (list) => list.map((e) => /^(Po pomenovaných uliciach|Along named streets): /.test(e) ? e.replace(/\s*(Bez schodov|Without steps): .*$/, '') : e);
+    // Intended changes against the published version go here (none in version 46 with its new setting off)
+    const known = (list) => list;
     n.events = known(n.events); n.speaks = known(n.speaks);
-    if (n.extra && n.extra.route) n.extra.route = n.extra.route.map((x) => x.replace(/, \d+(,\d)? (m|km)(?=,|$)/, ''));
     check(`${lang} ${name}: same announcements (${n.events.length})`, JSON.stringify(o.events) === JSON.stringify(n.events), { old: o.events, new: n.events });
     check(`${lang} ${name}: same speech and vibration`, JSON.stringify(o.speaks) === JSON.stringify(n.speaks) && o.vibes === n.vibes, { old: o.speaks.slice(-4), new: n.speaks.slice(-4), vo: o.vibes, vn: n.vibes });
     if (o.extra) check(`${lang} ${name}: same instruction lists`, JSON.stringify(o.extra) === JSON.stringify(n.extra), { old: o.extra, new: n.extra });

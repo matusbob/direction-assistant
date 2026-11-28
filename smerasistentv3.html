@@ -347,6 +347,23 @@ flex:none;
 <option value="20">Every 20 seconds</option>
 <option value="30">Every 30 seconds</option>
 </select>
+<label for="approachCues" id="lblApproachCues">Before each turn, crossing or point, count down</label>
+<select id="approachCues">
+<option value="off">Off (as before: "now" about 10 m before the point)</option>
+<option value="10,5" selected>10 m, 5 m and now</option>
+<option value="10,3">10 m, 3 m and now</option>
+<option value="15,10,5">15 m, 10 m, 5 m and now</option>
+<option value="20,10,5,3">20 m, 10 m, 5 m, 3 m and now</option>
+<option value="5,3">5 m, 3 m and now</option>
+<option value="5,2">5 m, 2 m and now</option>
+</select>
+<label for="approachNow" id="lblApproachNow">When to say "now"</label>
+<select id="approachNow">
+<option value="closest" selected>When I'm at the point (as close as GPS can tell)</option>
+<option value="1">1 m before the point</option>
+<option value="2">2 m before the point</option>
+<option value="3">3 m before the point</option>
+</select>
 <div class="toggle">
 <input type="checkbox" id="pointDistOn" checked>
 <label for="pointDistOn" style="margin:0;" id="lblPointDistOn">At each point of a route, also say how far it is to the next one</label>
@@ -503,13 +520,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 45</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 46</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 45;
+const APP_VERSION = 46;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -574,6 +591,8 @@ backToMain: "Back to the main screen", mainScreen: "Main screen", toTop: "Back t
 lblOffRouteHint: "When I leave the route, also say that I'm moving away and where the next point is",
 lblOffRouteCourse: "When I leave the route, also say which way I'm walking and which way I should go, and whether I've probably walked past the next point",
 lblRouteAnnounceEvery: "During route navigation, say the distance to the next point", optAnnMeters: "Every so many meters (the \"Meters distance\" slider)", optAnnSec: "Every {n} seconds",
+lblApproachCues: "Before each turn, crossing or point, count down", optApproachOff: "Off (as before: \"now\" about 10 m before the point)", optApproach: "{list} and now",
+lblApproachNow: "When to say \"now\"", optNowClosest: "When I'm at the point (as close as GPS can tell)", optNowM: "{n} m before the point", nowWord: "Now.",
 lblPointDistOn: "At each point of a route, also say how far it is to the next one", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
 lblNearbyKinds: "In \"What's nearby?\", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are",
 lblRecalc: "Recalculate the route", recalcWorking: "Recalculating the route from where you are...", recalcDone: "Route recalculated.", recalcFailed: "The route couldn't be recalculated (no internet or the service is busy). Navigation goes on as before.",
@@ -751,6 +770,8 @@ backToMain: "Späť na hlavnú obrazovku", mainScreen: "Hlavná obrazovka", toTo
 lblOffRouteHint: "Keď odídem z trasy, povedať aj to, že sa vzďaľujem, a kde je ďalší bod",
 lblOffRouteCourse: "Keď odídem z trasy, povedať aj, ktorým smerom idem a ktorým mám ísť, a či som pravdepodobne neprešiel okolo ďalšieho bodu",
 lblRouteAnnounceEvery: "Počas navigácie trasy hlásiť vzdialenosť k ďalšiemu bodu", optAnnMeters: "Každých toľko metrov (posuvník „Vzdialenosť v metroch“)", optAnnSec: "Každých {n} sekúnd",
+lblApproachCues: "Pred každou odbočkou, priechodom alebo bodom odpočítavať", optApproachOff: "Vypnuté (ako doteraz: „teraz“ asi 10 m pred bodom)", optApproach: "{list} a teraz",
+lblApproachNow: "Kedy povedať „teraz“", optNowClosest: "Keď som pri bode (čo najpresnejšie, ako dovolí GPS)", optNowM: "{n} m pred bodom", nowWord: "Teraz.",
 lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
 lblNearbyKinds: "V „Čo je blízko?“ povedať, pri ktorom mojom bode som a kde sú moje najbližšie schody, vchod, východ, výťah a nástupište",
 lblRecalc: "Prepočítať trasu", recalcWorking: "Prepočítavam trasu od miesta, kde ste...", recalcDone: "Trasa prepočítaná.", recalcFailed: "Trasu sa nepodarilo prepočítať (nie je internet alebo je služba vyťažená). Navigácia pokračuje ako doteraz.",
@@ -903,7 +924,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -914,6 +935,10 @@ document.getElementById('lblRoutePointsClose').textContent = t('close');
 document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
 routeAnnounceEvery.options[0].text = t('optAnnMeters');
+approachCues.options[0].text = t('optApproachOff');
+for(let k = 1; k < approachCues.options.length; k++) approachCues.options[k].text = t('optApproach').replace('{list}', approachCues.options[k].value.split(',').map((x) => x + ' m').join(', '));
+approachNow.options[0].text = t('optNowClosest');
+for(let k = 1; k < approachNow.options.length; k++) approachNow.options[k].text = t('optNowM').replace('{n}', approachNow.options[k].value);
 for(let k = 1; k < routeAnnounceEvery.options.length; k++) routeAnnounceEvery.options[k].text = t('optAnnSec').replace('{n}', routeAnnounceEvery.options[k].value);
 dirStyle.options[0].text = t('optDirSides'); dirStyle.options[1].text = t('optDirClock'); dirStyle.options[2].text = t('optDirCompass');
 document.querySelectorAll('.topback').forEach((b) => { b.textContent = t('back'); });
@@ -1029,6 +1054,8 @@ const recalcBtn = document.getElementById('recalcBtn');
 const offRouteCourse = document.getElementById('offRouteCourse');
 const routeAnnounceEvery = document.getElementById('routeAnnounceEvery');
 const pointDistOn = document.getElementById('pointDistOn');
+const approachCues = document.getElementById('approachCues');
+const approachNow = document.getElementById('approachNow');
 const turnConfirmOn = document.getElementById('turnConfirmOn');
 const nearbyKinds = document.getElementById('nearbyKinds');
 const recWhereAmIBtn = document.getElementById('recWhereAmIBtn');
@@ -1563,7 +1590,7 @@ rememberFix(pos.coords);
 if(!running) return;
 if(navMode === 'route') setTimeout(renderNavSteps, 0);
 const now = performance.now();
-if(now - lastGPSTime < (fastGps.checked ? 900 : 3000)) return;
+if(now - lastGPSTime < (fastGps.checked || (navMode === 'route' && approachCues.value !== 'off') ? 900 : 3000)) return;
 lastGPSTime = now;
 const c = pos.coords;
 if(c.accuracy > 20){
@@ -1789,8 +1816,27 @@ let routeTrail = [];
 function rememberTrail(lat, lon){
 const last = routeTrail[routeTrail.length - 1];
 if(last && haversineMeters(last.lat, last.lon, lat, lon) < 2) return;
-routeTrail.push({ lat: lat, lon: lon });
+routeTrail.push({ lat: lat, lon: lon, t: performance.now() });
 if(routeTrail.length > 30) routeTrail.shift();
+}
+// Walking speed over the last few seconds (m/s), or null
+function walkingSpeed(){
+const cur = routeTrail[routeTrail.length - 1];
+if(!cur) return null;
+for(let k = routeTrail.length - 2; k >= 0; k--){
+const dt = (cur.t - routeTrail[k].t) / 1000;
+if(dt >= 3) return Math.min(3, haversineMeters(routeTrail[k].lat, routeTrail[k].lon, cur.lat, cur.lon) / dt);
+}
+return null;
+}
+// Counting down to the next point ("10 m", "5 m") and saying "now" as close to it as GPS allows
+let cueIndex = -1, minIndex = -1, approachSaid = {}, approachAny = false, approachMin = null;
+function approachList(){ return approachCues.value === 'off' ? null : approachCues.value.split(',').map(Number); }
+function nowDistance(){
+if(approachNow.value !== 'closest') return parseFloat(approachNow.value);
+// A moment of reaction and the time a position takes to arrive: say it a little before, at walking pace
+const v = walkingSpeed();
+return Math.max(1, v ? v * 0.8 : 1);
 }
 // The direction of your last 8 m or more of walking, or null
 function walkingCourse(){
@@ -1841,11 +1887,13 @@ return;
 currentBearing = bearingDegrees(lat, lon, wp.lat, wp.lon);
 const talk = voiceMode.value !== 'off';
 const announceInterval = parseInt(distRange.value, 10) || 10;
-announceTotalRemaining(dist);
 // What to count down to: the next point that has something to say (skipping silent way points)
 let annIndex = routeIndex, annDist = dist;
 while(activeRoute.waypoints[annIndex].via && annIndex + 1 < activeRoute.waypoints.length){ annDist += activeRouteLegDistances[annIndex]; annIndex++; }
 const annWp = activeRoute.waypoints[annIndex];
+// Close to a point while counting down to it, nothing else is said, so "5 m" and "now" come on time
+const approachNear = approachCues.value !== 'off' && annDist <= Math.max.apply(null, approachCues.value.split(',').map(Number)) + 2;
+if(!approachNear) announceTotalRemaining(dist);
 if(closestAnnIndex !== annIndex){ closestAnnIndex = annIndex; closestToAnn = null; }
 const toAnn = haversineMeters(lat, lon, annWp.lat, annWp.lon);
 if(closestToAnn === null || toAnn < closestToAnn) closestToAnn = toAnn;
@@ -1896,14 +1944,23 @@ chimeVibrate([200, 100, 200]);
 lastDistToTarget = dist;
 
 const ARRIVE_THRESHOLD = 10;
-if(dist <= ARRIVE_THRESHOLD){
+const approach = approachList();
+if(cueIndex !== annIndex){ cueIndex = annIndex; approachSaid = {}; approachAny = false; }
+if(minIndex !== routeIndex){ minIndex = routeIndex; approachMin = null; }
+let arrived = dist <= ARRIVE_THRESHOLD;
+if(approach){
+if(approachMin === null || dist < approachMin) approachMin = dist;
+// At the point, or it was close and you're now moving away from it (GPS never showed you right at it)
+arrived = dist <= nowDistance() || (approachMin <= 8 && dist >= approachMin + 3);
+}
+if(arrived){
 const turnType = activeRouteTurns[routeIndex];
 const nextIndex = routeIndex + 1;
 offRouteStreak = 0; offRouteFlag = false; lastDistToTarget = null; minDistToTarget = null; lastRouteAnnounceDist = null;
 
 if(nextIndex >= activeRoute.waypoints.length){
 playChime('done');
-const doneMsg = wp.label + ". " + (wp.arrival ? wp.arrival + ' ' : '') + t('routeDone');
+const doneMsg = (approach ? t('nowWord') + ' ' : '') + wp.label + ". " + (wp.arrival ? wp.arrival + ' ' : '') + t('routeDone');
 announceEvent(doneMsg);
 if(voiceMode.value !== 'off') speak(doneMsg);
 announce(t('routeDone'), '');
@@ -1929,6 +1986,8 @@ else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
 const nextDist = pointDistOn.checked ? distToNextPoint(activeRoute.waypoints, nextIndex - 1) : null;
 let arriveMsg = wp.label + ". " + (nextDist !== null ? msg.replace(/\.$/, '') + ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) + '.' : msg);
+// Counting down: what to do comes first ("Now turn left."), then which point it is
+if(approach && nextIndex > 1) arriveMsg = (turnType === 'right' || turnType === 'left' ? msg : t('nowWord') + ' ' + msg.charAt(0).toUpperCase() + msg.slice(1).replace(/([^.])$/, '$1.')) + ' ' + wp.label + (nextDist !== null ? ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) : '') + '.';
 if(wp.instruction){
 arriveMsg = (nextDist !== null ? wp.instruction.replace(/\.$/, '') + ', ' + formatDist(nextDist) + '.' : wp.instruction) + (wp.note ? ' ' + wp.note.replace(/([^.!?])$/, '$1.') : '');
 // At the very start of a planned route, also say which way that is from where the phone is pointing
@@ -1936,6 +1995,7 @@ if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arri
 // ...and which side the destination will be on, when the map knows
 const endWp = activeRoute.waypoints[activeRoute.waypoints.length - 1];
 if(nextIndex === 1 && endWp.arrival) arriveMsg += ' ' + t('destAtEnd').replace('{s}', endWp.arrival);
+if(approach && nextIndex > 1) arriveMsg = t('nowWord') + ' ' + arriveMsg;
 }
 announceEvent(arriveMsg);
 if(talk) speak(arriveMsg);
@@ -1945,6 +2005,29 @@ return;
 }
 
 if(routeNotesOnly.checked) return;
+
+if(approach){
+const nd = nowDistance();
+const due = approach.filter((d) => annDist <= d && !approachSaid[d]);
+if(due.length){
+const d = Math.min.apply(null, due);
+due.forEach((x) => { approachSaid[x] = true; });
+// Not when "now" is about to come anyway
+if(annDist > nd + 0.5){
+const what = annWp.instruction || (annWp.dest ? annWp.label : turnPhrase(activeRouteTurns[annIndex]));
+const msg = approachAny ? d + ' m.' : d + ' m, ' + what.replace(/\.$/, '') + '.';
+approachAny = true;
+announceEvent(msg);
+if(talk) speak(msg);
+announce(annWp.label, d + ' m');
+lastRouteAnnounce = performance.now();
+lastRouteAnnounceDist = annDist;
+}
+return;
+}
+// Within the countdown nothing else is said, so the cues come on time
+if(annDist <= Math.max.apply(null, approach) + 2) return;
+}
 
 const everySec = routeAnnounceEvery.value !== 'meters' ? parseInt(routeAnnounceEvery.value, 10) : 0;
 if(everySec){
@@ -4180,6 +4263,8 @@ offRouteHint: offRouteHint.checked,
 offRouteCourse: offRouteCourse.checked,
 routeAnnounceEvery: routeAnnounceEvery.value,
 pointDistOn: pointDistOn.checked,
+approachCues: approachCues.value,
+approachNow: approachNow.value,
 turnConfirmOn: turnConfirmOn.checked,
 nearbyKinds: nearbyKinds.checked,
 distRange: distRange.value,
@@ -4227,6 +4312,8 @@ if(typeof s.offRouteHint === 'boolean') offRouteHint.checked = s.offRouteHint;
 if(typeof s.offRouteCourse === 'boolean') offRouteCourse.checked = s.offRouteCourse;
 if(s.routeAnnounceEvery && Array.from(routeAnnounceEvery.options).some((o) => o.value === s.routeAnnounceEvery)) routeAnnounceEvery.value = s.routeAnnounceEvery;
 if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
+if(s.approachCues && Array.from(approachCues.options).some((o) => o.value === s.approachCues)) approachCues.value = s.approachCues;
+if(s.approachNow && Array.from(approachNow.options).some((o) => o.value === s.approachNow)) approachNow.value = s.approachNow;
 if(typeof s.turnConfirmOn === 'boolean') turnConfirmOn.checked = s.turnConfirmOn;
 if(typeof s.nearbyKinds === 'boolean') nearbyKinds.checked = s.nearbyKinds;
 if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
@@ -4267,7 +4354,7 @@ document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
-[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds].forEach((el) => el.addEventListener('change', saveSettings));
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow].forEach((el) => el.addEventListener('change', saveSettings));
 recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
