@@ -33,6 +33,10 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
 - `test_v50.js` - version 50: the intersection at a crossing (on, off, default off, street service unreachable),
   your marked crossing used on a recorded route (and one beside the route not used; setting off), reporting to
   OpenStreetMap (what is sent, not confirmed, prompt cancelled, empty "another mistake", sending failed), settings.
+- `test_android.js` - version 51: the web app inside the Android app, with a stand-in for the app's bridge: the straight
+  line started in the app's service with the web settings, its status and messages, Set direction, Stop (also from the
+  notification), reopening while it guides, locking the phone, voice, vibration, GPX saving, Back, the screen kept on
+  for routes; and in a browser (no bridge) nothing changes.
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and

@@ -126,4 +126,11 @@
     <string name="update_allow">To update itself, the app needs permission to install apps. The phone\'s settings will open: turn on Allow from this source, then go back.</string>
     <string name="open_settings">Open settings</string>
     <string name="update_running">Stop the guidance first, then update.</string>
+    <string name="meters_decimal">%1$s m</string>
+    <string name="simple_screen">Simple screen</string>
+    <string name="web_failed_title">No connection</string>
+    <string name="web_failed">The app\'s screens come from the internet the first time; after that they work offline too. Try again once you\'re connected, or use the simple screen for the straight line.</string>
+    <string name="try_again">Try again</string>
+    <string name="file_saved">Saved.</string>
+    <string name="file_save_failed">Couldn\'t save the file.</string>
 </resources>

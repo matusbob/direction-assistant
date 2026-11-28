@@ -136,7 +136,7 @@ public class MetersAndUpdateTest {
         shadowOf(app.getSystemService(LocationManager.class)).setProviderEnabled(LocationManager.GPS_PROVIDER, true);
         Prefs p = new Prefs(app);
         p.setUnit(Prefs.UNIT_METERS);
-        assertEquals("default allowed drift", 2, p.thresholdMeters());
+        assertEquals("default allowed drift", 2f, p.thresholdMeters(), 0.001f);
         DirectionService.setListener(recorder);
         DirectionService s = start(service());
         compass(s, 0, 1500);
@@ -243,7 +243,7 @@ public class MetersAndUpdateTest {
         // Allowed drift in meters -> 1 meter
         shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(2);
         shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(0);
-        assertEquals(1, new Prefs(app).thresholdMeters());
+        assertEquals(1f, new Prefs(app).thresholdMeters(), 0.001f);
         assertEquals("Allowed drift in meters: 1 meter", shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getItems()[2].toString());
 
         // Start asks for location in meters mode
