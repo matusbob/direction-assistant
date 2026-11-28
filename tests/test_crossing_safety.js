@@ -45,7 +45,7 @@ const DRIFT = /^(Silné )?Vybočenie (doprava|doľava)/;
     return { ctx, page, errs };
   }
   // The phone points to heading h, with +-2 degrees of compass noise, 10 readings a second
-  const face = (page, h) => page.evaluate((h) => { clearInterval(window.__cmp); let k = 0; const f = () => { const n = [0, 2, -2, 1, -1][k++ % 5]; const ev = new Event('deviceorientation'); ev.alpha = (360 - (h + n) + 360) % 360; window.dispatchEvent(ev); }; f(); window.__cmp = setInterval(f, 100); return performance.now(); }, h);
+  const face = (page, h) => page.evaluate((h) => { clearInterval(window.__cmp); let k = 0; const f = () => { const n = [0, 2, -2, 1, -1][k++ % 5]; const ev = new Event('deviceorientation'); ev.alpha = (360 - (h + n) + 360) % 360; window.dispatchEvent(ev); }; const t0 = performance.now(); f(); window.__cmp = setInterval(f, 100); return t0; }, h);
   const times = (page) => page.evaluate(() => window.__times.slice());
   const since = async (page, t0) => (await times(page)).filter((x) => x.t >= t0);
   const vibesSince = async (page, t0) => (await page.evaluate(() => window.__vt.slice())).filter((x) => x >= t0);

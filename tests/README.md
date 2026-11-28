@@ -25,6 +25,9 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
   coming back, back from a locked screen, the direction as an average of noisy readings, an uncalibrated compass,
   holding the phone differently, Set Direction without fresh readings, the plain case, a new drift 1 s after coming
   back, and a lasting drift repeated every 3 s while under the limit stays silent.
+- `test_swing.js` - "Ignore the hand swinging", voice on and off: off by default (a swinging hand warned about, as
+  before); with 0.5 / 1 / 2 s, swinging at several speeds up to 30 degrees is never a drift, a real drift is said after
+  the chosen time, also while the hand still swings a little; on crossings only with "Also on crossings"; settings.
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and

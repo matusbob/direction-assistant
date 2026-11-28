@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 47:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 48:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,7 +12,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 47, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 48, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Spoľahlivejší kompas pri Štart / Stop** (oprava vo verzii 47):
   - smer sa nastaví vždy z nových údajov kompasu, ako priemer viacerých, aj keď iPhone pošle prvé údaje neskôr (predtým v takom prípade smer ostal nenastavený a vybočenie sa nehlásilo); nikdy sa nepoužije smer z predchádzajúceho spustenia;
@@ -20,6 +20,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - nahlas a cez VoiceOver povie, keď kompas neposiela údaje, keď prestane posielať počas chôdze (a keď znova funguje), keď je nekalibrovaný (osmička), keď telefón držíš úplne inak ako pri nastavení smeru, a po návrate zo zamknutej obrazovky, ako dlho navádzanie nefungovalo;
   - pípanie a hlas aj pri prepínači ticha na boku iPhonu (nastavenie, zapnuté; Safari 17 a novší).
   - iPhone vo webovej aplikácii nevibruje (vibrácie fungujú na Androide).
+- **Ignorovať kývanie ruky** (nové vo verzii 48, voliteľné, predvolene vypnuté): kompas meria, kam mieri telefón, takže keď sa ruka s telefónom zakýve, vyzerá to ako vybočenie. S týmto nastavením (0,5 s, 1 s alebo 2 s) aplikácia upozorní, až keď smer ostane vychýlený na jednu stranu po celý zvolený čas; kývanie sem a tam sa nepočíta. Skutočné vybočenie potom zaznie o ten čas neskôr. Na priechodoch platí len s políčkom „Aj na priechodoch“. Najlepšie pomôže držať telefón pevne pri hrudníku alebo v držiaku na hrudi.
 - **Rovný smer.** Štart → po chvíli sa zapamätá smer, ktorým telefón mieri. Pri vybočení pípa zo strany, kam uhýbaš, vibruje (doprava jedno súvislé zabzučanie, doľava prerušované) a povie „Vybočenie vpravo, 20 stupňov“. Keď ideš dobre, tichý tik každých pár sekúnd.
   - Citlivosť v stupňoch alebo v metroch podľa GPS.
   - „Ideš dobre“ každých X metrov a štatistika po zastavení.
@@ -122,6 +123,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - Said aloud and through the screen reader: no compass readings within 3 s of Start (check motion and orientation in Settings, Safari); the compass stopping for 2 s while guiding, and coming back; an uncalibrated compass (iPhone accuracy negative or over 30 degrees: move the phone in a figure-8); holding the phone very differently from when the direction was set (tilted more than 45 degrees, e.g. flat to upright: press Set Direction); and, back from a locked screen or another app, for how many seconds guidance wasn't working.
   - Beeps and speech also with the iPhone's side switch on silent (setting, on; uses the audio session of Safari 17 and newer, so other audio may pause).
   - iPhone web apps cannot vibrate at all (Apple doesn't allow it); vibrations work on Android only.
+- **Ignore the hand swinging** (version 48, optional, off by default): the compass measures where the phone points, so a hand swinging with the phone looks like a drift. With this set to 0.5, 1 or 2 seconds, a drift counts only once the direction has stayed off to the same side for that whole time; swinging back and forth never adds up, and there are no beeps or vibrations for it. A real drift is then said that much later. On crossings it applies only with "Also on crossings" (otherwise a drift on a crossing is always said at once). Holding the phone firmly against the chest, or in a chest holder, helps the most.
 - **Weak GPS:** fixes with poor accuracy (over 20 m, common in parking lots, under cover or near large metal objects) are rejected. If that lasts 15 seconds or more while meters mode or route navigation needs GPS distance, the app says so out loud, in an accessible announcement and on screen, instead of sitting silently.
 - **Compass check:** if the heading readings jump erratically, the app suggests recalibrating with a figure-8 motion.
 - **Obstacle mode** (optional, off by default): for places where you have to weave around things, such as a parking lot full of cars or a crowd.
@@ -321,6 +323,8 @@ All settings are remembered. New features are usually off by default, so nothing
 | Režim hlasového výstupu - voice: off / only when drifting / always | only when drifting |
 | Pípanie pri vybočení - spatial audio beeps | on |
 | Pípanie a hlas aj pri prepínači ticha na iPhone - beeps and voice with the side switch on silent | on |
+| Ignorovať kývanie ruky - ignore the hand swinging: off / 0.5 / 1 / 2 s | off |
+| Aj na priechodoch - the swing filter also on crossings | off |
 | Vibrácie pri vybočení - vibrations | on |
 | Oznámiť štatistiku po zastavení - statistics on stop | on |
 | Ideš dobre každých X metrov - "Doing good" every X meters (1–50) | off, 10 m |

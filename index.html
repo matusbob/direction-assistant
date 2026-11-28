@@ -279,6 +279,17 @@ flex:none;
 <div class="rowval" aria-hidden="true"><span>2s</span><span id="obstacleWindowVal">5s</span><span>10s</span></div>
 </div>
 
+<label for="swingFilter" id="lblSwingFilter">Ignore the hand swinging (warn only when the direction stays off to one side this long)</label>
+<select id="swingFilter">
+<option value="off" selected>Off</option>
+<option value="0.5">0.5 seconds</option>
+<option value="1">1 second</option>
+<option value="2">2 seconds</option>
+</select>
+<div class="toggle">
+<input type="checkbox" id="swingOnCrossing">
+<label for="swingOnCrossing" style="margin:0;" id="lblSwingOnCrossing">Also on crossings (otherwise a drift on a crossing is always said at once)</label>
+</div>
 <label for="voiceMode" id="lblVoice">Voice output mode ("Teta")</label>
 <select id="voiceMode">
 <option value="off">Off</option>
@@ -548,13 +559,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 47</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 48</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 47;
+const APP_VERSION = 48;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -625,6 +636,8 @@ lblCrossThreshold: "On a crossing, warn when I drift by more than", optDegN: "{n
 lblStartAlignOn: "At the start of a route, say which way to turn (\"Turn left by about 60 degrees\" or \"Go straight on\"), then \"Direction right, go\"",
 crossStillRight: "Direction right.", crossTurnMore: "More to the {side}, {n} degrees.", crossTurnMoreLeft: "left", crossTurnMoreRight: "right",
 crossAlignedNow: "Direction right, go.", nextPointIn: "Next point in {d}.", startTurn: "Turn {side} by about {n} degrees.", startStraight: "Go straight on.",
+lblSwingFilter: "Ignore the hand swinging (warn only when the direction stays off to one side this long)", optSwingOff: "Off", optSwingSec: "{n} seconds", optSwingOneSec: "1 second",
+lblSwingOnCrossing: "Also on crossings (otherwise a drift on a crossing is always said at once)",
 compassNoData: "The compass isn't sending anything, so drifts can't be told. Check that motion and orientation are allowed (Settings, Safari) and press Start again.",
 compassStalled: "The compass has stopped sending, guidance isn't working.", compassBack: "The compass works again.",
 compassUncal: "The compass is inaccurate. Move the phone in a figure-8 a few times.",
@@ -827,6 +840,8 @@ lblCrossThreshold: "Na priechode upozorniť, keď vybočím o viac ako", optDegN
 lblStartAlignOn: "Na začiatku trasy povedať, kam sa otočiť („Otočte sa doľava asi o 60 stupňov“ alebo „Choďte rovno“) a potom „Smer správny, choďte“",
 crossStillRight: "Smer správny.", crossTurnMore: "Ešte {side}, {n} stupňov.", crossTurnMoreLeft: "doľava", crossTurnMoreRight: "doprava",
 crossAlignedNow: "Smer správny, choďte.", nextPointIn: "Ďalší bod o {d}.", startTurn: "Otočte sa {side} asi o {n} stupňov.", startStraight: "Choďte rovno.",
+lblSwingFilter: "Ignorovať kývanie ruky (upozorniť, až keď smer ostane vychýlený na jednu stranu aspoň takto dlho)", optSwingOff: "Vypnuté", optSwingSec: "{n} sekundy", optSwingOneSec: "1 sekunda",
+lblSwingOnCrossing: "Aj na priechodoch (inak sa vybočenie na priechode povie vždy hneď)",
 compassNoData: "Kompas neposiela údaje, vybočenie sa nedá zistiť. Skontrolujte, či je povolený pohyb a orientácia (Nastavenia, Safari), a stlačte Štart znova.",
 compassStalled: "Kompas prestal posielať údaje, navádzanie nefunguje.", compassBack: "Kompas znova funguje.",
 compassUncal: "Kompas je nepresný. Niekoľkokrát pohnite telefónom v tvare osmičky.",
@@ -998,7 +1013,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -1010,6 +1025,8 @@ document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
 routeAnnounceEvery.options[0].text = t('optAnnMeters');
 approachCues.options[0].text = t('optApproachOff');
+swingFilter.options[0].text = t('optSwingOff');
+for(let k = 1; k < swingFilter.options.length; k++){ const v = swingFilter.options[k].value; swingFilter.options[k].text = v === '1' ? t('optSwingOneSec') : t('optSwingSec').replace('{n}', lang === 'sk' ? v.replace('.', ',') : v); }
 Array.from(crossThreshold.options).forEach((o) => { o.text = t('optDegN').replace('{n}', o.value); });
 crossConfirmEvery.options[0].text = t('optNo');
 for(let k = 1; k < crossConfirmEvery.options.length; k++) crossConfirmEvery.options[k].text = t('optEveryM').replace('{n}', crossConfirmEvery.options[k].value);
@@ -1133,6 +1150,8 @@ const routeAnnounceEvery = document.getElementById('routeAnnounceEvery');
 const pointDistOn = document.getElementById('pointDistOn');
 const crossStraightOn = document.getElementById('crossStraightOn');
 const soundsInSilent = document.getElementById('soundsInSilent');
+const swingFilter = document.getElementById('swingFilter');
+const swingOnCrossing = document.getElementById('swingOnCrossing');
 const crossThreshold = document.getElementById('crossThreshold');
 const crossConfirmEvery = document.getElementById('crossConfirmEvery');
 const startAlignOn = document.getElementById('startAlignOn');
@@ -1651,9 +1670,26 @@ const med = devs.length % 2 ? devs[mid] : (devs[mid - 1] + devs[mid]) / 2;
 return angleDiff(mean + med, 0);
 }
 
+// Ignoring the hand swinging: a drift only counts once the direction has stayed off to the same side for the
+// whole chosen time. Then the smallest drift of that time is used, so a swing back and forth never adds up.
+let swingBuf = [];
+function swingFiltered(diff, th){
+const w = parseFloat(swingFilter.value) * 1000;
+const now = performance.now();
+swingBuf.push({ t: now, d: diff });
+while(swingBuf.length && now - swingBuf[0].t > w) swingBuf.shift();
+const right = swingBuf.every((x) => x.d > 0), left = swingBuf.every((x) => x.d < 0);
+const m = Math.min.apply(null, swingBuf.map((x) => Math.abs(x.d)));
+// Swinging back and forth: none of it counts (and no soft "near the edge" beep either)
+let eff = right ? m : left ? -m : 0;
+// Off to one side, but not yet for the whole time: not a drift yet
+if(now - swingBuf[0].t < w - 150 && Math.abs(eff) > th) eff = Math.sign(eff) * th * 0.99;
+return eff;
+}
 // opts.strict (crossings): no smoothing, its own sensitivity, and every new drift (or change of side) is said at once
 function processDrift(diff, opts){
 const strict = !!(opts && opts.strict);
+if(swingFilter.value !== 'off' && !demoRunning && (!strict || swingOnCrossing.checked) && (navMode === 'route' || currentUnit() === 'degrees')) diff = swingFiltered(diff, strict ? opts.th : parseFloat(thresholdDeg.value));
 if(obstacleMode.checked && !demoRunning && !strict) diff = smoothDriftForObstacles(diff);
 const absDiff = Math.abs(diff);
 const now = performance.now();
@@ -1890,6 +1926,7 @@ announce(next.label, '');
 let crossHold = null;
 function startCrossHold(c, msgKey){
 const len = Math.max(3, c.length || 0);
+swingBuf = [];
 crossHold = { heading: c.heading, length: len, start: c.start, end: c.end, started: performance.now(), quietUntil: performance.now() + 1500, misaligned: false, needAlign: true, farChecked: msgKey === 'planned' };
 driftRefKey = null;
 return msgKey === 'planned' ? t('crossHoldPlanned').replace('{d}', formatDist(len)) : t('crossHoldStart').replace('{name}', c.name || '').replace('{d}', formatDist(len));
@@ -2333,6 +2370,7 @@ const h = fresh.length ? circularMean(fresh.slice(-6).map((x) => x.h)) : null;
 if(h !== null && fresh.length >= 3){
 autoLockPending = false;
 targetHeading = h;
+swingBuf = [];
 lockBeta = lastBeta;
 tiltOffSince = 0;
 distSinceTarget = 0;
@@ -4664,6 +4702,8 @@ routeAnnounceEvery: routeAnnounceEvery.value,
 pointDistOn: pointDistOn.checked,
 crossStraightOn: crossStraightOn.checked,
 soundsInSilent: soundsInSilent.checked,
+swingFilter: swingFilter.value,
+swingOnCrossing: swingOnCrossing.checked,
 crossThreshold: crossThreshold.value,
 crossConfirmEvery: crossConfirmEvery.value,
 startAlignOn: startAlignOn.checked,
@@ -4718,6 +4758,8 @@ if(s.routeAnnounceEvery && Array.from(routeAnnounceEvery.options).some((o) => o.
 if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
 if(typeof s.crossStraightOn === 'boolean') crossStraightOn.checked = s.crossStraightOn;
 if(typeof s.soundsInSilent === 'boolean') soundsInSilent.checked = s.soundsInSilent;
+if(s.swingFilter && Array.from(swingFilter.options).some((o) => o.value === s.swingFilter)) swingFilter.value = s.swingFilter;
+if(typeof s.swingOnCrossing === 'boolean') swingOnCrossing.checked = s.swingOnCrossing;
 if(s.crossThreshold && Array.from(crossThreshold.options).some((o) => o.value === s.crossThreshold)) crossThreshold.value = s.crossThreshold;
 if(s.crossConfirmEvery && Array.from(crossConfirmEvery.options).some((o) => o.value === s.crossConfirmEvery)) crossConfirmEvery.value = s.crossConfirmEvery;
 if(typeof s.startAlignOn === 'boolean') startAlignOn.checked = s.startAlignOn;
@@ -4764,7 +4806,7 @@ fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
 markCrossingBtn.addEventListener('click', openMarkCrossing);
-[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent].forEach((el) => el.addEventListener('change', saveSettings));
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent, swingFilter, swingOnCrossing].forEach((el) => el.addEventListener('change', saveSettings));
 recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
