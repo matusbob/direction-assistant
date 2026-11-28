@@ -30,6 +30,9 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
   the chosen time, also while the hand still swings a little; on crossings only with "Also on crossings"; settings.
 - `test_v49.js` - version 49: the distance of each short piece in joined instructions (off by default: as before;
   on: in the list, during navigation and said aloud; English; remembered).
+- `test_v50.js` - version 50: the intersection at a crossing (on, off, default off, street service unreachable),
+  your marked crossing used on a recorded route (and one beside the route not used; setting off), reporting to
+  OpenStreetMap (what is sent, not confirmed, prompt cancelled, empty "another mistake", sending failed), settings.
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and
