@@ -408,6 +408,10 @@ flex:none;
 <label for="pointDistOn" style="margin:0;" id="lblPointDistOn">At each point of a route, also say how far it is to the next one</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="pieceDistOn">
+<label for="pieceDistOn" style="margin:0;" id="lblPieceDistOn">In joined instructions of a planned route ("... Then turn left ..."), also say the distance of each short piece (for routes planned after turning it on)</label>
+</div>
+<div class="toggle">
 <input type="checkbox" id="turnConfirmOn" checked>
 <label for="turnConfirmOn" style="margin:0;" id="lblTurnConfirmOn">Confirm when I've turned the right way ("Great, you turned right")</label>
 </div>
@@ -559,13 +563,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 48</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 49</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 48;
+const APP_VERSION = 49;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -657,7 +661,8 @@ crossHoldStart: "Crossing {name}, {d}. Hold the direction, I'll beep if you drif
 crossTurn: "First turn {side} by about {n} degrees, then go.", crossLeftWord: "left", crossRightWord: "right", crossAligned: "Direction right, go.",
 crossHoldEnd: "You have crossed.", crossFar: "You seem to be {d} from the start of this crossing.", crossStartLabel: "Start of the crossing",
 nearestCrossing: "Nearest crossing: {p}, {d}, {dir}.", crossAtStart: "start", crossAtEnd: "end",
-lblPointDistOn: "At each point of a route, also say how far it is to the next one", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
+lblPointDistOn: "At each point of a route, also say how far it is to the next one",
+lblPieceDistOn: "In joined instructions of a planned route (\"... Then turn left ...\"), also say the distance of each short piece (for routes planned after turning it on)", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
 lblNearbyKinds: "In \"What's nearby?\", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are",
 lblRecalc: "Recalculate the route", recalcWorking: "Recalculating the route from where you are...", recalcDone: "Route recalculated.", recalcFailed: "The route couldn't be recalculated (no internet or the service is busy). Navigation goes on as before.",
 recalcNearest: "Going on to the nearest point of the route: {p}, {d}, {dir}.", thenDist: "then {d}",
@@ -861,7 +866,8 @@ crossHoldStart: "Priechod {name}, {d}. Držte smer, pípnem, keď vybočíte.", 
 crossTurn: "Najprv sa otočte {side} asi o {n} stupňov, potom choďte.", crossLeftWord: "doľava", crossRightWord: "doprava", crossAligned: "Smer správny, choďte.",
 crossHoldEnd: "Prešli ste priechod.", crossFar: "Zdá sa, že ste {d} od začiatku tohto priechodu.", crossStartLabel: "Začiatok priechodu",
 nearestCrossing: "Najbližší priechod: {p}, {d}, {dir}.", crossAtStart: "začiatok", crossAtEnd: "koniec",
-lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
+lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší",
+lblPieceDistOn: "Pri spojených pokynoch plánovanej trasy („… Potom odbočte vľavo …“) povedať vzdialenosť aj ku každému krátkemu kúsku (platí pre trasy naplánované po zapnutí)", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
 lblNearbyKinds: "V „Čo je blízko?“ povedať, pri ktorom mojom bode som a kde sú moje najbližšie schody, vchod, východ, výťah a nástupište",
 lblRecalc: "Prepočítať trasu", recalcWorking: "Prepočítavam trasu od miesta, kde ste...", recalcDone: "Trasa prepočítaná.", recalcFailed: "Trasu sa nepodarilo prepočítať (nie je internet alebo je služba vyťažená). Navigácia pokračuje ako doteraz.",
 recalcNearest: "Pokračujem k najbližšiemu bodu trasy: {p}, {d}, {dir}.", thenDist: "potom {d}",
@@ -1013,7 +1019,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblPieceDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -1148,6 +1154,7 @@ const recalcBtn = document.getElementById('recalcBtn');
 const offRouteCourse = document.getElementById('offRouteCourse');
 const routeAnnounceEvery = document.getElementById('routeAnnounceEvery');
 const pointDistOn = document.getElementById('pointDistOn');
+const pieceDistOn = document.getElementById('pieceDistOn');
 const crossStraightOn = document.getElementById('crossStraightOn');
 const soundsInSilent = document.getElementById('soundsInSilent');
 const swingFilter = document.getElementById('swingFilter');
@@ -4058,6 +4065,8 @@ const begin = Math.min(man[i].begin_shape_index, shape.length - 1);
 let instr = man[i].instruction, turn = turnFromManeuver(man[i].type), j = i;
 // A stretch of only a few meters can't be told apart by GPS: say it together with the next instruction
 while(man[j].length * 1000 < 15 && j + 1 < man.length - 1){
+// (setting) the length of the short piece before "Then ..."
+if(pieceDistOn.checked) instr = instr.replace(/\.$/, '') + ', ' + formatDist(man[j].length * 1000) + '.';
 j++;
 instr += ' ' + t('thenWord') + ' ' + man[j].instruction.charAt(0).toLowerCase() + man[j].instruction.slice(1);
 if(turn === 'straight') turn = turnFromManeuver(man[j].type);
@@ -4700,6 +4709,7 @@ offRouteHint: offRouteHint.checked,
 offRouteCourse: offRouteCourse.checked,
 routeAnnounceEvery: routeAnnounceEvery.value,
 pointDistOn: pointDistOn.checked,
+pieceDistOn: pieceDistOn.checked,
 crossStraightOn: crossStraightOn.checked,
 soundsInSilent: soundsInSilent.checked,
 swingFilter: swingFilter.value,
@@ -4756,6 +4766,7 @@ if(typeof s.offRouteHint === 'boolean') offRouteHint.checked = s.offRouteHint;
 if(typeof s.offRouteCourse === 'boolean') offRouteCourse.checked = s.offRouteCourse;
 if(s.routeAnnounceEvery && Array.from(routeAnnounceEvery.options).some((o) => o.value === s.routeAnnounceEvery)) routeAnnounceEvery.value = s.routeAnnounceEvery;
 if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
+if(typeof s.pieceDistOn === 'boolean') pieceDistOn.checked = s.pieceDistOn;
 if(typeof s.crossStraightOn === 'boolean') crossStraightOn.checked = s.crossStraightOn;
 if(typeof s.soundsInSilent === 'boolean') soundsInSilent.checked = s.soundsInSilent;
 if(s.swingFilter && Array.from(swingFilter.options).some((o) => o.value === s.swingFilter)) swingFilter.value = s.swingFilter;
@@ -4806,7 +4817,7 @@ fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
 markCrossingBtn.addEventListener('click', openMarkCrossing);
-[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent, swingFilter, swingOnCrossing].forEach((el) => el.addEventListener('change', saveSettings));
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent, swingFilter, swingOnCrossing, pieceDistOn].forEach((el) => el.addEventListener('change', saveSettings));
 recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);

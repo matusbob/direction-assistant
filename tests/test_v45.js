@@ -238,7 +238,7 @@ const at = (p, north, east) => ({ lat: p.lat + north * M_LAT, lon: p.lon + east 
     await page.selectOption('#routeAnnounceEvery', '15');
     await page.click('#turnConfirmOn');
     await page.waitForTimeout(200);
-    await page.reload(); await page.waitForTimeout(400);
+    await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(1000);
     check('P8: changes are remembered', (await page.inputValue('#routeAnnounceEvery')) === '15' && !(await page.isChecked('#turnConfirmOn')));
     await ctx.close(); }
 
