@@ -11,6 +11,8 @@ if (!oldFile) {
   fs.writeFileSync(oldFile, cp.execSync('git show origin/main:smerasistentv3.html', { cwd: ROOT }));
 }
 const OLD = 'file://' + oldFile;
+// New settings of this version turned off, so the rest can be compared with the published version
+const NEW_OFF = { pointDistOn: false, offRouteCourse: false, nearbyKinds: false };
 const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: [
   { lat: 47.97663, lon: 18.16087, label: 'Štart' }, { lat: 47.97720, lon: 18.16150, label: 'Vchod do parku' },
   { lat: 47.97790, lon: 18.16120, label: 'Lavička' }, { lat: 47.97840, lon: 18.16200, label: 'Cieľ' }] };
@@ -27,9 +29,9 @@ const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: 
     await page.addInitScript((a) => {
       if (sessionStorage.getItem('__seeded')) return;
       sessionStorage.setItem('__seeded', '1');
-      localStorage.setItem('directionAssistantSettings', JSON.stringify({ lang: a.lang, fastGps: true }));
+      localStorage.setItem('directionAssistantSettings', JSON.stringify(Object.assign({ lang: a.lang, fastGps: true }, a.newOff)));
       if (a.routes) localStorage.setItem('directionAssistantRoutes', JSON.stringify(a.routes));
-    }, { routes, lang });
+    }, { routes, lang, newOff: NEW_OFF });
     await install(page, {});
     await page.goto(url);
     return { ctx, page, errs };
@@ -71,7 +73,7 @@ const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: 
       await page.click('#mainBtn'); await page.waitForTimeout(800);
     },
   };
-  const shape = require('./mocks.js').decode(require('./mocks.js').shapeOf('route_named_sk-SK.json'));
+  const shape = require('./mocks.js').decode(require('./mocks.js').shapeOf('nz_route_named_sk-SK.json'));
   global.require_shape = () => shape;
   const pick = process.env.SCEN ? process.env.SCEN.split(',') : Object.keys(scenarios);
   for (const lang of ['sk', 'en']) for (const name of pick) {
@@ -87,9 +89,11 @@ const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: 
       await ctx.close();
     }
     const [o, n] = res;
-    // Intended change in version 44: the route summary also names the third kind of route ("same route as ...")
-    const known = (list) => list.map((e) => /^(Po pomenovaných uliciach|Along named streets): /.test(e) ? e.replace(/\s*(Najkratšia trasa|Shortest route): (rovnaká trasa ako|same route as) .*$/, '') : e);
+    // Intended changes in version 45: the route summary names three more kinds of route, and the route
+    // instructions list has the distance to the next point at each point
+    const known = (list) => list.map((e) => /^(Po pomenovaných uliciach|Along named streets): /.test(e) ? e.replace(/\s*(Bez schodov|Without steps): .*$/, '') : e);
     n.events = known(n.events); n.speaks = known(n.speaks);
+    if (n.extra && n.extra.route) n.extra.route = n.extra.route.map((x) => x.replace(/, \d+(,\d)? (m|km)(?=,|$)/, ''));
     check(`${lang} ${name}: same announcements (${n.events.length})`, JSON.stringify(o.events) === JSON.stringify(n.events), { old: o.events, new: n.events });
     check(`${lang} ${name}: same speech and vibration`, JSON.stringify(o.speaks) === JSON.stringify(n.speaks) && o.vibes === n.vibes, { old: o.speaks.slice(-4), new: n.speaks.slice(-4), vo: o.vibes, vn: n.vibes });
     if (o.extra) check(`${lang} ${name}: same instruction lists`, JSON.stringify(o.extra) === JSON.stringify(n.extra), { old: o.extra, new: n.extra });

@@ -225,6 +225,7 @@ flex:none;
 <button type="button" id="historyBtn" class="quickbtn"><span id="lblHistory">Announcement history</span></button>
 <button type="button" id="shareLocBtn" class="quickbtn"><span id="lblShareLoc">Share my location</span></button>
 <button type="button" id="routePointsBtn" class="quickbtn" hidden><span id="lblRoutePoints">Route points</span></button>
+<button type="button" id="recalcBtn" class="quickbtn" hidden><span id="lblRecalc">Recalculate the route</span></button>
 </div>
 <div id="quickResult"></div>
 
@@ -333,6 +334,31 @@ flex:none;
 <option value="20">20 m</option>
 <option value="30">30 m</option>
 </select>
+<div class="toggle">
+<input type="checkbox" id="offRouteCourse" checked>
+<label for="offRouteCourse" style="margin:0;" id="lblOffRouteCourse">When I leave the route, also say which way I'm walking and which way I should go, and whether I've probably walked past the next point</label>
+</div>
+<label for="routeAnnounceEvery" id="lblRouteAnnounceEvery">During route navigation, say the distance to the next point</label>
+<select id="routeAnnounceEvery">
+<option value="meters" selected>Every so many meters (the "Meters distance" slider)</option>
+<option value="5">Every 5 seconds</option>
+<option value="10">Every 10 seconds</option>
+<option value="15">Every 15 seconds</option>
+<option value="20">Every 20 seconds</option>
+<option value="30">Every 30 seconds</option>
+</select>
+<div class="toggle">
+<input type="checkbox" id="pointDistOn" checked>
+<label for="pointDistOn" style="margin:0;" id="lblPointDistOn">At each point of a route, also say how far it is to the next one</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="turnConfirmOn" checked>
+<label for="turnConfirmOn" style="margin:0;" id="lblTurnConfirmOn">Confirm when I've turned the right way ("Great, you turned right")</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="nearbyKinds" checked>
+<label for="nearbyKinds" style="margin:0;" id="lblNearbyKinds">In "What's nearby?", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are</label>
+</div>
 <div class="toggle">
 <input type="checkbox" id="recordVoiceFeedback" checked>
 <label for="recordVoiceFeedback" style="margin:0;" id="lblRecordVoiceFeedback">Voice feedback while auto-recording</label>
@@ -477,13 +503,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 44</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 45</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 44;
+const APP_VERSION = 45;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -546,6 +572,20 @@ streetsUpToNote: "Streets and intersections are included up to {r}.", streetsErr
 bendRight: "The route bends right.", bendLeft: "The route bends left.",
 backToMain: "Back to the main screen", mainScreen: "Main screen", toTop: "Back to the top of the screen",
 lblOffRouteHint: "When I leave the route, also say that I'm moving away and where the next point is",
+lblOffRouteCourse: "When I leave the route, also say which way I'm walking and which way I should go, and whether I've probably walked past the next point",
+lblRouteAnnounceEvery: "During route navigation, say the distance to the next point", optAnnMeters: "Every so many meters (the \"Meters distance\" slider)", optAnnSec: "Every {n} seconds",
+lblPointDistOn: "At each point of a route, also say how far it is to the next one", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
+lblNearbyKinds: "In \"What's nearby?\", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are",
+lblRecalc: "Recalculate the route", recalcWorking: "Recalculating the route from where you are...", recalcDone: "Route recalculated.", recalcFailed: "The route couldn't be recalculated (no internet or the service is busy). Navigation goes on as before.",
+recalcNearest: "Going on to the nearest point of the route: {p}, {d}, {dir}.", thenDist: "then {d}",
+walkingNeed: "You are walking {now}; the point is to the {need}.", missedPoint: "You have probably walked past the point: {p}. It is {dir}, {d}.",
+planNoSteps: "Without steps", planFewestSignals: "Fewest traffic lights", planFewestTurns: "Fewest turns",
+planSignals: "traffic lights: {n}", planNoStairs: "no steps", planNoSignals: "no traffic lights", planStairs: "steps: {n}", planUnknownSignals: "traffic lights unknown", planCantTell: "can't tell, the map doesn't say where the traffic lights are",
+crossAppendSig: "over a pedestrian crossing with traffic lights", crossAloneSig: "Cross at the pedestrian crossing with traffic lights.",
+passBollard: "careful, a bollard", passGate: "through a gate", aloneBollard: "Careful, a bollard on the path.", aloneGate: "Go through the gate.",
+atSavedPoint: "You are at: {p}, {d}.", nearestSaved: "Nearest of your points: {p}, {d}, {dir}.",
+nearestStairs: "Nearest stairs: {p}, {d}, {dir}.", nearestEntrance: "Nearest entrance: {p}, {d}, {dir}.", nearestExit: "Nearest exit: {p}, {d}, {dir}.",
+nearestLift: "Nearest lift: {p}, {d}, {dir}.", nearestPlatform: "Nearest platform: {p}, {d}, {dir}.",
 offRouteAway: "You're moving away from the next point, probably the wrong way. It is {dir}, {d}.",
 crossAppend: "over a pedestrian crossing", crossAlone: "Cross at the pedestrian crossing.", acrossStreet: "across {s}", thenAlong: "then along {s}",
 planCrossings: "pedestrian crossings: {n}", destAtEnd: "At the end: {s}",
@@ -709,6 +749,20 @@ streetsUpToNote: "Ulice a križovatky sú zahrnuté do {r}.", streetsError: "Uli
 bendRight: "Trasa zatáča doprava.", bendLeft: "Trasa zatáča doľava.",
 backToMain: "Späť na hlavnú obrazovku", mainScreen: "Hlavná obrazovka", toTop: "Späť na začiatok obrazovky",
 lblOffRouteHint: "Keď odídem z trasy, povedať aj to, že sa vzďaľujem, a kde je ďalší bod",
+lblOffRouteCourse: "Keď odídem z trasy, povedať aj, ktorým smerom idem a ktorým mám ísť, a či som pravdepodobne neprešiel okolo ďalšieho bodu",
+lblRouteAnnounceEvery: "Počas navigácie trasy hlásiť vzdialenosť k ďalšiemu bodu", optAnnMeters: "Každých toľko metrov (posuvník „Vzdialenosť v metroch“)", optAnnSec: "Každých {n} sekúnd",
+lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
+lblNearbyKinds: "V „Čo je blízko?“ povedať, pri ktorom mojom bode som a kde sú moje najbližšie schody, vchod, východ, výťah a nástupište",
+lblRecalc: "Prepočítať trasu", recalcWorking: "Prepočítavam trasu od miesta, kde ste...", recalcDone: "Trasa prepočítaná.", recalcFailed: "Trasu sa nepodarilo prepočítať (nie je internet alebo je služba vyťažená). Navigácia pokračuje ako doteraz.",
+recalcNearest: "Pokračujem k najbližšiemu bodu trasy: {p}, {d}, {dir}.", thenDist: "potom {d}",
+walkingNeed: "Idete na {now}, bod je smerom na {need}.", missedPoint: "Pravdepodobne ste prešli okolo bodu: {p}. Je {dir}, {d}.",
+planNoSteps: "Bez schodov", planFewestSignals: "Najmenej semaforov", planFewestTurns: "Najmenej odbočiek",
+planSignals: "semaforov: {n}", planNoStairs: "bez schodov", planNoSignals: "bez semaforov", planStairs: "schody: {n}", planUnknownSignals: "semafory nezistené", planCantTell: "nedá sa zistiť, mapa nehlási, kde sú semafory",
+crossAppendSig: "cez priechod pre chodcov so semaforom", crossAloneSig: "Prejdite cez priechod pre chodcov so semaforom.",
+passBollard: "pozor, stĺpik", passGate: "cez bránu", aloneBollard: "Pozor, stĺpik na chodníku.", aloneGate: "Prejdite cez bránu.",
+atSavedPoint: "Ste pri: {p}, {d}.", nearestSaved: "Najbližší váš bod: {p}, {d}, {dir}.",
+nearestStairs: "Najbližšie schody: {p}, {d}, {dir}.", nearestEntrance: "Najbližší vchod: {p}, {d}, {dir}.", nearestExit: "Najbližší východ: {p}, {d}, {dir}.",
+nearestLift: "Najbližší výťah: {p}, {d}, {dir}.", nearestPlatform: "Najbližšie nástupište: {p}, {d}, {dir}.",
 offRouteAway: "Vzďaľujete sa od ďalšieho bodu, pravdepodobne idete nesprávnym smerom. Je {dir}, {d}.",
 crossAppend: "cez priechod pre chodcov", crossAlone: "Prejdite cez priechod pre chodcov.", acrossStreet: "cez ulicu {s}", thenAlong: "potom popri ulici {s}",
 planCrossings: "priechodov pre chodcov: {n}", destAtEnd: "Na konci: {s}",
@@ -849,7 +903,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblOffRouteHint','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -859,6 +913,8 @@ document.getElementById('lblHistoryClose').textContent = t('close');
 document.getElementById('lblRoutePointsClose').textContent = t('close');
 document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
+routeAnnounceEvery.options[0].text = t('optAnnMeters');
+for(let k = 1; k < routeAnnounceEvery.options.length; k++) routeAnnounceEvery.options[k].text = t('optAnnSec').replace('{n}', routeAnnounceEvery.options[k].value);
 dirStyle.options[0].text = t('optDirSides'); dirStyle.options[1].text = t('optDirClock'); dirStyle.options[2].text = t('optDirCompass');
 document.querySelectorAll('.topback').forEach((b) => { b.textContent = t('back'); });
 document.getElementById('lblToTop').textContent = t('toTop');
@@ -969,6 +1025,12 @@ const compassBtn = document.getElementById('compassBtn');
 const shareLocBtn = document.getElementById('shareLocBtn');
 const savePlaceBtn = document.getElementById('savePlaceBtn');
 const routePointsBtn = document.getElementById('routePointsBtn');
+const recalcBtn = document.getElementById('recalcBtn');
+const offRouteCourse = document.getElementById('offRouteCourse');
+const routeAnnounceEvery = document.getElementById('routeAnnounceEvery');
+const pointDistOn = document.getElementById('pointDistOn');
+const turnConfirmOn = document.getElementById('turnConfirmOn');
+const nearbyKinds = document.getElementById('nearbyKinds');
 const recWhereAmIBtn = document.getElementById('recWhereAmIBtn');
 const recRepeatBtn = document.getElementById('recRepeatBtn');
 const historyOverlay = document.getElementById('historyOverlay');
@@ -1363,8 +1425,10 @@ if(currentBearing === null) return;
 const diff = angleDiff(h, currentBearing);
 if(awaitingTurnConfirm && Math.abs(diff) < parseFloat(thresholdDeg.value)){
 const confirmMsg = awaitingTurnConfirm === 'right' ? t('turnConfirmedRight') : t('turnConfirmedLeft');
+if(turnConfirmOn.checked){
 announceEvent(confirmMsg);
 if(voiceMode.value !== 'off') speak(confirmMsg);
+}
 awaitingTurnConfirm = null;
 }
 if(routeCorrectionOn.checked) processDrift(diff);
@@ -1523,6 +1587,7 @@ return;
 }
 
 const segDist = haversineMeters(lastLat, lastLon, c.latitude, c.longitude);
+if(navMode === 'route') rememberTrail(c.latitude, c.longitude);
 
 if(segDist > 2) {
 totalDistMeters += segDist;
@@ -1719,9 +1784,44 @@ announce(t('stepEstimateLabel'), Math.max(0, Math.round(remaining)) + 'm');
 }
 }
 
-function offRouteText(dist){
+// Recent positions during route navigation, to tell which way you are actually walking
+let routeTrail = [];
+function rememberTrail(lat, lon){
+const last = routeTrail[routeTrail.length - 1];
+if(last && haversineMeters(last.lat, last.lon, lat, lon) < 2) return;
+routeTrail.push({ lat: lat, lon: lon });
+if(routeTrail.length > 30) routeTrail.shift();
+}
+// The direction of your last 8 m or more of walking, or null
+function walkingCourse(){
+const cur = routeTrail[routeTrail.length - 1];
+if(!cur) return null;
+for(let k = routeTrail.length - 2; k >= 0; k--){
+if(haversineMeters(routeTrail[k].lat, routeTrail[k].lon, cur.lat, cur.lon) >= 8) return bearingDegrees(routeTrail[k].lat, routeTrail[k].lon, cur.lat, cur.lon);
+}
+return null;
+}
+let closestToAnn = null, closestAnnIndex = -1;
+function offRouteText(dist, annWp){
 if(!offRouteHint.checked || currentBearing === null) return t('offRoute');
-return t('offRoute') + ' ' + t('offRouteAway').replace('{dir}', describeDirection(currentBearing, lastHeading)).replace('{d}', formatDist(dist));
+let txt = t('offRoute') + ' ';
+const wpText = annWp ? (annWp.instruction ? annWp.instruction.replace(/\.$/, '') : annWp.label) : '';
+// You came within 25 m of the point without reaching it, and now you're moving away: probably walked past it
+if(offRouteCourse.checked && annWp && closestToAnn !== null && closestToAnn <= 25) txt += t('missedPoint').replace('{p}', wpText).replace('{dir}', describeDirection(currentBearing, lastHeading)).replace('{d}', formatDist(dist));
+else txt += t('offRouteAway').replace('{dir}', describeDirection(currentBearing, lastHeading)).replace('{d}', formatDist(dist));
+const course = offRouteCourse.checked ? walkingCourse() : null;
+if(course !== null) txt += ' ' + t('walkingNeed').replace('{now}', directionWord(course).toLowerCase()).replace('{need}', directionWord(currentBearing).toLowerCase());
+return txt;
+}
+// How far it is from point i of a route to the next point that is said (way points of a planned route are skipped)
+function distToNextPoint(wps, i){
+if(i >= wps.length - 1) return null;
+let d = 0, k = i;
+do {
+d += wps[k].type === 'straight' && typeof wps[k].meters === 'number' ? wps[k].meters : haversineMeters(wps[k].lat, wps[k].lon, wps[k + 1].lat, wps[k + 1].lon);
+k++;
+} while(k < wps.length - 1 && wps[k].via);
+return d;
 }
 function updateRouteBearing(lat, lon){
 if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
@@ -1746,6 +1846,9 @@ announceTotalRemaining(dist);
 let annIndex = routeIndex, annDist = dist;
 while(activeRoute.waypoints[annIndex].via && annIndex + 1 < activeRoute.waypoints.length){ annDist += activeRouteLegDistances[annIndex]; annIndex++; }
 const annWp = activeRoute.waypoints[annIndex];
+if(closestAnnIndex !== annIndex){ closestAnnIndex = annIndex; closestToAnn = null; }
+const toAnn = haversineMeters(lat, lon, annWp.lat, annWp.lon);
+if(closestToAnn === null || toAnn < closestToAnn) closestToAnn = toAnn;
 
 const offRouteMeters = offRouteDist.value !== 'auto' ? parseInt(offRouteDist.value, 10) : (fastGps.checked ? 8 : 0);
 if(offRouteMeters){
@@ -1755,8 +1858,8 @@ if(!offRouteFlag && dist - minDistToTarget >= offRouteMeters){
 offRouteFlag = true;
 offRoutePeak = dist;
 playChime('offroute');
-announceEvent(offRouteText(dist));
-if(talk) speak(offRouteText(dist));
+announceEvent(offRouteText(dist, annWp));
+if(talk) speak(offRouteText(dist, annWp));
 chimeVibrate([200, 100, 200]);
 } else if(offRouteFlag){
 if(dist > offRoutePeak) offRoutePeak = dist;
@@ -1785,8 +1888,8 @@ chimeVibrate([60, 40, 60]);
 if(offRouteStreak >= 3 && !offRouteFlag){
 offRouteFlag = true;
 playChime('offroute');
-announceEvent(offRouteText(dist));
-if(talk) speak(offRouteText(dist));
+announceEvent(offRouteText(dist, annWp));
+if(talk) speak(offRouteText(dist, annWp));
 chimeVibrate([200, 100, 200]);
 }
 }
@@ -1824,9 +1927,10 @@ if(turnType === 'right'){ msg = t('turnRightNow'); awaitingTurnConfirm = 'right'
 else if(turnType === 'left'){ msg = t('turnLeftNow'); awaitingTurnConfirm = 'left'; }
 else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
-let arriveMsg = wp.label + ". " + msg;
+const nextDist = pointDistOn.checked ? distToNextPoint(activeRoute.waypoints, nextIndex - 1) : null;
+let arriveMsg = wp.label + ". " + (nextDist !== null ? msg.replace(/\.$/, '') + ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) + '.' : msg);
 if(wp.instruction){
-arriveMsg = wp.instruction + (wp.note ? ' ' + wp.note.replace(/([^.!?])$/, '$1.') : '');
+arriveMsg = (nextDist !== null ? wp.instruction.replace(/\.$/, '') + ', ' + formatDist(nextDist) + '.' : wp.instruction) + (wp.note ? ' ' + wp.note.replace(/([^.!?])$/, '$1.') : '');
 // At the very start of a planned route, also say which way that is from where the phone is pointing
 if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
 // ...and which side the destination will be on, when the map knows
@@ -1841,6 +1945,19 @@ return;
 }
 
 if(routeNotesOnly.checked) return;
+
+const everySec = routeAnnounceEvery.value !== 'meters' ? parseInt(routeAnnounceEvery.value, 10) : 0;
+if(everySec){
+// Time-based: the distance to the next point every so many seconds
+if(performance.now() - lastRouteAnnounce >= everySec * 1000){
+const msg = Math.round(annDist) + "m, " + (annWp.instruction || (annWp.dest ? annWp.label : turnPhrase(activeRouteTurns[annIndex])));
+announceEvent(msg);
+if(talk) speak(msg);
+announce(annWp.label, msg);
+lastRouteAnnounce = performance.now();
+}
+return;
+}
 
 if(lastRouteAnnounceDist === null || Math.abs(annDist - lastRouteAnnounceDist) >= announceInterval){
 lastRouteAnnounceDist = annDist;
@@ -1990,6 +2107,8 @@ routesBtn.disabled = true;
 nearbyBtn.disabled = true;
 statusBox.className = 'status ok';
 routePointsBtn.hidden = false;
+recalcBtn.hidden = false;
+routeTrail = []; closestToAnn = null; closestAnnIndex = -1;
 renderNavSteps(true);
 focusCurrentStep();
 const wp = route.waypoints[0];
@@ -2027,6 +2146,7 @@ activeRoute = null;
 holdingStraight = false;
 manualHoldDoneBtn.hidden = true;
 routePointsBtn.hidden = true;
+recalcBtn.hidden = true;
 renderNavSteps(true);
 if(!routePointsOverlay.hidden) closeRoutePoints();
 navPaused = false;
@@ -3383,14 +3503,18 @@ want -= seg[i];
 return pts[0];
 }
 // crossings: pedestrian crossings on the route as [{b, e}] index ranges of the route's shape (may be empty)
-function buildPlannedRoute(trip, pl, crossings){
+function buildPlannedRoute(trip, pl, attrs){
+if(Array.isArray(attrs)) attrs = { crossings: attrs, barriers: [], signals: null, stairs: null };
+attrs = attrs || { crossings: [], barriers: [], signals: null, stairs: null };
 const leg = trip && trip.legs && trip.legs[0];
 if(!leg || !Array.isArray(leg.maneuvers) || !leg.shape) return null;
 const shape = decodePolyline6(leg.shape);
 const man = leg.maneuvers;
 if(man.length < 2 || shape.length < 2) return null;
 const waypoints = [];
-const cross = (crossings || []).slice().sort((x, y) => x.b - y.b);
+// Crossings, bollards and gates along the path, in order
+const cross = (attrs.crossings || []).map((c) => ({ b: c.b, e: c.e, signal: !!c.signal, kind: 'cross' }))
+.concat((attrs.barriers || []).map((x) => ({ b: x.i, e: x.i, kind: x.type }))).sort((x, y) => x.b - y.b);
 const midOf = (c) => { const part = shape.slice(c.b, Math.min(c.e, shape.length - 1) + 1); return part.length > 1 ? pointAlong(part, 0.5) : shape[c.b]; };
 let steps = 0;
 // One stretch of path after an announced point: gentle bends are followed silently, sharp ones (45 degrees
@@ -3439,17 +3563,32 @@ steps++;
 let said = wp, from = begin;
 cross.filter((c) => c.b >= begin && c.b < end).forEach((c) => {
 const q = shape[c.b];
+if(c.kind !== 'cross'){
+// A bollard or gate: said with the instruction given right there, or as a point of its own
+const word = t(c.kind === 'gate' ? 'passGate' : 'passBollard');
+if(c.b <= from || haversineMeters(shape[from].lat, shape[from].lon, q.lat, q.lon) < 8){
+if((said.after || []).indexOf(word) === -1){ said.after = (said.after || []).concat([word]); said.instruction = composeInstruction(said); }
+return;
+}
+emit(shape.slice(from, c.b + 1), said, unnamed);
+const txt = t(c.kind === 'gate' ? 'aloneGate' : 'aloneBollard');
+said = { lat: q.lat, lon: q.lon, label: '', instruction: txt, base: txt, turn: 'straight', barrier: c.kind };
+waypoints.push(said);
+steps++;
+from = c.b;
+return;
+}
 if(c.b <= from || haversineMeters(shape[from].lat, shape[from].lon, q.lat, q.lon) < 8){
 // The crossing starts right where this instruction is given: say it as part of it
 if(!said.cross){
-if(!/priechod|crosswalk|crossing/i.test(said.base)) said.base = said.base.replace(/\.$/, '') + ', ' + t('crossAppend') + '.';
-said.instruction = said.base;
+if(!/priechod|crosswalk|crossing/i.test(said.base)) said.base = said.base.replace(/\.$/, '') + ', ' + t(c.signal ? 'crossAppendSig' : 'crossAppend') + '.';
+said.instruction = composeInstruction(said);
 said.cross = midOf(c);
 }
 return;
 }
 emit(shape.slice(from, c.b + 1), said, unnamed);
-said = { lat: q.lat, lon: q.lon, label: '', instruction: t('crossAlone'), base: t('crossAlone'), turn: 'straight', cross: midOf(c), crossing: true };
+said = { lat: q.lat, lon: q.lon, label: '', instruction: t(c.signal ? 'crossAloneSig' : 'crossAlone'), base: t(c.signal ? 'crossAloneSig' : 'crossAlone'), turn: 'straight', cross: midOf(c), crossing: true };
 waypoints.push(said);
 steps++;
 from = c.b;
@@ -3466,13 +3605,19 @@ if((fin.type === 5 || fin.type === 6) && fin.instruction) dest.arrival = fin.ins
 waypoints.push(dest);
 return { id: 'plan' + Date.now().toString(36), name: t('routeTo').replace('{name}', pl.name), planned: true, waypoints: waypoints,
 meters: Math.round(trip.summary.length * 1000), minutes: Math.max(1, Math.round(trip.summary.time / 60)), steps: steps,
-crossings: waypoints.filter((w) => w.cross).length };
+crossings: waypoints.filter((w) => w.cross).length, signals: attrs.signals, stairs: attrs.stairs };
 }
 // Where the route uses pedestrian crossings, from the router's own description of each piece of the path.
 // Returns [{b, e}] index ranges in "shape", or [] when unknown.
 async function fetchCrossings(encoded, shape){
+return (await fetchRouteAttrs(encoded, shape)).crossings;
+}
+// What the router knows about the path: crossings (and whether they have traffic lights), traffic lights,
+// steps, bollards and gates. Each part is empty / null when unknown.
+async function fetchRouteAttrs(encoded, shape){
+const out = { crossings: [], barriers: [], signals: null, stairs: null };
 const req = { encoded_polyline: encoded, costing: 'pedestrian', shape_match: 'walk_or_snap',
-filters: { attributes: ['edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'shape'], action: 'include' } };
+filters: { attributes: ['edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'node.type', 'node.traffic_signal', 'shape'], action: 'include' } };
 let d = null;
 try{
 const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -3481,7 +3626,7 @@ const r = await fetch(VALHALLA_BASE + '/trace_attributes', { method: 'POST', hea
 clearTimeout(timer);
 d = r.ok ? await r.json() : null;
 }catch(e){ d = null; }
-if(!d || !Array.isArray(d.edges)) return [];
+if(!d || !Array.isArray(d.edges)) return out;
 const theirs = d.shape ? decodePolyline6(d.shape) : shape;
 // Their path may be re-sampled: translate each crossing's ends to the nearest point of our path
 const nearest = (pt) => {
@@ -3501,20 +3646,45 @@ const prev = runs[runs.length - 1];
 if(prev && b - prev.e <= 1 && haversineMeters(shape[prev.e].lat, shape[prev.e].lon, shape[b].lat, shape[b].lon) < 10) prev.e = en;
 else runs.push({ b: b, e: en });
 });
-return runs;
+out.crossings = runs;
+// Traffic lights, steps, bollards and gates, where the router reports them (older answers don't)
+const lights = [];
+let haveNodes = false, stairs = 0, inSteps = false;
+d.edges.forEach((e) => {
+if(e.use === 'steps'){ if(!inSteps) stairs++; inSteps = true; } else inSteps = false;
+const node = e.end_node;
+if(!node) return;
+haveNodes = true;
+const pt = theirs[e.end_shape_index];
+if(!pt) return;
+if(node.traffic_signal && !lights.some((l) => haversineMeters(l.lat, l.lon, pt.lat, pt.lon) < 20)) lights.push(pt);
+if(node.type === 'bollard' || node.type === 'gate'){
+const k = nearest(pt);
+if(k >= 0 && !out.barriers.some((x) => haversineMeters(shape[x.i].lat, shape[x.i].lon, shape[k].lat, shape[k].lon) < 10)) out.barriers.push({ i: k, type: node.type });
+}
+});
+if(haveNodes){
+out.signals = lights.length;
+out.stairs = stairs;
+runs.forEach((c) => { c.signal = lights.some((l) => [c.b, c.e].some((k) => haversineMeters(l.lat, l.lon, shape[k].lat, shape[k].lon) < 15)); });
+}
+return out;
 }
 async function fetchPlan(lat, lon, pl, options){
 const req = { locations: [{ lat: lat, lon: lon }, { lat: pl.lat, lon: pl.lon }], costing: 'pedestrian',
 directions_options: { language: lang === 'sk' ? 'sk-SK' : 'en-US', units: 'kilometers' } };
+if(options && options.alternates){ req.alternates = options.alternates; options = Object.assign({}, options); delete options.alternates; if(!Object.keys(options).length) options = null; }
 if(options) req.costing_options = { pedestrian: options };
 const d = await fetchJson(VALHALLA_URL + '?json=' + encodeURIComponent(JSON.stringify(req)), 20000);
 if(!d || !d.trip) return null;
-return { trip: d.trip, sig: d.trip.legs && d.trip.legs[0] ? d.trip.legs[0].shape : '' };
+const sigOf = (tr) => (tr.legs && tr.legs[0] ? tr.legs[0].shape : '');
+return { trip: d.trip, sig: sigOf(d.trip), alternates: (d.alternates || []).filter((a) => a && a.trip).map((a) => ({ trip: a.trip, sig: sigOf(a.trip) })) };
 }
 function composeInstruction(w){
 let txt = w.base.replace(/\.$/, '');
 if(w.crossStreet) txt += ' ' + t('acrossStreet').replace('{s}', w.crossStreet);
 if(w.alongStreet) txt += ', ' + t(w.cross ? 'thenAlong' : 'alongStreet').replace('{s}', w.alongStreet);
+if(w.after && w.after.length) txt += ', ' + w.after.join(', ');
 return txt + '.';
 }
 async function lookupRoad(pt){
@@ -3546,8 +3716,13 @@ if(onChange) onChange();
 }
 route.namesFinished = true;
 }
-function planSummary(route){
-return t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps) + (route.crossings ? ', ' + t('planCrossings').replace('{n}', route.crossings) : '');
+function planSummary(route, kind){
+let txt = t('planSummary').replace('{d}', formatDist(route.meters)).replace('{min}', route.minutes).replace('{n}', route.steps) + (route.crossings ? ', ' + t('planCrossings').replace('{n}', route.crossings) : '');
+// Traffic lights and steps, when the router told us (for "fewest traffic lights" also when there are none)
+if(typeof route.signals === 'number' && (route.signals || kind === 'planFewestSignals')) txt += ', ' + (route.signals ? t('planSignals').replace('{n}', route.signals) : t('planNoSignals'));
+else if(route.signals === null && kind === 'planFewestSignals') txt += ', ' + t('planUnknownSignals');
+if(typeof route.stairs === 'number' && (route.stairs || kind === 'planNoSteps')) txt += ', ' + (route.stairs ? t('planStairs').replace('{n}', route.stairs) : t('planNoStairs'));
+return txt;
 }
 function openPlan(pl){
 const st = { msg: t('planLoading'), variants: [], busy: true };
@@ -3556,8 +3731,8 @@ title: () => t('planTitle').replace('{name}', pl.name), trigger: null,
 render(body){
 body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'planMsg';
 if(st.variants.some((v) => v.route)) st.variants.forEach((v) => {
-if(!v.route){ body.appendChild(sheetEl('p', 'sheet-text', t(v.label) + ': ' + t('planVariantFailed') + '.')).dataset.variant = v.label; return; }
-sheetButton(body, t(v.label) + ': ' + (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route), () => openPlanVariant(v)).dataset.variant = v.label;
+if(!v.route){ body.appendChild(sheetEl('p', 'sheet-text', t(v.label) + ': ' + t(v.reason || 'planVariantFailed') + '.')).dataset.variant = v.label; return; }
+sheetButton(body, t(v.label) + ': ' + (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route, v.label), () => openPlanVariant(v)).dataset.variant = v.label;
 });
 if(st.variants.some((v) => v.route)) body.appendChild(sheetEl('p', 'sheet-text', t('planWarning')));
 }
@@ -3570,32 +3745,125 @@ try{ pos = await getPosition(); }catch(e){}
 if(!pos) st.msg = t('locUnavailable');
 else {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
-// Streets with names first: more to orient by than a chain of unnamed sidewalks
-const named = await fetchPlan(lat, lon, pl, { walkway_factor: 5 });
-const best = await fetchPlan(lat, lon, pl, null);
-const shortest = (named || best) ? await fetchPlan(lat, lon, pl, { shortest: true }) : null;
-if(!named && !best) st.msg = t('planError');
-else {
-// Every kind of route is listed; one that turns out to be the same path as another says so
-const seen = {};
-for(const x of [['planNamed', named], ['planRecommended', best], ['planShortest', shortest]]){
-if(!x[1]){ st.variants.push({ label: x[0], route: null }); continue; }
-const first = seen[x[1].sig];
-if(first){ st.variants.push({ label: x[0], route: first.route, same: first.label, of: first }); continue; }
-const shape = decodePolyline6(x[1].sig);
-const route = buildPlannedRoute(x[1].trip, pl, await fetchCrossings(x[1].sig, shape));
-const v = { label: x[0], route: route };
-st.variants.push(v);
-if(route) seen[x[1].sig] = v;
-}
+st.variants = await planAllKinds(lat, lon, pl);
 if(!st.variants.some((v) => v.route)) st.msg = t('planError');
-else st.msg = st.variants.map((v) => t(v.label) + ': ' + (!v.route ? t('planVariantFailed') : (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route)) + '.').join(' ');
-}
+else st.msg = st.variants.map((v) => t(v.label) + ': ' + (!v.route ? t(v.reason || 'planVariantFailed') : (v.same ? t('planSameAs').replace('{v}', t(v.same)) + ', ' : '') + planSummary(v.route, v.label)) + '.').join(' ');
 }
 st.busy = false;
 if(topSheet() === sheet) renderSheet();
 sayEvent(st.msg);
 })();
+}
+// The kinds of route, each with how the router is asked for it
+const PLAN_KINDS = [
+['planNamed', { walkway_factor: 5 }],
+['planRecommended', { alternates: 2 }],
+['planShortest', { shortest: true }],
+['planNoSteps', { step_penalty: 3000 }],
+['planFewestSignals', null],
+['planFewestTurns', null]
+];
+// Asks for every kind of route and works out the ones chosen from all routes found (fewest traffic lights,
+// fewest turns; never more than 1.6 times as long as the shortest). A kind that is the same path as an
+// earlier one says so; a kind that failed has route null.
+async function planAllKinds(lat, lon, pl, onlyKind){
+const got = {}, pool = [];
+for(const k of PLAN_KINDS){
+if(!k[1]) continue;
+if(onlyKind && onlyKind !== k[0] && PLAN_KINDS.find((x) => x[0] === onlyKind)[1]) continue;
+// Shortest and without steps only make sense once a route was found at all
+if((k[0] === 'planShortest' || k[0] === 'planNoSteps') && !onlyKind && !got.planNamed && !got.planRecommended){ got[k[0]] = null; continue; }
+const r = await fetchPlan(lat, lon, pl, Object.assign({}, k[1]));
+got[k[0]] = r;
+if(r){ pool.push(r); (r.alternates || []).forEach((a) => pool.push(a)); }
+}
+// What the router knows about each different path (crossings, lights, steps...)
+const built = {};
+const build = async (r) => {
+if(!built[r.sig]){
+const attrs = await fetchRouteAttrs(r.sig, decodePolyline6(r.sig));
+const route = buildPlannedRoute(r.trip, pl, attrs);
+built[r.sig] = route;
+}
+return built[r.sig];
+};
+const minLen = pool.length ? Math.min.apply(null, pool.map((r) => r.trip.summary.length)) : 0;
+const fair = pool.filter((r) => r.trip.summary.length <= minLen * 1.6 + 0.05);
+const pick = async (score) => {
+let best = null, bestScore = null;
+for(const r of fair){
+const route = await build(r);
+if(!route) continue;
+const sc = score(route);
+if(sc === null) continue;
+if(best === null || sc < bestScore || (sc === bestScore && route.meters < best.route.meters)) { best = { r: r, route: route }; bestScore = sc; }
+}
+return best ? best.r : null;
+};
+const seen = {}, out = [];
+for(const k of PLAN_KINDS){
+if(onlyKind && k[0] !== onlyKind) continue;
+let r = got[k[0]];
+if(k[0] === 'planFewestSignals'){
+r = await pick((route) => (typeof route.signals === 'number' ? route.signals : null));
+// The router said nothing about traffic lights on any of the routes
+if(!r && fair.length){ out.push({ label: k[0], route: null, reason: 'planCantTell' }); continue; }
+}
+if(k[0] === 'planFewestTurns') r = await pick((route) => route.steps);
+if(!r){ out.push({ label: k[0], route: null }); continue; }
+const first = seen[r.sig];
+if(first){ out.push({ label: k[0], route: first.route, same: first.label, of: first }); continue; }
+const route = await build(r);
+const v = { label: k[0], route: route };
+if(route) route.plan = { lat: pl.lat, lon: pl.lon, name: pl.name, kind: k[0] };
+out.push(v);
+if(route) seen[r.sig] = v;
+}
+return out;
+}
+// Recalculate during navigation: a planned route is planned again from where you are (same kind);
+// a recorded route goes on to its nearest point you haven't passed yet
+let recalcBusy = false;
+async function recalcRoute(){
+if(navMode !== 'route' || !activeRoute || recalcBusy) return;
+const route = activeRoute;
+if(route.plan){
+recalcBusy = true;
+sayEvent(t('recalcWorking'));
+let pos = null;
+try{ pos = await getPosition(); }catch(e){}
+let fresh = null;
+if(pos && activeRoute === route){
+const vs = await planAllKinds(pos.coords.latitude, pos.coords.longitude, route.plan, route.plan.kind);
+fresh = vs[0] && vs[0].route;
+}
+recalcBusy = false;
+if(activeRoute !== route) return;
+if(!fresh){ sayEvent(t('recalcFailed')); return; }
+fresh.name = route.name;
+stopRouteNav(true);
+sayEvent(t('recalcDone'));
+startRouteNav(fresh);
+// Street names are filled in while you walk
+fresh.namesPromise = addStreetNames(fresh, () => renderNavSteps(true));
+return;
+}
+if(lastLat === null) return;
+const wps = route.waypoints;
+let best = -1, bd = Infinity;
+for(let i = routeIndex; i < wps.length; i++){
+if(wps[i].via) continue;
+const d = haversineMeters(lastLat, lastLon, wps[i].lat, wps[i].lon);
+if(d < bd){ bd = d; best = i; }
+}
+if(best < 0) return;
+if(best !== routeIndex) enterWaypoint(best);
+const msg = t('recalcNearest').replace('{p}', wps[best].label).replace('{d}', formatDist(bd)).replace('{dir}', describeDirection(bearingDegrees(lastLat, lastLon, wps[best].lat, wps[best].lon), lastHeading));
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+lastDistToTarget = null; minDistToTarget = null; offRouteStreak = 0; offRouteFlag = false;
+if(!holdingStraight && !navPaused) updateRouteBearing(lastLat, lastLon);
+renderNavSteps();
 }
 function openPlanVariant(v){
 const route = v.route;
@@ -3714,7 +3982,8 @@ let n = 0;
 wps.forEach((wp, i) => {
 if(wp.via) return;
 n++;
-const b = sheetEl('button', 'sheet-btn' + (i === cur ? ' primary' : ''), n + '. ' + (wp.instruction ? wp.instruction.replace(/\.$/, '') : wp.label) + (wp.note ? ', ' + t('noteWord') + ': ' + wp.note : '') + (i === cur ? ', ' + t('pointCurrent') : i < cur ? ', ' + t('pointPassed') : ''));
+const dNext = distToNextPoint(wps, i);
+const b = sheetEl('button', 'sheet-btn' + (i === cur ? ' primary' : ''), n + '. ' + (wp.instruction ? wp.instruction.replace(/\.$/, '') : wp.label) + (dNext !== null ? ', ' + formatDist(dNext) : '') + (wp.note ? ', ' + t('noteWord') + ': ' + wp.note : '') + (i === cur ? ', ' + t('pointCurrent') : i < cur ? ', ' + t('pointPassed') : ''));
 b.type = 'button';
 b.dataset.i = i;
 if(i === cur) b.setAttribute('aria-current', 'step');
@@ -3908,6 +4177,11 @@ placesRadius: placesRadius,
 fastGps: fastGps.checked,
 offRouteDist: offRouteDist.value,
 offRouteHint: offRouteHint.checked,
+offRouteCourse: offRouteCourse.checked,
+routeAnnounceEvery: routeAnnounceEvery.value,
+pointDistOn: pointDistOn.checked,
+turnConfirmOn: turnConfirmOn.checked,
+nearbyKinds: nearbyKinds.checked,
 distRange: distRange.value,
 stepLength: stepLength.value,
 obstacleMode: obstacleMode.checked,
@@ -3950,6 +4224,11 @@ if(s.dirStyle === 'sides' || s.dirStyle === 'clock' || s.dirStyle === 'compass')
 if(PLACES_RADII.indexOf(s.placesRadius) !== -1) placesRadius = s.placesRadius;
 if(typeof s.fastGps === 'boolean') fastGps.checked = s.fastGps;
 if(typeof s.offRouteHint === 'boolean') offRouteHint.checked = s.offRouteHint;
+if(typeof s.offRouteCourse === 'boolean') offRouteCourse.checked = s.offRouteCourse;
+if(s.routeAnnounceEvery && Array.from(routeAnnounceEvery.options).some((o) => o.value === s.routeAnnounceEvery)) routeAnnounceEvery.value = s.routeAnnounceEvery;
+if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
+if(typeof s.turnConfirmOn === 'boolean') turnConfirmOn.checked = s.turnConfirmOn;
+if(typeof s.nearbyKinds === 'boolean') nearbyKinds.checked = s.nearbyKinds;
 if(s.offRouteDist && Array.from(offRouteDist.options).some((o) => o.value === s.offRouteDist)) offRouteDist.value = s.offRouteDist;
 if(s.distRange) distRange.value = s.distRange;
 distVal.textContent = distRange.value + 'm';
@@ -3988,6 +4267,8 @@ document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds].forEach((el) => el.addEventListener('change', saveSettings));
+recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
 obstacleMode.addEventListener('change', saveSettings);
@@ -4110,11 +4391,30 @@ if(voiceMode.value !== 'off') speak(t('errNoGPS'));
 });
 }
 
+// Kinds of your own points, recognised by a word in their name (Slovak or English)
+const POINT_KINDS = [
+['nearestStairs', ['schod', 'stair', 'step']], ['nearestEntrance', ['vchod', 'entrance']], ['nearestExit', ['vychod', 'exit']],
+['nearestLift', ['vytah', 'lift', 'elevator']], ['nearestPlatform', ['nastupist', 'platform', 'kolaj', 'track']]
+];
+function nearbyKindsText(nearby, lat, lon, heading){
+const parts = [];
+const first = nearby[0];
+const dirTo = (wp) => describeDirection(bearingDegrees(lat, lon, wp.lat, wp.lon), heading);
+if(first.dist <= 25) parts.push(t('atSavedPoint').replace('{p}', first.route.waypoints[0].label).replace('{d}', formatDist(first.dist)));
+else parts.push(t('nearestSaved').replace('{p}', first.route.waypoints[0].label).replace('{d}', formatDist(first.dist)).replace('{dir}', dirTo(first.route.waypoints[0])));
+POINT_KINDS.forEach((k) => {
+const hit = nearby.find((n) => n !== first && k[1].some((w) => plainText(n.route.waypoints[0].label).indexOf(w) !== -1));
+if(hit) parts.push(t(k[0]).replace('{p}', hit.route.waypoints[0].label).replace('{d}', formatDist(hit.dist)).replace('{dir}', dirTo(hit.route.waypoints[0])));
+});
+return parts.join(' ');
+}
+let nearbyPos = null;
 function findNearbyPoints(){
 if(running || recording || !navigator.geolocation) return;
 permMsg.textContent = '';
 getPosition().then((pos) => {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
+nearbyPos = { lat: lat, lon: lon };
 const routes = loadRoutes();
 const nearby = [];
 routes.forEach((r) => {
@@ -4142,13 +4442,14 @@ msg.className = 'rowval';
 msg.textContent = t('nothingNearby');
 pickerList.appendChild(msg);
 } else {
-const summary = t('nearbyFound').replace('{n}', nearby.length);
+let summary = t('nearbyFound').replace('{n}', nearby.length);
+if(nearbyKinds.checked && nearbyPos) summary += ' ' + nearbyKindsText(nearby, nearbyPos.lat, nearbyPos.lon, currentKnownHeading());
 announceEvent(summary);
 if(voiceMode.value !== 'off') speak(summary);
 nearby.forEach(({ route, dist }) => {
 const b = document.createElement('button');
 b.type = 'button'; b.className = 'picker-item';
-b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)' + (route.waypoints[0].address ? ', ' + route.waypoints[0].address : '');
+b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)' + (nearbyKinds.checked && nearbyPos && dist > 5 ? ', ' + describeDirection(bearingDegrees(nearbyPos.lat, nearbyPos.lon, route.waypoints[0].lat, route.waypoints[0].lon), currentKnownHeading()) : '') + (route.waypoints[0].address ? ', ' + route.waypoints[0].address : '');
 b.addEventListener('click', () => {
 closePicker();
 startRouteNav(route);
