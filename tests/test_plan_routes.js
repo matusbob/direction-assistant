@@ -23,7 +23,7 @@ const only = process.argv[2];
       sessionStorage.setItem('__seeded', '1');
       localStorage.setItem(a.sk, JSON.stringify(Object.assign({ lang: a.lang }, a.settings)));
       if (a.routes) localStorage.setItem(a.rk, JSON.stringify(a.routes));
-    }, { sk: SETTINGS_KEY, rk: ROUTES_KEY, settings: Object.assign({ fastGps: true, approachCues: 'off' }, opts.settings || {}), routes: opts.routes || null, lang: opts.lang || 'sk' });
+    }, { sk: SETTINGS_KEY, rk: ROUTES_KEY, settings: Object.assign({ fastGps: true, approachCues: 'off', startAlignOn: false }, opts.settings || {}), routes: opts.routes || null, lang: opts.lang || 'sk' });
     const log = await install(page, mode);
     await page.goto(opts.url || APP);
     if ((opts.lang || 'sk') === 'sk' && (await page.textContent('#langBtn')) === 'Slovenčina') await page.click('#langBtn');

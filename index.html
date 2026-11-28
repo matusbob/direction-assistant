@@ -218,6 +218,7 @@ flex:none;
 <button type="button" id="myLocationBtn" class="quickbtn mylocation" aria-haspopup="dialog"><span id="myLocation">My location: press to find out.</span></button>
 <button type="button" id="compassBtn" class="quickbtn" aria-pressed="false"><span id="lblCompass">Compass</span></button>
 <button type="button" id="savePlaceBtn" class="quickbtn"><span id="lblSavePlace">Save this place</span></button>
+<button type="button" id="markCrossingBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblMarkCrossing">Mark a crossing</span></button>
 <button type="button" id="placesBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblPlaces">Places nearby (map)</span></button>
 <button type="button" id="searchBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblSearch">Search for a place</span></button>
 <button type="button" id="trackStopBtn" class="quickbtn wide" hidden></button>
@@ -294,6 +295,10 @@ flex:none;
 <label for="vibrateOn" style="margin:0;" id="lblVibrate">Vibrations on drift</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="soundsInSilent" checked>
+<label for="soundsInSilent" style="margin:0;" id="lblSoundsInSilent">Beeps and voice also when the iPhone's side switch is on silent</label>
+</div>
+<div class="toggle">
 <input type="checkbox" id="statsOn" checked>
 <label for="statsOn" style="margin:0;" id="lblStats">Announce statistics when stopped</label>
 </div>
@@ -364,6 +369,29 @@ flex:none;
 <option value="2">2 m before the point</option>
 <option value="3">3 m before the point</option>
 </select>
+<label for="crossThreshold" id="lblCrossThreshold">On a crossing, warn when I drift by more than</label>
+<select id="crossThreshold">
+<option value="5">5 degrees</option>
+<option value="8">8 degrees</option>
+<option value="10" selected>10 degrees</option>
+<option value="15">15 degrees</option>
+<option value="20">20 degrees</option>
+</select>
+<label for="crossConfirmEvery" id="lblCrossConfirmEvery">While crossing, confirm "direction right"</label>
+<select id="crossConfirmEvery">
+<option value="off" selected>No</option>
+<option value="2">Every 2 m</option>
+<option value="3">Every 3 m</option>
+<option value="5">Every 5 m</option>
+</select>
+<div class="toggle">
+<input type="checkbox" id="startAlignOn" checked>
+<label for="startAlignOn" style="margin:0;" id="lblStartAlignOn">At the start of a route, say which way to turn ("Turn left by about 60 degrees" or "Go straight on"), then "Direction right, go"</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="crossStraightOn">
+<label for="crossStraightOn" style="margin:0;" id="lblCrossStraightOn">Experimental: on a planned route, hold the direction across each pedestrian crossing the map knows (beeps and vibration when you drift, like straight-line walking)</label>
+</div>
 <div class="toggle">
 <input type="checkbox" id="pointDistOn" checked>
 <label for="pointDistOn" style="margin:0;" id="lblPointDistOn">At each point of a route, also say how far it is to the next one</label>
@@ -520,13 +548,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 46</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 47</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 46;
+const APP_VERSION = 47;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -593,6 +621,29 @@ lblOffRouteCourse: "When I leave the route, also say which way I'm walking and w
 lblRouteAnnounceEvery: "During route navigation, say the distance to the next point", optAnnMeters: "Every so many meters (the \"Meters distance\" slider)", optAnnSec: "Every {n} seconds",
 lblApproachCues: "Before each turn, crossing or point, count down", optApproachOff: "Off (as before: \"now\" about 10 m before the point)", optApproach: "{list} and now",
 lblApproachNow: "When to say \"now\"", optNowClosest: "When I'm at the point (as close as GPS can tell)", optNowM: "{n} m before the point", nowWord: "Now.",
+lblCrossThreshold: "On a crossing, warn when I drift by more than", optDegN: "{n} degrees", lblCrossConfirmEvery: "While crossing, confirm \"direction right\"", optNo: "No", optEveryM: "Every {n} m",
+lblStartAlignOn: "At the start of a route, say which way to turn (\"Turn left by about 60 degrees\" or \"Go straight on\"), then \"Direction right, go\"",
+crossStillRight: "Direction right.", crossTurnMore: "More to the {side}, {n} degrees.", crossTurnMoreLeft: "left", crossTurnMoreRight: "right",
+crossAlignedNow: "Direction right, go.", nextPointIn: "Next point in {d}.", startTurn: "Turn {side} by about {n} degrees.", startStraight: "Go straight on.",
+compassNoData: "The compass isn't sending anything, so drifts can't be told. Check that motion and orientation are allowed (Settings, Safari) and press Start again.",
+compassStalled: "The compass has stopped sending, guidance isn't working.", compassBack: "The compass works again.",
+compassUncal: "The compass is inaccurate. Move the phone in a figure-8 a few times.",
+guidanceInterrupted: "Careful: for {n} seconds, while the screen was locked or you were outside the app, guidance wasn't working.",
+tiltChanged: "You are holding the phone differently than when the direction was set. If the guidance seems wrong, press Set Direction.",
+lblSoundsInSilent: "Beeps and voice also when the iPhone's side switch is on silent",
+lblMarkCrossing: "Mark a crossing", lblCrossStraightOn: "Experimental: on a planned route, hold the direction across each pedestrian crossing the map knows (beeps and vibration when you drift, like straight-line walking)",
+markCrossTitle: "Mark a crossing", markCrossIntro: "1. Stand at the start of the crossing (at the kerb or the tactile paving), hold the phone in front of you and press Start of the crossing. 2. Walk across, best with someone sighted, keeping the phone in front of you the same way. 3. On the other side press End of the crossing. The app remembers the exact direction from the compass, so a slanting crossing is fine too.",
+markCrossStart: "Start of the crossing", markCrossEnd: "End of the crossing", markCrossCancel: "Cancel",
+markCrossWaitGps: "Waiting for the position... Stay where you are a moment.", markCrossNoCompass: "The compass isn't available, so the crossing can't be marked. Allow motion and orientation and try again.",
+markCrossWalking: "Start marked. Now walk across, holding the phone in front of you, and press End of the crossing on the other side.",
+markCrossShort: "The two ends are only {d} apart according to GPS. The direction from the compass is kept; the length is set to {len}.",
+markCrossNamePrompt: "Name of the crossing (for example: Lesná across Vajanského):", markCrossDefaultName: "Crossing {n}",
+markCrossSaved: "Crossing saved: {name}, {d}, direction {dir}. It is in Saved routes and in What's nearby; from there you can cross it in both directions.",
+crossKind: "crossing", crossBack: "Cross back", crossGo: "Cross", crossEndPoint: "End of the crossing",
+crossHoldStart: "Crossing {name}, {d}. Hold the direction, I'll beep if you drift.", crossHoldPlanned: "I'll hold the direction across the crossing, {d}.",
+crossTurn: "First turn {side} by about {n} degrees, then go.", crossLeftWord: "left", crossRightWord: "right", crossAligned: "Direction right, go.",
+crossHoldEnd: "You have crossed.", crossFar: "You seem to be {d} from the start of this crossing.", crossStartLabel: "Start of the crossing",
+nearestCrossing: "Nearest crossing: {p}, {d}, {dir}.", crossAtStart: "start", crossAtEnd: "end",
 lblPointDistOn: "At each point of a route, also say how far it is to the next one", lblTurnConfirmOn: "Confirm when I've turned the right way (\"Great, you turned right\")",
 lblNearbyKinds: "In \"What's nearby?\", say which of my points I'm at and where my nearest stairs, entrance, exit, lift and platform are",
 lblRecalc: "Recalculate the route", recalcWorking: "Recalculating the route from where you are...", recalcDone: "Route recalculated.", recalcFailed: "The route couldn't be recalculated (no internet or the service is busy). Navigation goes on as before.",
@@ -772,6 +823,29 @@ lblOffRouteCourse: "Keď odídem z trasy, povedať aj, ktorým smerom idem a kto
 lblRouteAnnounceEvery: "Počas navigácie trasy hlásiť vzdialenosť k ďalšiemu bodu", optAnnMeters: "Každých toľko metrov (posuvník „Vzdialenosť v metroch“)", optAnnSec: "Každých {n} sekúnd",
 lblApproachCues: "Pred každou odbočkou, priechodom alebo bodom odpočítavať", optApproachOff: "Vypnuté (ako doteraz: „teraz“ asi 10 m pred bodom)", optApproach: "{list} a teraz",
 lblApproachNow: "Kedy povedať „teraz“", optNowClosest: "Keď som pri bode (čo najpresnejšie, ako dovolí GPS)", optNowM: "{n} m pred bodom", nowWord: "Teraz.",
+lblCrossThreshold: "Na priechode upozorniť, keď vybočím o viac ako", optDegN: "{n} stupňov", lblCrossConfirmEvery: "Počas prechodu potvrdzovať „smer správny“", optNo: "Nie", optEveryM: "Každé {n} m",
+lblStartAlignOn: "Na začiatku trasy povedať, kam sa otočiť („Otočte sa doľava asi o 60 stupňov“ alebo „Choďte rovno“) a potom „Smer správny, choďte“",
+crossStillRight: "Smer správny.", crossTurnMore: "Ešte {side}, {n} stupňov.", crossTurnMoreLeft: "doľava", crossTurnMoreRight: "doprava",
+crossAlignedNow: "Smer správny, choďte.", nextPointIn: "Ďalší bod o {d}.", startTurn: "Otočte sa {side} asi o {n} stupňov.", startStraight: "Choďte rovno.",
+compassNoData: "Kompas neposiela údaje, vybočenie sa nedá zistiť. Skontrolujte, či je povolený pohyb a orientácia (Nastavenia, Safari), a stlačte Štart znova.",
+compassStalled: "Kompas prestal posielať údaje, navádzanie nefunguje.", compassBack: "Kompas znova funguje.",
+compassUncal: "Kompas je nepresný. Niekoľkokrát pohnite telefónom v tvare osmičky.",
+guidanceInterrupted: "Pozor: {n} sekúnd, kým bola obrazovka zamknutá alebo ste boli mimo aplikácie, navádzanie nefungovalo.",
+tiltChanged: "Držíte telefón inak ako pri nastavení smeru. Ak sa navádzanie zdá zlé, stlačte Nastaviť smer.",
+lblSoundsInSilent: "Pípanie a hlas aj vtedy, keď je prepínač na boku iPhonu v tichom režime",
+lblMarkCrossing: "Označiť priechod", lblCrossStraightOn: "Experimentálne: na plánovanej trase držať smer cez každý priechod pre chodcov, ktorý pozná mapa (pípanie a vibrácie pri vybočení, ako pri rovnom smere)",
+markCrossTitle: "Označiť priechod", markCrossIntro: "1. Postavte sa na začiatok priechodu (pri obrubníku alebo na varovnom páse), telefón držte pred sebou a stlačte Začiatok priechodu. 2. Prejdite priechod, najlepšie s vidiacim, a telefón držte stále rovnako pred sebou. 3. Na druhej strane stlačte Koniec priechodu. Aplikácia si zapamätá presný smer z kompasu, takže aj šikmý priechod je v poriadku.",
+markCrossStart: "Začiatok priechodu", markCrossEnd: "Koniec priechodu", markCrossCancel: "Zrušiť",
+markCrossWaitGps: "Čakám na polohu... Chvíľu ostaňte stáť.", markCrossNoCompass: "Kompas nie je dostupný, priechod sa nedá označiť. Povoľte pohyb a orientáciu a skúste znova.",
+markCrossWalking: "Začiatok je označený. Teraz prejdite priechod, telefón držte pred sebou, a na druhej strane stlačte Koniec priechodu.",
+markCrossShort: "Konce sú podľa GPS len {d} od seba. Smer z kompasu sa zachová, dĺžka sa nastaví na {len}.",
+markCrossNamePrompt: "Názov priechodu (napríklad: Lesná cez Vajanského):", markCrossDefaultName: "Priechod {n}",
+markCrossSaved: "Priechod uložený: {name}, {d}, smer {dir}. Je v Uložených trasách a v Čo je blízko?; odtiaľ ho prejdete oboma smermi.",
+crossKind: "priechod", crossBack: "Prejsť späť", crossGo: "Prejsť", crossEndPoint: "Koniec priechodu",
+crossHoldStart: "Priechod {name}, {d}. Držte smer, pípnem, keď vybočíte.", crossHoldPlanned: "Držím smer cez priechod, {d}.",
+crossTurn: "Najprv sa otočte {side} asi o {n} stupňov, potom choďte.", crossLeftWord: "doľava", crossRightWord: "doprava", crossAligned: "Smer správny, choďte.",
+crossHoldEnd: "Prešli ste priechod.", crossFar: "Zdá sa, že ste {d} od začiatku tohto priechodu.", crossStartLabel: "Začiatok priechodu",
+nearestCrossing: "Najbližší priechod: {p}, {d}, {dir}.", crossAtStart: "začiatok", crossAtEnd: "koniec",
 lblPointDistOn: "Pri každom bode trasy povedať aj, ako ďaleko je ďalší", lblTurnConfirmOn: "Potvrdiť, keď som odbočil správne („Výborne, odbočili ste vpravo“)",
 lblNearbyKinds: "V „Čo je blízko?“ povedať, pri ktorom mojom bode som a kde sú moje najbližšie schody, vchod, východ, výťah a nástupište",
 lblRecalc: "Prepočítať trasu", recalcWorking: "Prepočítavam trasu od miesta, kde ste...", recalcDone: "Trasa prepočítaná.", recalcFailed: "Trasu sa nepodarilo prepočítať (nie je internet alebo je služba vyťažená). Navigácia pokračuje ako doteraz.",
@@ -924,7 +998,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -936,6 +1010,9 @@ document.querySelector('#osmAttrib a').textContent = t('osmContrib');
 offRouteDist.options[0].text = t('optOffRouteAuto');
 routeAnnounceEvery.options[0].text = t('optAnnMeters');
 approachCues.options[0].text = t('optApproachOff');
+Array.from(crossThreshold.options).forEach((o) => { o.text = t('optDegN').replace('{n}', o.value); });
+crossConfirmEvery.options[0].text = t('optNo');
+for(let k = 1; k < crossConfirmEvery.options.length; k++) crossConfirmEvery.options[k].text = t('optEveryM').replace('{n}', crossConfirmEvery.options[k].value);
 for(let k = 1; k < approachCues.options.length; k++) approachCues.options[k].text = t('optApproach').replace('{list}', approachCues.options[k].value.split(',').map((x) => x + ' m').join(', '));
 approachNow.options[0].text = t('optNowClosest');
 for(let k = 1; k < approachNow.options.length; k++) approachNow.options[k].text = t('optNowM').replace('{n}', approachNow.options[k].value);
@@ -1054,6 +1131,12 @@ const recalcBtn = document.getElementById('recalcBtn');
 const offRouteCourse = document.getElementById('offRouteCourse');
 const routeAnnounceEvery = document.getElementById('routeAnnounceEvery');
 const pointDistOn = document.getElementById('pointDistOn');
+const crossStraightOn = document.getElementById('crossStraightOn');
+const soundsInSilent = document.getElementById('soundsInSilent');
+const crossThreshold = document.getElementById('crossThreshold');
+const crossConfirmEvery = document.getElementById('crossConfirmEvery');
+const startAlignOn = document.getElementById('startAlignOn');
+const markCrossingBtn = document.getElementById('markCrossingBtn');
 const approachCues = document.getElementById('approachCues');
 const approachNow = document.getElementById('approachNow');
 const turnConfirmOn = document.getElementById('turnConfirmOn');
@@ -1429,20 +1512,81 @@ if(Math.abs(angleDiff(headingHistory[i].h, headingHistory[i-1].h)) > 45) jumps++
 if(jumps >= 3 && now - lastCompassWarnTime > 60000){
 lastCompassWarnTime = now;
 announceEvent(t('compassWarning'));
-speak(t('compassWarning'));
+if(voiceMode.value !== 'off') speak(t('compassWarning'));
 }
 }
 
+// Recent compass readings of this run (the direction is set from them, never from an old run)
+let headingSamples = [], lastOrientTime = 0, compassStalledSaid = false, autoLockPending = false, guidanceStart = 0;
+let lockBeta = null, tiltWarnTime = -Infinity, tiltOffSince = 0, uncalWarnTime = -Infinity, noDataSaid = false, lockFrom = 0;
+function recentHeading(ms){
+const now = performance.now();
+const r = headingSamples.filter((x) => now - x.t <= ms).map((x) => x.h);
+return r.length ? circularMean(r) : null;
+}
+function compassWatch(){
+if(!running) return;
+const now = performance.now();
+if(document.visibilityState !== 'visible') return;
+if(!lastOrientTime){
+// Nothing at all since Start
+if(!noDataSaid && now - guidanceStart > 3000){ noDataSaid = true; permMsg.textContent = t('compassNoData'); sayEvent(t('compassNoData')); }
+return;
+}
+if(!compassStalledSaid && now - lastOrientTime > 2000){ compassStalledSaid = true; sayEvent(t('compassStalled')); }
+}
 function handleOrientation(e){
 if(!running) return;
 const h = getHeading(e);
 if(h===null) return;
+const nowO = performance.now();
 headingSupported = true;
 lastHeading = h;
-checkCompassReliability(h, performance.now());
+if(compassStalledSaid){ compassStalledSaid = false; sayEvent(t('compassBack')); }
+lastOrientTime = nowO;
+headingSamples.push({ h: h, t: nowO });
+while(headingSamples.length && nowO - headingSamples[0].t > 2000) headingSamples.shift();
+// iPhone: a negative or large accuracy means the compass needs calibrating
+if(typeof e.webkitCompassAccuracy === 'number' && (e.webkitCompassAccuracy < 0 || e.webkitCompassAccuracy > 30) && nowO - uncalWarnTime > 60000){ uncalWarnTime = nowO; sayEvent(t('compassUncal')); }
+// The direction is set once there are enough fresh readings (also when the compass starts late)
+if(autoLockPending && nowO - lockFrom >= (lockFrom === guidanceStart ? 1200 : 300) && headingSamples.filter((x) => x.t >= lockFrom).length >= (lockFrom === guidanceStart ? 5 : 3)) setTarget();
+// Holding the phone very differently than when the direction was set (flat vs upright) changes what the compass measures
+if(typeof e.beta === 'number' && lockBeta !== null && targetHeading !== null && navMode !== 'route'){
+if(Math.abs(e.beta - lockBeta) > 45){ if(!tiltOffSince) tiltOffSince = nowO; }
+else tiltOffSince = 0;
+if(tiltOffSince && nowO - tiltOffSince > 1500 && nowO - tiltWarnTime > 60000){ tiltWarnTime = nowO; sayEvent(t('tiltChanged')); }
+}
+if(typeof e.beta === 'number') lastBeta = e.beta;
+checkCompassReliability(h, nowO);
 
 if(navMode === 'route'){
 if(navPaused) return;
+if(crossHold){
+const cd = angleDiff(h, crossHold.heading);
+const nowT = performance.now();
+// The first reading comes a moment after the start (the compass has just been switched on)
+if(crossHold.needAlign){ if(nowT - crossHold.started > 600){ crossAlign(h); } return; }
+const cth = parseFloat(crossThreshold.value);
+if(crossHold.misaligned){
+// Still turning to the crossing's direction: say when it's right, otherwise how much more
+if(Math.abs(cd) <= cth){
+crossHold.misaligned = false;
+lastAnnounceState = 'ok';
+announceEvent(t('crossAlignedNow'));
+if(voiceMode.value !== 'off') speak(t('crossAlignedNow'));
+return;
+}
+if(nowT >= crossHold.quietUntil){
+crossHold.quietUntil = nowT + 1800;
+const more = t('crossTurnMore').replace('{side}', t(cd > 0 ? 'crossTurnMoreLeft' : 'crossTurnMoreRight')).replace('{n}', Math.round(Math.abs(cd) / 5) * 5 || Math.round(Math.abs(cd)));
+announceEvent(more);
+if(voiceMode.value !== 'off') speak(more);
+}
+return;
+}
+processDrift(cd, { strict: true, th: cth });
+return;
+}
 if(holdingStraight){
 if(straightTargetHeading === null) straightTargetHeading = h;
 processDrift(angleDiff(h, straightTargetHeading));
@@ -1450,6 +1594,18 @@ return;
 }
 if(currentBearing === null) return;
 const diff = angleDiff(h, currentBearing);
+if(startAlign && startAlign.deferred){
+const st = startTurnText();
+if(st){ announceEvent(st); if(voiceMode.value !== 'off') speak(st); }
+}
+else if(startAlign){
+if(performance.now() - startAlign.since > 30000) startAlign = null;
+else if(Math.abs(diff) <= parseFloat(thresholdDeg.value)){
+startAlign = null;
+announceEvent(t('crossAlignedNow'));
+if(voiceMode.value !== 'off') speak(t('crossAlignedNow'));
+}
+}
 if(awaitingTurnConfirm && Math.abs(diff) < parseFloat(thresholdDeg.value)){
 const confirmMsg = awaitingTurnConfirm === 'right' ? t('turnConfirmedRight') : t('turnConfirmedLeft');
 if(turnConfirmOn.checked){
@@ -1495,14 +1651,19 @@ const med = devs.length % 2 ? devs[mid] : (devs[mid - 1] + devs[mid]) / 2;
 return angleDiff(mean + med, 0);
 }
 
-function processDrift(diff){
-if(obstacleMode.checked && !demoRunning) diff = smoothDriftForObstacles(diff);
+// opts.strict (crossings): no smoothing, its own sensitivity, and every new drift (or change of side) is said at once
+function processDrift(diff, opts){
+const strict = !!(opts && opts.strict);
+if(obstacleMode.checked && !demoRunning && !strict) diff = smoothDriftForObstacles(diff);
 const absDiff = Math.abs(diff);
 const now = performance.now();
 const mode = navMode === 'route' ? 'degrees' : currentUnit();
 
 let th, currentVal;
-if(mode === 'degrees'){
+if(strict){
+th = opts.th;
+currentVal = absDiff;
+} else if(mode === 'degrees'){
 th = parseFloat(thresholdDeg.value);
 currentVal = absDiff;
 } else {
@@ -1511,6 +1672,7 @@ currentVal = Math.abs(metersOffset(diff));
 }
 
 const wasOk = lastAnnounceState === 'ok' || lastAnnounceState === null;
+const prevState = lastAnnounceState;
 
 let state, cls, mainT, subT;
 if(currentVal <= th){
@@ -1526,6 +1688,8 @@ subT = t('sLeftSub');
 }
 
 if(state !== 'ok' && wasOk) driftEventCount++;
+// The first beep and vibration of a new drift (or a change of side) come at once
+if(state !== 'ok' && state !== prevState) lastBeepTime = 0;
 
 statusBox.className = 'status ' + cls;
 
@@ -1541,7 +1705,7 @@ lastVoiceTime = now;
 announceEvent(t('backOnTrack'));
 if(vm !== 'off') speak(t('backOnTrack'));
 }
-else if(state !== 'ok' && now - lastVoiceTime > 3000) {
+else if(state !== 'ok' && (state !== prevState || now - lastVoiceTime > (strict ? 2000 : 3000))) {
 lastVoiceTime = now;
 const prefix = (currentVal > th*2) ? t('voiceHard') + " " : "";
 const dir = (diff > 0) ? t('voiceDriftR') : t('voiceDriftL');
@@ -1610,6 +1774,7 @@ maybeRefreshMyLocation(c.latitude, c.longitude, c.accuracy);
 if(lastLat === null){
 lastLat = c.latitude; lastLon = c.longitude;
 if(navMode === 'route' && !navPaused && !holdingStraight) updateRouteBearing(c.latitude, c.longitude);
+if(navMode === 'route' && crossHold) checkCrossHold(c.latitude, c.longitude);
 return;
 }
 
@@ -1632,6 +1797,7 @@ nextDistAnnounce += parseInt(distRange.value, 10);
 if(navMode === 'route' && !navPaused){
 if(holdingStraight) checkStraightHoldProgress();
 else updateRouteBearing(c.latitude, c.longitude);
+if(crossHold) checkCrossHold(c.latitude, c.longitude);
 }
 }
 
@@ -1720,6 +1886,72 @@ if(voiceMode.value !== 'off') speak(next.label);
 announce(next.label, '');
 }
 
+// Holding the direction across a pedestrian crossing: your own marked crossing, or one on a planned route
+let crossHold = null;
+function startCrossHold(c, msgKey){
+const len = Math.max(3, c.length || 0);
+crossHold = { heading: c.heading, length: len, start: c.start, end: c.end, started: performance.now(), quietUntil: performance.now() + 1500, misaligned: false, needAlign: true, farChecked: msgKey === 'planned' };
+driftRefKey = null;
+return msgKey === 'planned' ? t('crossHoldPlanned').replace('{d}', formatDist(len)) : t('crossHoldStart').replace('{name}', c.name || '').replace('{d}', formatDist(len));
+}
+// On the first compass reading: if the phone points the wrong way, say which way to turn first
+function crossAlign(h){
+const ch = crossHold;
+ch.needAlign = false;
+const d = angleDiff(ch.heading, h);
+// Pointing the right way already: say so, so you know you can go
+if(Math.abs(d) <= parseFloat(crossThreshold.value)){
+lastAnnounceState = 'ok';
+announceEvent(t('crossAlignedNow'));
+if(voiceMode.value !== 'off') speak(t('crossAlignedNow'));
+return;
+}
+ch.misaligned = true;
+ch.quietUntil = performance.now() + 2500;
+const msg = t('crossTurn').replace('{side}', t(d > 0 ? 'crossRightWord' : 'crossLeftWord')).replace('{n}', Math.round(Math.abs(d) / 5) * 5);
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}
+function endCrossHold(say){
+if(!crossHold) return;
+crossHold = null;
+driftRefKey = null;
+if(say){
+playChime(activeRoute && activeRoute.crossing ? 'done' : 'backonroute');
+announceEvent(t('crossHoldEnd'));
+if(voiceMode.value !== 'off') speak(t('crossHoldEnd'));
+}
+// Your own marked crossing is the whole route: done
+if(activeRoute && activeRoute.crossing) stopRouteNav(true);
+}
+function checkCrossHold(lat, lon){
+const ch = crossHold;
+if(!ch) return;
+if(!ch.farChecked){
+ch.farChecked = true;
+const far = haversineMeters(lat, lon, ch.start.lat, ch.start.lon);
+if(far > 15){
+const msg = t('crossFar').replace('{d}', formatDist(far));
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+}
+}
+// How far along the crossing you are (along its direction from its start)
+const d0 = haversineMeters(ch.start.lat, ch.start.lon, lat, lon);
+const along = d0 * Math.cos((angleDiff(bearingDegrees(ch.start.lat, ch.start.lon, lat, lon), ch.heading)) * Math.PI / 180);
+const toEnd = ch.end ? haversineMeters(lat, lon, ch.end.lat, ch.end.lon) : Infinity;
+const tooLong = performance.now() - ch.started > (ch.length / 0.4 + 30) * 1000;
+// "Direction right" every few meters while you're on course (setting)
+const every = crossConfirmEvery.value !== 'off' ? parseFloat(crossConfirmEvery.value) : 0;
+if(every && !ch.misaligned && along >= (ch.lastConfirm || 0) + every - 0.5 && along < ch.length - 1.5){
+ch.lastConfirm = Math.round(along / every) * every;
+if(lastAnnounceState === 'ok' && lastHeading !== null && Math.abs(angleDiff(lastHeading, ch.heading)) <= parseFloat(crossThreshold.value)){
+announceEvent(t('crossStillRight'));
+if(voiceMode.value !== 'off') speak(t('crossStillRight'));
+}
+}
+if(along >= ch.length - 1.5 || toEnd <= 3 || tooLong) endCrossHold(!tooLong);
+}
 function checkStraightHoldProgress(){
 const wp = activeRoute.waypoints[routeIndex];
 if(wp.manual || wp.stepEstimate) return;
@@ -1813,6 +2045,16 @@ announce(t('stepEstimateLabel'), Math.max(0, Math.round(remaining)) + 'm');
 
 // Recent positions during route navigation, to tell which way you are actually walking
 let routeTrail = [];
+let startAlign = null;
+function startTurnText(){
+if(currentBearing === null) return null;
+// No compass reading yet: say it as soon as one comes
+if(lastHeading === null){ startAlign = { since: performance.now(), deferred: true }; return null; }
+const d = angleDiff(currentBearing, lastHeading);
+startAlign = Math.abs(d) <= parseFloat(thresholdDeg.value) ? null : { since: performance.now() };
+if(!startAlign) return t('startStraight');
+return t('startTurn').replace('{side}', t(d > 0 ? 'crossRightWord' : 'crossLeftWord')).replace('{n}', Math.round(Math.abs(d) / 5) * 5);
+}
 function rememberTrail(lat, lon){
 const last = routeTrail[routeTrail.length - 1];
 if(last && haversineMeters(last.lat, last.lon, lat, lon) < 2) return;
@@ -1871,6 +2113,8 @@ return d;
 }
 function updateRouteBearing(lat, lon){
 if(!activeRoute || routeIndex >= activeRoute.waypoints.length) return;
+// Crossing your own marked crossing: holding its direction does it all (and says when you're across)
+if(activeRoute.crossing) return;
 const wp = activeRoute.waypoints[routeIndex];
 const dist = haversineMeters(lat, lon, wp.lat, wp.lon);
 if(wp.via && routeIndex + 1 < activeRoute.waypoints.length){
@@ -1986,17 +2230,25 @@ else { msg = t('continueStraight'); awaitingTurnConfirm = null; }
 
 const nextDist = pointDistOn.checked ? distToNextPoint(activeRoute.waypoints, nextIndex - 1) : null;
 let arriveMsg = wp.label + ". " + (nextDist !== null ? msg.replace(/\.$/, '') + ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) + '.' : msg);
+// The very start of a recorded route: which way to turn to the next point
+if(nextIndex === 1 && startAlignOn.checked && !wp.instruction){
+// Which way to turn replaces "continue straight" (said a moment later if the compass isn't read yet)
+const st = startTurnText();
+arriveMsg = wp.label + '. ' + (st ? st.replace(/\.$/, '') + (nextDist !== null ? ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) : '') + '.' : (nextDist !== null ? t('nextPointIn').replace('{d}', formatDist(nextDist)) : ''));
+}
 // Counting down: what to do comes first ("Now turn left."), then which point it is
 if(approach && nextIndex > 1) arriveMsg = (turnType === 'right' || turnType === 'left' ? msg : t('nowWord') + ' ' + msg.charAt(0).toUpperCase() + msg.slice(1).replace(/([^.])$/, '$1.')) + ' ' + wp.label + (nextDist !== null ? ', ' + t('thenDist').replace('{d}', formatDist(nextDist)) : '') + '.';
 if(wp.instruction){
 arriveMsg = (nextDist !== null ? wp.instruction.replace(/\.$/, '') + ', ' + formatDist(nextDist) + '.' : wp.instruction) + (wp.note ? ' ' + wp.note.replace(/([^.!?])$/, '$1.') : '');
 // At the very start of a planned route, also say which way that is from where the phone is pointing
-if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
+if(nextIndex === 1 && startAlignOn.checked){ const st = startTurnText(); if(st) arriveMsg += ' ' + st; }
+else if(nextIndex === 1 && lastHeading !== null && dirStyle.value !== 'compass') arriveMsg += ' ' + t('thatIs').replace('{dir}', describeDirection(currentBearing, lastHeading));
 // ...and which side the destination will be on, when the map knows
 const endWp = activeRoute.waypoints[activeRoute.waypoints.length - 1];
 if(nextIndex === 1 && endWp.arrival) arriveMsg += ' ' + t('destAtEnd').replace('{s}', endWp.arrival);
 if(approach && nextIndex > 1) arriveMsg = t('nowWord') + ' ' + arriveMsg;
 }
+if(wp.crossHead !== undefined && crossStraightOn.checked && !crossHold) arriveMsg += ' ' + startCrossHold({ heading: wp.crossHead, length: wp.crossLen, start: wp.crossStart, end: wp.crossEnd }, 'planned');
 announceEvent(arriveMsg);
 if(talk) speak(arriveMsg);
 announce(next.label, msg);
@@ -2005,6 +2257,8 @@ return;
 }
 
 if(routeNotesOnly.checked) return;
+// While holding the direction across a crossing, only the arrival is said
+if(crossHold) return;
 
 if(approach){
 const nd = nowDistance();
@@ -2070,23 +2324,46 @@ degRow.hidden = false;
 metRow.hidden = true;
 }
 
+let lastBeta = null;
+// The direction you face now: the average of the last half second of compass readings. With no fresh
+// readings yet, it waits and sets it as soon as they come (said aloud), instead of never setting it.
 function setTarget(){
-if(lastHeading !== null){
-targetHeading = lastHeading;
+const fresh = headingSamples.filter((x) => x.t >= (autoLockPending ? lockFrom : performance.now() - 600));
+const h = fresh.length ? circularMean(fresh.slice(-6).map((x) => x.h)) : null;
+if(h !== null && fresh.length >= 3){
+autoLockPending = false;
+targetHeading = h;
+lockBeta = lastBeta;
+tiltOffSince = 0;
 distSinceTarget = 0;
+driftRefKey = null;
+lastAnnounceState = null;
 announceEvent(t('dirSet') + '. ' + t('dirSetSub'));
 announce(t('dirSet'), t('dirSetSub'));
 statusBox.className = 'status ok';
 } else {
+autoLockPending = true;
+lockFrom = performance.now();
+targetHeading = null;
 announceEvent(t('waitCompass'));
 announce(t('waitCompass'), '');
 }
 }
 
+let compassWatchTimer = null;
+function beginCompassRun(){
+lastHeading = null; headingSamples = []; lastOrientTime = 0; compassStalledSaid = false; noDataSaid = false;
+lockBeta = null; tiltOffSince = 0; guidanceStart = performance.now(); lockFrom = guidanceStart;
+clearInterval(compassWatchTimer);
+compassWatchTimer = setInterval(compassWatch, 500);
+// iPhone: play beeps and speech also with the side switch on silent (Safari 17+)
+try{ if(soundsInSilent.checked && navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+}
 async function start(){
 permMsg.textContent = '';
 headingSupported = false;
 targetHeading = null;
+autoLockPending = false;
 totalDistMeters = 0; distSinceTarget = 0; driftEventCount = 0; lastLat = null; lastGPSTime = -Infinity; driftRefKey = null;
 lastAcceptedGPSTime = performance.now(); lastPoorAccuracyWarnTime = -Infinity;
 nextDistAnnounce = parseInt(distRange.value, 10);
@@ -2105,6 +2382,7 @@ else { permMsg.textContent = t('errDenied'); return; }
 }catch(e){ permMsg.textContent = t('errTimeout'); return; }
 }
 
+beginCompassRun();
 window.addEventListener('deviceorientation', handleOrientation, true);
 if(navigator.geolocation){
 straightWatchId = navigator.geolocation.watchPosition(handleGPS, () => {
@@ -2132,8 +2410,9 @@ announceEvent(t('scanning') + '. ' + t('scanningSub'));
 announce(t('scanning'), t('scanningSub'));
 statusBox.className = 'status off';
 
-watchdog = setTimeout(()=>{ if(!headingSupported) permMsg.textContent = t('errNoData'); }, 3000);
-setTimeout(setTarget, 1200);
+watchdog = setTimeout(()=>{ if(!headingSupported) permMsg.textContent = t('compassNoData'); }, 3000);
+// The direction is set from the compass readings that come after this Start (as soon as there are enough)
+autoLockPending = true;
 }
 
 async function startRouteNav(route){
@@ -2172,6 +2451,7 @@ motionGranted = true;
 
 if(!navigator.geolocation){ permMsg.textContent = t('errNoGPS'); navMode = 'idle'; return; }
 
+beginCompassRun();
 window.addEventListener('deviceorientation', handleOrientation, true);
 routeWatchId = navigator.geolocation.watchPosition(handleGPS, () => {
 permMsg.textContent = t('errNoGPS');
@@ -2192,6 +2472,7 @@ statusBox.className = 'status ok';
 routePointsBtn.hidden = false;
 recalcBtn.hidden = false;
 routeTrail = []; closestToAnn = null; closestAnnIndex = -1;
+crossHold = null; startAlign = null;
 renderNavSteps(true);
 focusCurrentStep();
 const wp = route.waypoints[0];
@@ -2200,6 +2481,13 @@ announceEvent(t('routeNavStart') + ".");
 if(voiceMode.value !== 'off') speak(t('routeNavStart') + ".");
 announce(t('routeNavStart'), '');
 enterWaypoint(0);
+} else if(route.crossing){
+// Your own marked crossing: you are standing at its start, so hold its direction at once
+const c = route.crossing;
+const msg = startCrossHold(c, 'own');
+announceEvent(msg);
+announce(c.name || t('crossKind'), formatDist(c.length || 0));
+if(voiceMode.value !== 'off') speak(msg);
 } else {
 announceEvent(t('routeNavStart') + ". " + t('routeNext') + " " + wp.label + ".");
 announce(t('routeNavStart'), t('routeNext') + " " + wp.label);
@@ -2213,6 +2501,7 @@ releaseWakeLock();
 stopStepEstimate();
 navMode = 'idle';
 window.removeEventListener('deviceorientation', handleOrientation, true);
+clearInterval(compassWatchTimer);
 if(routeWatchId !== null){ navigator.geolocation.clearWatch(routeWatchId); routeWatchId = null; }
 if(navigator.vibrate) navigator.vibrate(0);
 
@@ -2230,6 +2519,7 @@ holdingStraight = false;
 manualHoldDoneBtn.hidden = true;
 routePointsBtn.hidden = true;
 recalcBtn.hidden = true;
+crossHold = null; startAlign = null;
 renderNavSteps(true);
 if(!routePointsOverlay.hidden) closeRoutePoints();
 navPaused = false;
@@ -2880,6 +3170,92 @@ if(extra) sayEvent(extra);
 }
 openSheet(sheet);
 load();
+}
+
+// ---------- Marking your own crossing: start, the exact direction from the compass, end ----------
+function circularMean(list){
+let x = 0, y = 0;
+list.forEach((h) => { x += Math.cos(h * Math.PI / 180); y += Math.sin(h * Math.PI / 180); });
+return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+function openMarkCrossing(){
+if(running || recording){ sayEvent(t('stopFirst')); return; }
+ensureHeadingSensor(true);
+const st = { phase: 'start', msg: t('markCrossIntro'), fixes: [], heads: [], a: null, aTime: 0, watch: null, timer: null };
+const stopAll = () => {
+if(st.watch !== null){ navigator.geolocation.clearWatch(st.watch); st.watch = null; }
+clearInterval(st.timer); st.timer = null;
+};
+const averaged = (sinceMs) => {
+const now = performance.now();
+const good = st.fixes.filter((f) => now - f.t <= sinceMs && f.acc <= 25);
+const use = good.length ? good : st.fixes.slice(-1);
+if(!use.length) return null;
+return { lat: use.reduce((a, f) => a + f.lat, 0) / use.length, lon: use.reduce((a, f) => a + f.lon, 0) / use.length };
+};
+const sheet = {
+title: () => t('markCrossTitle'), trigger: markCrossingBtn,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'markCrossMsg';
+if(st.phase === 'start') sheetButton(body, t('markCrossStart'), markStart, true).id = 'markCrossStartBtn';
+if(st.phase === 'walking') sheetButton(body, t('markCrossEnd'), markEnd, true).id = 'markCrossEndBtn';
+if(st.phase !== 'done') sheetButton(body, t('markCrossCancel'), () => { stopAll(); closeSheet(); }).id = 'markCrossCancelBtn';
+}
+};
+const show = (m) => { st.msg = m; if(topSheet() === sheet) renderSheet(); sayEvent(m); };
+if(navigator.geolocation) st.watch = navigator.geolocation.watchPosition((pos) => {
+if(topSheet() !== sheet && sheetStack.indexOf(sheet) === -1){ stopAll(); return; }
+rememberFix(pos.coords);
+st.fixes.push({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, t: performance.now() });
+if(st.fixes.length > 60) st.fixes.shift();
+}, () => {}, { enableHighAccuracy: true });
+// The compass while you walk across: its direction is the crossing's direction
+st.timer = setInterval(() => {
+if(st.phase !== 'walking') return;
+const h = currentKnownHeading();
+if(h !== null && performance.now() - st.aTime > 1000) st.heads.push(h);
+}, 200);
+async function markStart(){
+if(currentKnownHeading() === null){ await new Promise((r) => setTimeout(r, 800)); }
+if(currentKnownHeading() === null){ show(t('markCrossNoCompass')); return; }
+let a = averaged(3000);
+if(!a){
+show(t('markCrossWaitGps'));
+for(let k = 0; k < 20 && !a; k++){ await new Promise((r) => setTimeout(r, 500)); a = averaged(3000); }
+if(!a){ show(t('locUnavailable')); return; }
+}
+st.a = a; st.aTime = performance.now(); st.heads = []; st.phase = 'walking';
+playChime('arrive');
+show(t('markCrossWalking'));
+}
+function markEnd(){
+const b = averaged(2000);
+if(!b){ show(t('markCrossWaitGps')); return; }
+const gpsLen = haversineMeters(st.a.lat, st.a.lon, b.lat, b.lon);
+const heading = st.heads.length >= 3 ? circularMean(st.heads) : bearingDegrees(st.a.lat, st.a.lon, b.lat, b.lon);
+let len = Math.round(gpsLen), note = '';
+if(gpsLen < 4){ len = 8; note = t('markCrossShort').replace('{d}', formatDist(gpsLen)).replace('{len}', formatDist(len)) + ' '; }
+const count = loadRoutes().filter((r) => r.type === 'crossing').length + 1;
+const name = (window.prompt(t('markCrossNamePrompt'), t('markCrossDefaultName').replace('{n}', count)) || '').trim() || t('markCrossDefaultName').replace('{n}', count);
+stopAll();
+const route = { id: Date.now().toString(36), name: name, createdAt: Date.now(), type: 'crossing',
+crossing: { heading: Math.round(heading * 10) / 10, length: len },
+waypoints: [{ lat: st.a.lat, lon: st.a.lon, label: t('crossStartLabel') }, { lat: b.lat, lon: b.lon, label: t('crossEndPoint') }] };
+saveRoute(route);
+st.phase = 'done';
+playChime('done');
+show(note + t('markCrossSaved').replace('{name}', name).replace('{d}', formatDist(len)).replace('{dir}', directionWord(heading).toLowerCase()));
+}
+openSheet(sheet);
+}
+// Crossing one of your marked crossings, from either end
+function startCrossing(r, reverse){
+if(running || recording){ sayEvent(t('stopFirst')); return; }
+const A = r.waypoints[0], B = r.waypoints[r.waypoints.length - 1];
+const from = reverse ? B : A, to = reverse ? A : B;
+const heading = reverse ? (r.crossing.heading + 180) % 360 : r.crossing.heading;
+startRouteNav({ id: r.id + (reverse ? 'b' : ''), name: r.name, waypoints: [{ lat: to.lat, lon: to.lon, label: t('crossEndPoint') }],
+crossing: { heading: heading, length: r.crossing.length, start: { lat: from.lat, lon: from.lon }, end: { lat: to.lat, lon: to.lon }, name: r.name } });
 }
 
 // ---------- Places from OpenStreetMap ----------
@@ -3599,6 +3975,17 @@ const waypoints = [];
 const cross = (attrs.crossings || []).map((c) => ({ b: c.b, e: c.e, signal: !!c.signal, kind: 'cross' }))
 .concat((attrs.barriers || []).map((x) => ({ b: x.i, e: x.i, kind: x.type }))).sort((x, y) => x.b - y.b);
 const midOf = (c) => { const part = shape.slice(c.b, Math.min(c.e, shape.length - 1) + 1); return part.length > 1 ? pointAlong(part, 0.5) : shape[c.b]; };
+// Where a crossing starts and ends, which way it goes and how long it is
+const crossGeom = (w, c) => {
+const e = Math.min(c.e, shape.length - 1);
+let len = 0;
+for(let k = c.b + 1; k <= e; k++) len += haversineMeters(shape[k - 1].lat, shape[k - 1].lon, shape[k].lat, shape[k].lon);
+if(len < 3) return;
+w.crossHead = bearingDegrees(shape[c.b].lat, shape[c.b].lon, shape[e].lat, shape[e].lon);
+w.crossLen = Math.round(len);
+w.crossStart = { lat: shape[c.b].lat, lon: shape[c.b].lon };
+w.crossEnd = { lat: shape[e].lat, lon: shape[e].lon };
+};
 let steps = 0;
 // One stretch of path after an announced point: gentle bends are followed silently, sharp ones (45 degrees
 // or more) are announced; an unnamed footpath remembers where to look up the street it runs along
@@ -3667,11 +4054,13 @@ if(!said.cross){
 if(!/priechod|crosswalk|crossing/i.test(said.base)) said.base = said.base.replace(/\.$/, '') + ', ' + t(c.signal ? 'crossAppendSig' : 'crossAppend') + '.';
 said.instruction = composeInstruction(said);
 said.cross = midOf(c);
+crossGeom(said, c);
 }
 return;
 }
 emit(shape.slice(from, c.b + 1), said, unnamed);
 said = { lat: q.lat, lon: q.lon, label: '', instruction: t(c.signal ? 'crossAloneSig' : 'crossAlone'), base: t(c.signal ? 'crossAloneSig' : 'crossAlone'), turn: 'straight', cross: midOf(c), crossing: true };
+crossGeom(said, c);
 waypoints.push(said);
 steps++;
 from = c.b;
@@ -4093,6 +4482,15 @@ if(!holdingStraight && lastLat !== null && !navPaused) updateRouteBearing(lastLa
 renderNavSteps();
 }
 
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+if(document.visibilityState === 'hidden'){ hiddenAt = running ? performance.now() : 0; return; }
+if(hiddenAt && running && !pauseOnLeave.checked){
+const secs = Math.round((performance.now() - hiddenAt) / 1000);
+if(secs >= 2) setTimeout(() => { if(running) sayEvent(t('guidanceInterrupted').replace('{n}', secs)); }, 300);
+}
+hiddenAt = 0;
+});
 // Used when the app starts the straight-line assistant without a button press
 // (auto-start, ?go=1, returning to the app). iOS may refuse the compass permission without a tap.
 async function autoStartStraight(){
@@ -4121,6 +4519,7 @@ releaseWakeLock();
 if(straightWatchId !== null){ navigator.geolocation.clearWatch(straightWatchId); straightWatchId = null; }
 window.removeEventListener('deviceorientation', handleOrientation, true);
 clearTimeout(watchdog);
+clearInterval(compassWatchTimer); autoLockPending = false;
 if(navigator.vibrate) navigator.vibrate(0);
 
 mainBtn.textContent = t('start');
@@ -4263,6 +4662,11 @@ offRouteHint: offRouteHint.checked,
 offRouteCourse: offRouteCourse.checked,
 routeAnnounceEvery: routeAnnounceEvery.value,
 pointDistOn: pointDistOn.checked,
+crossStraightOn: crossStraightOn.checked,
+soundsInSilent: soundsInSilent.checked,
+crossThreshold: crossThreshold.value,
+crossConfirmEvery: crossConfirmEvery.value,
+startAlignOn: startAlignOn.checked,
 approachCues: approachCues.value,
 approachNow: approachNow.value,
 turnConfirmOn: turnConfirmOn.checked,
@@ -4312,6 +4716,11 @@ if(typeof s.offRouteHint === 'boolean') offRouteHint.checked = s.offRouteHint;
 if(typeof s.offRouteCourse === 'boolean') offRouteCourse.checked = s.offRouteCourse;
 if(s.routeAnnounceEvery && Array.from(routeAnnounceEvery.options).some((o) => o.value === s.routeAnnounceEvery)) routeAnnounceEvery.value = s.routeAnnounceEvery;
 if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
+if(typeof s.crossStraightOn === 'boolean') crossStraightOn.checked = s.crossStraightOn;
+if(typeof s.soundsInSilent === 'boolean') soundsInSilent.checked = s.soundsInSilent;
+if(s.crossThreshold && Array.from(crossThreshold.options).some((o) => o.value === s.crossThreshold)) crossThreshold.value = s.crossThreshold;
+if(s.crossConfirmEvery && Array.from(crossConfirmEvery.options).some((o) => o.value === s.crossConfirmEvery)) crossConfirmEvery.value = s.crossConfirmEvery;
+if(typeof s.startAlignOn === 'boolean') startAlignOn.checked = s.startAlignOn;
 if(s.approachCues && Array.from(approachCues.options).some((o) => o.value === s.approachCues)) approachCues.value = s.approachCues;
 if(s.approachNow && Array.from(approachNow.options).some((o) => o.value === s.approachNow)) approachNow.value = s.approachNow;
 if(typeof s.turnConfirmOn === 'boolean') turnConfirmOn.checked = s.turnConfirmOn;
@@ -4354,7 +4763,8 @@ document.addEventListener('visibilitychange', updateLiveWatcher);
 fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
-[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow].forEach((el) => el.addEventListener('change', saveSettings));
+markCrossingBtn.addEventListener('click', openMarkCrossing);
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent].forEach((el) => el.addEventListener('change', saveSettings));
 recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
@@ -4481,17 +4891,17 @@ if(voiceMode.value !== 'off') speak(t('errNoGPS'));
 // Kinds of your own points, recognised by a word in their name (Slovak or English)
 const POINT_KINDS = [
 ['nearestStairs', ['schod', 'stair', 'step']], ['nearestEntrance', ['vchod', 'entrance']], ['nearestExit', ['vychod', 'exit']],
-['nearestLift', ['vytah', 'lift', 'elevator']], ['nearestPlatform', ['nastupist', 'platform', 'kolaj', 'track']]
+['nearestLift', ['vytah', 'lift', 'elevator']], ['nearestPlatform', ['nastupist', 'platform', 'kolaj', 'track']], ['nearestCrossing', []]
 ];
 function nearbyKindsText(nearby, lat, lon, heading){
 const parts = [];
 const first = nearby[0];
 const dirTo = (wp) => describeDirection(bearingDegrees(lat, lon, wp.lat, wp.lon), heading);
-if(first.dist <= 25) parts.push(t('atSavedPoint').replace('{p}', first.route.waypoints[0].label).replace('{d}', formatDist(first.dist)));
-else parts.push(t('nearestSaved').replace('{p}', first.route.waypoints[0].label).replace('{d}', formatDist(first.dist)).replace('{dir}', dirTo(first.route.waypoints[0])));
+if(first.dist <= 25) parts.push(t('atSavedPoint').replace('{p}', first.label).replace('{d}', formatDist(first.dist)));
+else parts.push(t('nearestSaved').replace('{p}', first.label).replace('{d}', formatDist(first.dist)).replace('{dir}', dirTo(first.wp)));
 POINT_KINDS.forEach((k) => {
-const hit = nearby.find((n) => n !== first && k[1].some((w) => plainText(n.route.waypoints[0].label).indexOf(w) !== -1));
-if(hit) parts.push(t(k[0]).replace('{p}', hit.route.waypoints[0].label).replace('{d}', formatDist(hit.dist)).replace('{dir}', dirTo(hit.route.waypoints[0])));
+const hit = nearby.find((n) => n !== first && (k[0] === 'nearestCrossing' ? n.route.type === 'crossing' : n.route.type !== 'crossing' && k[1].some((w) => plainText(n.label).indexOf(w) !== -1)));
+if(hit) parts.push(t(k[0]).replace('{p}', hit.label).replace('{d}', formatDist(hit.dist)).replace('{dir}', dirTo(hit.wp)));
 });
 return parts.join(' ');
 }
@@ -4505,10 +4915,16 @@ nearbyPos = { lat: lat, lon: lon };
 const routes = loadRoutes();
 const nearby = [];
 routes.forEach((r) => {
+if(r.type === 'crossing' && r.crossing && r.waypoints && r.waypoints.length === 2){
+const dA = haversineMeters(lat, lon, r.waypoints[0].lat, r.waypoints[0].lon), dB = haversineMeters(lat, lon, r.waypoints[1].lat, r.waypoints[1].lon);
+const atB = dB < dA;
+if(Math.min(dA, dB) <= 150) nearby.push({ route: r, dist: Math.min(dA, dB), wp: r.waypoints[atB ? 1 : 0], reverse: atB, label: r.name + ' (' + t('crossKind') + ', ' + t(atB ? 'crossAtEnd' : 'crossAtStart') + ')' });
+return;
+}
 if(!r.waypoints || r.waypoints.length !== 1) return;
 const wp = r.waypoints[0];
 const d = haversineMeters(lat, lon, wp.lat, wp.lon);
-if(d <= 150) nearby.push({ route: r, dist: d });
+if(d <= 150) nearby.push({ route: r, dist: d, wp: wp, label: wp.label });
 });
 nearby.sort((a, b) => a.dist - b.dist);
 showNearbyList(nearby);
@@ -4533,12 +4949,13 @@ let summary = t('nearbyFound').replace('{n}', nearby.length);
 if(nearbyKinds.checked && nearbyPos) summary += ' ' + nearbyKindsText(nearby, nearbyPos.lat, nearbyPos.lon, currentKnownHeading());
 announceEvent(summary);
 if(voiceMode.value !== 'off') speak(summary);
-nearby.forEach(({ route, dist }) => {
+nearby.forEach(({ route, dist, wp, label, reverse }) => {
 const b = document.createElement('button');
 b.type = 'button'; b.className = 'picker-item';
-b.textContent = route.waypoints[0].label + ' (' + Math.round(dist) + 'm)' + (nearbyKinds.checked && nearbyPos && dist > 5 ? ', ' + describeDirection(bearingDegrees(nearbyPos.lat, nearbyPos.lon, route.waypoints[0].lat, route.waypoints[0].lon), currentKnownHeading()) : '') + (route.waypoints[0].address ? ', ' + route.waypoints[0].address : '');
+b.textContent = label + ' (' + Math.round(dist) + 'm)' + (nearbyKinds.checked && nearbyPos && dist > 5 ? ', ' + describeDirection(bearingDegrees(nearbyPos.lat, nearbyPos.lon, wp.lat, wp.lon), currentKnownHeading()) : '') + (wp.address ? ', ' + wp.address : '');
 b.addEventListener('click', () => {
 closePicker();
+if(route.type === 'crossing' && route.crossing){ startCrossing(route, !!reverse); return; }
 startRouteNav(route);
 });
 pickerList.appendChild(b);
@@ -4764,8 +5181,10 @@ wrapper.style.cssText = 'border:1px solid #2c3340; border-radius:10px; padding:8
 const navBtn = document.createElement('button');
 navBtn.type = 'button'; navBtn.className = 'picker-item'; navBtn.style.cssText = 'width:100%; margin-bottom:8px;';
 navBtn.textContent = r.name + ' (' + r.waypoints.filter((w) => !w.via).length + ')' + (r.waypoints.length === 1 && r.waypoints[0].address ? ', ' + r.waypoints[0].address : '');
+if(r.type === 'crossing' && r.crossing) navBtn.textContent = r.name + ' (' + t('crossKind') + ', ' + formatDist(r.crossing.length) + ')';
 navBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
+if(r.type === 'crossing' && r.crossing){ startCrossing(r, false); return; }
 startRouteNav(r);
 });
 
@@ -4774,9 +5193,10 @@ row2.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
 
 const backBtn = document.createElement('button');
 backBtn.type = 'button'; backBtn.className = 'menubtn'; backBtn.style.flex = '1';
-backBtn.textContent = '⇄ ' + t('navigateBack');
+backBtn.textContent = '⇄ ' + (r.type === 'crossing' ? t('crossBack') : t('navigateBack'));
 backBtn.addEventListener('click', () => {
 routesOverlay.hidden = true;
+if(r.type === 'crossing' && r.crossing){ startCrossing(r, true); return; }
 startRouteNav({ id: r.id, name: r.name, waypoints: reversedWaypoints(r.waypoints) });
 });
 

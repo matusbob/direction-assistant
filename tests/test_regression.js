@@ -12,7 +12,7 @@ if (!oldFile) {
 }
 const OLD = 'file://' + oldFile;
 // New settings of this version turned off, so the rest can be compared with the published version
-const NEW_OFF = { pointDistOn: false, offRouteCourse: false, nearbyKinds: false, approachCues: 'off' };
+const NEW_OFF = { pointDistOn: false, offRouteCourse: false, nearbyKinds: false, approachCues: 'off', startAlignOn: false };
 const recorded = { id: 'rec1', name: 'Domov - obchod', createdAt: 1, waypoints: [
   { lat: 47.97663, lon: 18.16087, label: 'Štart' }, { lat: 47.97720, lon: 18.16150, label: 'Vchod do parku' },
   { lat: 47.97790, lon: 18.16120, label: 'Lavička' }, { lat: 47.97840, lon: 18.16200, label: 'Cieľ' }] };
