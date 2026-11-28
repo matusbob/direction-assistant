@@ -27,7 +27,13 @@ async function install(page, mode = {}) {
       if (mode.traceNoNodes) { const d = JSON.parse(txt); (d.edges || []).forEach((e) => delete e.end_node); txt = JSON.stringify(d); }
       return json(r, txt);
     }
-    if (u.pathname === '/locate') return r.abort();
+    if (u.pathname === '/locate') {
+      // mode.locate: the streets around the crossing on S. H. Vajanského (Nové Zámky); otherwise unreachable
+      log.locate = (log.locate || 0) + 1;
+      if (!mode.locate) return r.abort();
+      const lq = JSON.parse(u.searchParams.get('json'));
+      return json(r, lq.locations[0].lat < 48.05 ? read('nz_locate_crossing.json') : '[]');
+    }
     const req = JSON.parse(u.searchParams.get('json'));
     const ped = (req.costing_options && req.costing_options.pedestrian) || {};
     const kind = ped.walkway_factor ? 'named' : ped.shortest ? 'shortest' : ped.step_penalty ? 'nosteps' : 'default';
@@ -56,6 +62,14 @@ async function install(page, mode = {}) {
       display_name: '32/30, G. Bethlena, Nové Zámky', address: { house_number: '32/30', road: 'G. Bethlena', city: 'Nové Zámky' } }]));
   });
   await page.route('https://photon.komoot.io/**', (r) => json(r, '{"features":[]}'));
+  // OpenStreetMap notes: what was sent is kept in log.notes; mode.notesFail makes it fail
+  log.notes = [];
+  await page.route('https://api.openstreetmap.org/**', (r) => {
+    if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' } });
+    log.notes.push(r.request().postData());
+    if (mode.notesFail) return r.abort();
+    return json(r, JSON.stringify({ type: 'Feature', properties: { id: 4242, status: 'open' } }));
+  });
   for (const h of ['https://overpass-api.de/**', 'https://overpass.private.coffee/**', 'https://maps.mail.ru/**', 'https://overpass.kumi.systems/**']) await page.route(h, (r) => r.abort());
   return log;
 }

@@ -191,7 +191,7 @@ const only = process.argv[2];
     check('R5b: Slovak label', /^Po spustení navigácie trasy presunúť kurzor čítačky na aktuálny bod/.test(await page.textContent('#lblFocusNavStep')));
     await page.click('#focusNavStep');
     await page.waitForTimeout(200);
-    await page.reload(); await page.waitForTimeout(300);
+    await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(1000);
     check('R5b: turning it off is remembered', !(await page.isChecked('#focusNavStep')));
     await ctx.close(); }
 

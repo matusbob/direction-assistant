@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 48:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 49:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,7 +12,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 48, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 49, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Spoľahlivejší kompas pri Štart / Stop** (oprava vo verzii 47):
   - smer sa nastaví vždy z nových údajov kompasu, ako priemer viacerých, aj keď iPhone pošle prvé údaje neskôr (predtým v takom prípade smer ostal nenastavený a vybočenie sa nehlásilo); nikdy sa nepoužije smer z predchádzajúceho spustenia;
@@ -28,6 +28,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Vlastné trasy.** Nahráš trasu chôdzou. Odbočky sa zistia samy a môžeš pridávať vlastné body s poznámkou (vchod, nástupište, schody...).
   - Potom ťa trasa vedie: odpočítavanie „23 m, odbočte vpravo“ (každých X metrov, alebo nové: každých 5–30 sekúnd), potvrdenie odbočky (dá sa vypnúť), cieľ.
   - **Pred každou odbočkou, priechodom alebo bodom odpočítava** (nové vo verzii 46, zapnuté, dá sa zmeniť alebo vypnúť): „10 m, odbočte vľavo.“ – „5 m.“ – „Teraz odbočte vľavo.“ Na výber je aj 10 m, 3 m a teraz; 15, 10, 5 m a teraz; 20, 10, 5, 3 m a teraz; 5, 3 m a teraz; 5, 2 m a teraz. „Teraz“ povie, keď si pri bode, tak presne, ako dovolí GPS (zvyčajne do 1 – 2 m; ak ťa GPS ukáže bokom, hneď ako sa začneš od bodu vzďaľovať), alebo 1, 2 či 3 m pred bodom. Počas odpočítavania nič iné nehovorí, aby „5 m“ a „teraz“ prišli včas. Presnosť GPS v meste je asi 3 – 5 m, takže pol metra nezaručí nič.
+  - Krátke úseky do 15 m plánovaná trasa spája do jedného pokynu („… Potom odbočte vľavo …“). Nové vo verzii 49 (voliteľné, predvolene vypnuté): vzdialenosť aj ku každému takému kúsku – „Odbočte vpravo na chodník, 5 m. Potom odbočte vľavo na Lesná, 13 m. Potom odbočte vpravo na S. H. Vajanského, 102 m.“ (platí pre trasy naplánované po zapnutí).
   - Pri každom bode povie aj vzdialenosť k ďalšiemu („Vchod do parku. Teraz odbočte vľavo, potom 81 m.“) a v Pokynoch trasy je pri každom bode vzdialenosť (nové vo verzii 45).
   - **Keď odídeš z trasy**, povie to, kde je ďalší bod a ako ďaleko, a nové: ktorým smerom ideš a ktorým máš ísť („Idete na juhozápad, bod je smerom na severovýchod.“), a keď si prešiel okolo bodu, povie „Pravdepodobne ste prešli okolo bodu: …“. Kedy sa to povie, si nastavíš (automaticky alebo po 5–30 m).
   - Nové tlačidlo **Prepočítať trasu** počas navigácie: plánovanú trasu naplánuje znova od miesta, kde si; pri nahranej trase pokračuje k najbližšiemu bodu, ktorý si ešte neprešiel.
@@ -279,7 +280,7 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 - **How the instructions read:**
   - Unnamed sidewalks get the street they run along: "turn left onto the walkway, along G. Bethlena".
   - Sharp bends inside a long stretch are announced ("The route bends left"); gentle ones are followed silently.
-  - Stretches shorter than 15 m are joined into one instruction ("... Then turn left ...").
+  - Stretches shorter than 15 m are joined into one instruction ("... Then turn left ..."). With "In joined instructions ..., also say the distance of each short piece" (version 49, off by default) each piece has its own distance: "Turn right onto the walkway, 5 m. Then turn left onto Lesná, 13 m. Then turn right onto S. H. Vajanského, 102 m." It applies to routes planned after turning it on (the text is made when the route is planned).
   - **Pedestrian crossings** the route uses become part of the instructions, for example "over a pedestrian crossing across S. H. Vajanského", and "with traffic lights" when the router reports lights there. Each variant says how many crossings and traffic lights it has. Only crossings drawn in the map are known.
   - **Bollards and gates** on the path are said ("..., careful, a bollard", or on their own "Careful, a bollard on the path.", "Go through the gate.").
   - At the start the app says which way the first instruction is from where the phone points ("That is behind you"), and which side the destination is on ("At the end: your destination is on the left").
@@ -338,6 +339,7 @@ All settings are remembered. New features are usually off by default, so nothing
 | Pred každou odbočkou, priechodom alebo bodom odpočítavať - countdown before each point: off / 10, 5 / 10, 3 / 15, 10, 5 / 20, 10, 5, 3 / 5, 3 / 5, 2 m and now | 10 m, 5 m and now |
 | Kedy povedať „teraz“ - at the point (as close as GPS can tell) / 1 / 2 / 3 m before | at the point |
 | Pri každom bode trasy povedať aj, ako ďaleko je ďalší - distance to the next point at each point | on |
+| Pri spojených pokynoch povedať vzdialenosť aj ku každému kúsku - distance of each short piece in joined instructions | off |
 | Na začiatku trasy povedať, kam sa otočiť - turn advice at the start of a route | on |
 | Na priechode upozorniť, keď vybočím o viac ako - crossing limit: 5 / 8 / 10 / 15 / 20 degrees | 10 degrees |
 | Počas prechodu potvrdzovať „smer správny“ - no / every 2 / 3 / 5 m | no |

@@ -28,6 +28,8 @@ Nedbalova → Hodžovo námestie in Bratislava, in Slovak and English, each kind
 - `test_swing.js` - "Ignore the hand swinging", voice on and off: off by default (a swinging hand warned about, as
   before); with 0.5 / 1 / 2 s, swinging at several speeds up to 30 degrees is never a drift, a real drift is said after
   the chosen time, also while the hand still swings a little; on crossings only with "Also on crossings"; settings.
+- `test_v49.js` - version 49: the distance of each short piece in joined instructions (off by default: as before;
+  on: in the list, during navigation and said aloud; English; remembered).
 - `record_fixtures.sh` - records the routing answers again (`bash tests/record_fixtures.sh`).
 - `test_regression.js` - the same walks (recorded route there and back, planned route, straight-line walking with drifts)
   in the published version (`origin/main`) and in this one, in Slovak and English: announcements, speech and
