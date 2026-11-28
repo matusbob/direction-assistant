@@ -19,7 +19,7 @@ const A0 = { lat: 47.97663, lon: 18.16087 };
     const page = await ctx.newPage();
     const errs = [];
     page.on('pageerror', (e) => { errs.push(e.message); console.log('PAGEERROR', e.message); });
-    page.on('dialog', (d) => { const ans = (dialogs || []).shift(); if (ans === false) d.dismiss(); else d.accept(ans === undefined ? '' : ans); });
+    page.on('dialog', (d) => { const ans = (dialogs || []).shift(); if (ans === false || ans === null) d.dismiss(); else if (ans === true || d.type() !== 'prompt') d.accept(); else d.accept(ans === undefined ? '' : ans); });
     await page.addInitScript(INIT);
     await page.addInitScript((a) => {
       if (sessionStorage.getItem('__seeded')) return;

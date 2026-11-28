@@ -2,7 +2,7 @@
 An accessible walking assistant for blind and visually impaired people. It helps you walk in a straight line, navigate routes you recorded yourself, find out where you are, explore places nearby and plan walking routes along streets. It uses the compass, GPS, spatial audio, voice and vibration, and it works with VoiceOver (iPhone) and TalkBack (Android) alone. Slovak and English.
 
 ## Links
-- **Web app (iPhone and any phone), current version 49:** https://matusbob.github.io/direction-assistant/
+- **Web app (iPhone and any phone), current version 50:** https://matusbob.github.io/direction-assistant/
   - Open it in Safari over this HTTPS link and allow motion/orientation and location when asked.
   - Install it: Share → Add to Home Screen. The home-screen icon always loads the newest version.
   - The version number is at the bottom of the screen, next to the language button.
@@ -12,7 +12,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
 - **Source code:** https://github.com/matusbob/direction-assistant
 
 ## Stručne po slovensky
-**Webová aplikácia** (verzia 49, https://matusbob.github.io/direction-assistant/) vie:
+**Webová aplikácia** (verzia 50, https://matusbob.github.io/direction-assistant/) vie:
 
 - **Spoľahlivejší kompas pri Štart / Stop** (oprava vo verzii 47):
   - smer sa nastaví vždy z nových údajov kompasu, ako priemer viacerých, aj keď iPhone pošle prvé údaje neskôr (predtým v takom prípade smer ostal nenastavený a vybočenie sa nehlásilo); nikdy sa nepoužije smer z predchádzajúceho spustenia;
@@ -46,6 +46,9 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - voliteľne každé 2, 3 alebo 5 m potvrdí „Smer správny.“;
   - na druhej strane povie „Prešli ste priechod.“ (podľa GPS, môže to byť o pár metrov skôr alebo neskôr).
   - Aplikácia vie, kam mieri telefón; posun o 2 m do strany, keď telefón stále mieri rovno, spoľahlivo nepozná (GPS sa mýli o 3 – 5 m). Telefón preto drž stále rovnako pred sebou.
+- **Moje označené priechody na každej trase** (nové vo verzii 50, voliteľné, predvolene vypnuté): keď pri navigácii akejkoľvek trasy (plánovanej aj vlastnej) prídeš k začiatku priechodu, ktorý si si označil, a trasa ide cez neho, povie „Váš označený priechod. Priechod Lesná, 12 m. …“ a navedie ťa cez neho zmeraným smerom; potom trasa pokračuje.
+- **Križovatka pri priechode** (nové vo verzii 50, voliteľné, predvolene vypnuté): pokyn pri priechode na plánovanej trase povie aj najbližšiu križovatku („cez priechod pre chodcov cez ulicu S. H. Vajanského, pri križovatke G. Bethlena, Nábrežná a S. H. Vajanského“).
+- **Nahlásiť do mapy** (nové vo verzii 50, tlačidlo v Rýchlych akciách): chýba priechod, chýba semafor, križovatka chýba alebo je zle, iná chyba v mape. Pošle sa ako verejná poznámka do OpenStreetMap s polohou, kde stojíš (bez tvojho mena), po potvrdení. Dobrovoľní mapovači ju môžu pridať do mapy (dni až týždne); potom to bude vedieť táto aplikácia aj iné.
 - **Priechody z mapy na plánovanej trase** (experimentálne, treba zapnúť): pri každom priechode, ktorý pozná mapa, sa sám zapne rovný smer podľa tvaru priechodu v mape.
 - **Na začiatku trasy** povie, kam sa otočiť („Otočte sa doľava asi o 60 stupňov“ alebo „Choďte rovno“) a potom „Smer správny, choďte.“ (nové vo verzii 47, dá sa vypnúť).
 - **Rýchle akcie na hlavnej obrazovke:**
@@ -53,6 +56,7 @@ An accessible walking assistant for blind and visually impaired people. It helps
   - **Kompas** (otáčaš telefónom a povie sever, severovýchod...)
   - **Uložiť toto miesto**
   - **Označiť priechod**
+  - **Nahlásiť do mapy**
   - **Okolie z mapy**
   - **Hľadať miesto**
   - **Zopakovať posledné hlásenie**
@@ -289,6 +293,9 @@ Shown on the main screen; a setting hides them. "Where am I?" and "Repeat" are o
 
 ### During any route navigation
 - **Route instructions** on the main screen list all points of the route, with the current target marked and passed ones labelled. Pressing one makes it the target. The list is redrawn only when the target changes, so a screen reader's place in it isn't disturbed. A setting turns it off.
+- **Your marked crossings on any route** (version 50, setting, off by default): while navigating any route (planned or your own), when you get within 6 m of the start of one of your marked crossings and the route goes across it (its far end is clearly closer to where you're heading), it says "Your marked crossing. Crossing Lesná, 12 m. ..." and guides you across in its measured direction, exactly as when crossing it from Saved routes; then the route goes on. A crossing beside the route is not used. It comes before a crossing known only from the map.
+- **The intersection at a crossing** (version 50, setting, off by default): the instruction at a crossing of a planned route also says the nearest intersection (within 35 m), from the routing service's streets around it: "over a pedestrian crossing across S. H. Vajanského, at the intersection of G. Bethlena, Nábrežná and S. H. Vajanského". Filled in with the street names, one at a time.
+- **Report to the map** (version 50, Quick actions): "A pedestrian crossing is missing here", "Traffic lights are missing here", "The intersection here is missing or wrong", "Another mistake in the map". After optional details (required for "another mistake") and a confirmation, it is sent as a public note to OpenStreetMap at your position, without your name, written in Slovak and English for the mappers with the GPS accuracy. The app says the note number, or that it couldn't be sent. Volunteer mappers can then fix the map (days to weeks); then this app and others using OpenStreetMap know it.
 - **Crossings of a planned route** (experimental setting, off by default): arriving at a pedestrian crossing the map knows, the app holds the crossing's direction from the map ("I'll hold the direction across the crossing, 12 m."), with the same warnings as on a marked crossing, until "You have crossed."; then the route goes on.
 - **At the start of a route** (setting, on by default): which way to turn to the first point ("Start. Turn left by about 60 degrees, then 60 m." or "Go straight on"), then "Direction right, go." once the phone points that way.
 - **The screen reader is moved to the current point** when route navigation starts (setting, on by default): VoiceOver lands on "1. ..., current target" in Route instructions instead of staying where you were. While it is on the current point, it moves on with it when the next point becomes current. If you are elsewhere on the screen, it is left alone.
@@ -344,6 +351,8 @@ All settings are remembered. New features are usually off by default, so nothing
 | Na priechode upozorniť, keď vybočím o viac ako - crossing limit: 5 / 8 / 10 / 15 / 20 degrees | 10 degrees |
 | Počas prechodu potvrdzovať „smer správny“ - no / every 2 / 3 / 5 m | no |
 | Experimentálne: na plánovanej trase držať smer cez každý priechod, ktorý pozná mapa - map crossings | off |
+| Na každej trase použiť moje označené priechody - your marked crossings on any route | off |
+| Pri priechode na plánovanej trase povedať aj najbližšiu križovatku - intersection at a crossing | off |
 | Potvrdiť, keď som odbočil správne - turn confirmation | on |
 | V „Čo je blízko?“ povedať, pri ktorom mojom bode som... - which point I'm at, nearest stairs / entrance / platform | on |
 | Hlasová spätná väzba počas automatického nahrávania - voice while recording | on |

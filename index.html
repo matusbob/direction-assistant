@@ -219,6 +219,7 @@ flex:none;
 <button type="button" id="compassBtn" class="quickbtn" aria-pressed="false"><span id="lblCompass">Compass</span></button>
 <button type="button" id="savePlaceBtn" class="quickbtn"><span id="lblSavePlace">Save this place</span></button>
 <button type="button" id="markCrossingBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblMarkCrossing">Mark a crossing</span></button>
+<button type="button" id="reportMapBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblReportMap">Report to the map</span></button>
 <button type="button" id="placesBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblPlaces">Places nearby (map)</span></button>
 <button type="button" id="searchBtn" class="quickbtn" aria-haspopup="dialog"><span id="lblSearch">Search for a place</span></button>
 <button type="button" id="trackStopBtn" class="quickbtn wide" hidden></button>
@@ -400,6 +401,14 @@ flex:none;
 <label for="startAlignOn" style="margin:0;" id="lblStartAlignOn">At the start of a route, say which way to turn ("Turn left by about 60 degrees" or "Go straight on"), then "Direction right, go"</label>
 </div>
 <div class="toggle">
+<input type="checkbox" id="ownCrossOnRoutes">
+<label for="ownCrossOnRoutes" style="margin:0;" id="lblOwnCrossOnRoutes">On every route (planned or my own), use my marked crossings: when I get to one, guide me across in its measured direction</label>
+</div>
+<div class="toggle">
+<input type="checkbox" id="crossIxOn">
+<label for="crossIxOn" style="margin:0;" id="lblCrossIxOn">At a crossing on a planned route, also say the nearest intersection ("at the intersection of Vajanského and Hradná")</label>
+</div>
+<div class="toggle">
 <input type="checkbox" id="crossStraightOn">
 <label for="crossStraightOn" style="margin:0;" id="lblCrossStraightOn">Experimental: on a planned route, hold the direction across each pedestrian crossing the map knows (beeps and vibration when you drift, like straight-line walking)</label>
 </div>
@@ -563,13 +572,13 @@ flex:none;
 
 <footer>
 <button id="langBtn" type="button">Slovenčina</button>
-<div id="osmAttrib"><span id="appVersion">Version 49</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+<div id="osmAttrib"><span id="appVersion">Version 50</span> · <span id="lblOsmAttrib">Addresses:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </footer>
 
 <script>
 (function(){
 // Keep in sync with CACHE in sw.js; shown in the footer so you can check which version is running
-const APP_VERSION = 49;
+const APP_VERSION = 50;
 const T = {
 en: {
 title: "Direction Assistant", desc: "Helps you walk in a straight line and follow your own saved routes, using compass, GPS, spatial audio, voice, and vibration. Does not replace a white cane or guide dog.",
@@ -640,6 +649,17 @@ lblCrossThreshold: "On a crossing, warn when I drift by more than", optDegN: "{n
 lblStartAlignOn: "At the start of a route, say which way to turn (\"Turn left by about 60 degrees\" or \"Go straight on\"), then \"Direction right, go\"",
 crossStillRight: "Direction right.", crossTurnMore: "More to the {side}, {n} degrees.", crossTurnMoreLeft: "left", crossTurnMoreRight: "right",
 crossAlignedNow: "Direction right, go.", nextPointIn: "Next point in {d}.", startTurn: "Turn {side} by about {n} degrees.", startStraight: "Go straight on.",
+lblOwnCrossOnRoutes: "On every route (planned or my own), use my marked crossings: when I get to one, guide me across in its measured direction",
+lblCrossIxOn: "At a crossing on a planned route, also say the nearest intersection (\"at the intersection of Vajanského and Hradná\")", atIntersection: "at the intersection of {s}",
+ownCrossPrefix: "Your marked crossing.",
+lblReportMap: "Report to the map", reportTitle: "Report to OpenStreetMap",
+reportIntro: "Something missing or wrong in the map where you stand? It is sent as a public note to OpenStreetMap with this position (not your name); volunteer mappers can then fix the map, which can take days or weeks. After that this app and other apps using OpenStreetMap know it.",
+reportCrossing: "A pedestrian crossing is missing here", reportSignal: "Traffic lights are missing here", reportIx: "The intersection here is missing or wrong", reportOther: "Another mistake in the map",
+reportDetailPrompt: "Details (optional), for example across which street:", reportOtherPrompt: "What is wrong in the map here?",
+reportConfirm: "The note will be public in OpenStreetMap with the position where you stand now (without your name). Send it?",
+reportSending: "Sending the note...", reportSent: "Note sent to OpenStreetMap (number {id}). Mappers can now add it to the map.", reportFailed: "The note couldn't be sent (no internet, or the map service is busy). Try again later.",
+reportNoPos: "Your position isn't known, so nothing was sent.",
+noteCrossing: "Missing pedestrian crossing.", noteSignal: "Missing traffic lights at the crossing.", noteIx: "The intersection is missing or wrong.", noteOther: "Mistake in the map.",
 lblSwingFilter: "Ignore the hand swinging (warn only when the direction stays off to one side this long)", optSwingOff: "Off", optSwingSec: "{n} seconds", optSwingOneSec: "1 second",
 lblSwingOnCrossing: "Also on crossings (otherwise a drift on a crossing is always said at once)",
 compassNoData: "The compass isn't sending anything, so drifts can't be told. Check that motion and orientation are allowed (Settings, Safari) and press Start again.",
@@ -845,6 +865,17 @@ lblCrossThreshold: "Na priechode upozorniť, keď vybočím o viac ako", optDegN
 lblStartAlignOn: "Na začiatku trasy povedať, kam sa otočiť („Otočte sa doľava asi o 60 stupňov“ alebo „Choďte rovno“) a potom „Smer správny, choďte“",
 crossStillRight: "Smer správny.", crossTurnMore: "Ešte {side}, {n} stupňov.", crossTurnMoreLeft: "doľava", crossTurnMoreRight: "doprava",
 crossAlignedNow: "Smer správny, choďte.", nextPointIn: "Ďalší bod o {d}.", startTurn: "Otočte sa {side} asi o {n} stupňov.", startStraight: "Choďte rovno.",
+lblOwnCrossOnRoutes: "Na každej trase (plánovanej aj mojej) použiť moje označené priechody: keď k nejakému prídem, navediem ma cez neho zmeraným smerom",
+lblCrossIxOn: "Pri priechode na plánovanej trase povedať aj najbližšiu križovatku („pri križovatke Vajanského a Hradná“)", atIntersection: "pri križovatke {s}",
+ownCrossPrefix: "Váš označený priechod.",
+lblReportMap: "Nahlásiť do mapy", reportTitle: "Nahlásiť do OpenStreetMap",
+reportIntro: "Chýba v mape niečo tam, kde stojíte, alebo je to zle? Pošle sa to ako verejná poznámka do OpenStreetMap s touto polohou (bez vášho mena); dobrovoľní mapovači potom môžu mapu opraviť, čo môže trvať dni až týždne. Potom to bude poznať táto aplikácia aj iné aplikácie, ktoré používajú OpenStreetMap.",
+reportCrossing: "Tu chýba priechod pre chodcov", reportSignal: "Tu chýba semafor", reportIx: "Križovatka tu chýba alebo je zle", reportOther: "Iná chyba v mape",
+reportDetailPrompt: "Podrobnosti (nepovinné), napríklad cez ktorú ulicu:", reportOtherPrompt: "Čo je tu v mape zle?",
+reportConfirm: "Poznámka bude verejná v OpenStreetMap s polohou, kde práve stojíte (bez vášho mena). Odoslať?",
+reportSending: "Posielam poznámku...", reportSent: "Poznámka odoslaná do OpenStreetMap (číslo {id}). Mapovači ju teraz môžu pridať do mapy.", reportFailed: "Poznámku sa nepodarilo odoslať (nie je internet alebo je mapová služba vyťažená). Skúste to neskôr.",
+reportNoPos: "Vaša poloha nie je známa, nič sa neodoslalo.",
+noteCrossing: "Chýba priechod pre chodcov.", noteSignal: "Chýba semafor na priechode.", noteIx: "Križovatka chýba alebo je zle.", noteOther: "Chyba v mape.",
 lblSwingFilter: "Ignorovať kývanie ruky (upozorniť, až keď smer ostane vychýlený na jednu stranu aspoň takto dlho)", optSwingOff: "Vypnuté", optSwingSec: "{n} sekundy", optSwingOneSec: "1 sekunda",
 lblSwingOnCrossing: "Aj na priechodoch (inak sa vybočenie na priechode povie vždy hneď)",
 compassNoData: "Kompas neposiela údaje, vybočenie sa nedá zistiť. Skontrolujte, či je povolený pohyb a orientácia (Nastavenia, Safari), a stlačte Štart znova.",
@@ -1019,7 +1050,7 @@ document.getElementById('lblRecordVoiceFeedback').textContent = t('lblRecordVoic
 document.getElementById('lblTotalDist').textContent = t('lblTotalDist');
 document.getElementById('lblAutoStart').textContent = t('lblAutoStart');
 document.getElementById('lblPauseOnLeave').textContent = t('lblPauseOnLeave');
-['lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblPieceDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
+['lblOwnCrossOnRoutes','lblCrossIxOn','lblReportMap','lblSwingFilter','lblSwingOnCrossing','lblSoundsInSilent','lblMarkCrossing','lblCrossStraightOn','lblCrossThreshold','lblCrossConfirmEvery','lblStartAlignOn','lblOffRouteHint','lblOffRouteCourse','lblRouteAnnounceEvery','lblPointDistOn','lblPieceDistOn','lblTurnConfirmOn','lblApproachCues','lblApproachNow','lblNearbyKinds','lblRecalc','lblShowNavSteps','navStepsTitle','lblPlaces','lblSearch','lblDirStyle','lblLiveLocation','lblShowQuickBar','lblFastGps','lblOffRouteDist','quickBarTitle','lblRepeatLast','lblHistory','lblCompass','lblShareLoc','lblSavePlace','lblRoutePoints','lblOsmAttrib','lblOwnPoi','lblFocusNavStep'].forEach((id) => { document.getElementById(id).textContent = t(id); });
 document.getElementById('appVersion').textContent = t('versionWord') + ' ' + APP_VERSION;
 document.getElementById('lblRecWhereAmI').textContent = t('lblWhereAmI');
 document.getElementById('lblRecRepeat').textContent = t('lblRepeatLast');
@@ -1158,6 +1189,9 @@ const pieceDistOn = document.getElementById('pieceDistOn');
 const crossStraightOn = document.getElementById('crossStraightOn');
 const soundsInSilent = document.getElementById('soundsInSilent');
 const swingFilter = document.getElementById('swingFilter');
+const ownCrossOnRoutes = document.getElementById('ownCrossOnRoutes');
+const crossIxOn = document.getElementById('crossIxOn');
+const reportMapBtn = document.getElementById('reportMapBtn');
 const swingOnCrossing = document.getElementById('swingOnCrossing');
 const crossThreshold = document.getElementById('crossThreshold');
 const crossConfirmEvery = document.getElementById('crossConfirmEvery');
@@ -1838,6 +1872,7 @@ nextDistAnnounce += parseInt(distRange.value, 10);
 }
 
 if(navMode === 'route' && !navPaused){
+if(!holdingStraight && !crossHold) checkOwnCrossings(c.latitude, c.longitude);
 if(holdingStraight) checkStraightHoldProgress();
 else updateRouteBearing(c.latitude, c.longitude);
 if(crossHold) checkCrossHold(c.latitude, c.longitude);
@@ -1931,6 +1966,31 @@ announce(next.label, '');
 
 // Holding the direction across a pedestrian crossing: your own marked crossing, or one on a planned route
 let crossHold = null;
+// On any route: arriving at one of your own marked crossings that the route goes across, it is crossed in
+// its measured direction (it comes before a crossing known only from the map)
+let ownCrossings = [], ownCrossUsed = {};
+function checkOwnCrossings(lat, lon){
+if(!ownCrossOnRoutes.checked || !activeRoute || activeRoute.crossing || !ownCrossings.length) return;
+const target = activeRoute.waypoints[Math.min(routeIndex, activeRoute.waypoints.length - 1)];
+for(const r of ownCrossings){
+if(ownCrossUsed[r.id]) continue;
+const A = r.waypoints[0], B = r.waypoints[r.waypoints.length - 1];
+for(const rev of [false, true]){
+const near = rev ? B : A, far = rev ? A : B;
+if(haversineMeters(lat, lon, near.lat, near.lon) > 6) continue;
+// Only when the route goes across: the far side is clearly closer to where you're heading
+const dNear = haversineMeters(near.lat, near.lon, target.lat, target.lon), dFar = haversineMeters(far.lat, far.lon, target.lat, target.lon);
+if(dFar > dNear - Math.max(3, r.crossing.length * 0.5)) continue;
+ownCrossUsed[r.id] = true;
+const msg = t('ownCrossPrefix') + ' ' + startCrossHold({ heading: rev ? (r.crossing.heading + 180) % 360 : r.crossing.heading, length: r.crossing.length,
+start: { lat: near.lat, lon: near.lon }, end: { lat: far.lat, lon: far.lon }, name: r.name }, 'own');
+playChime('arrive');
+announceEvent(msg);
+if(voiceMode.value !== 'off') speak(msg);
+return;
+}
+}
+}
 function startCrossHold(c, msgKey){
 const len = Math.max(3, c.length || 0);
 swingBuf = [];
@@ -2517,6 +2577,7 @@ statusBox.className = 'status ok';
 routePointsBtn.hidden = false;
 recalcBtn.hidden = false;
 routeTrail = []; closestToAnn = null; closestAnnIndex = -1;
+ownCrossings = loadRoutes().filter((r) => r.type === 'crossing' && r.crossing && r.waypoints && r.waypoints.length === 2); ownCrossUsed = {};
 crossHold = null; startAlign = null;
 renderNavSteps(true);
 focusCurrentStep();
@@ -3301,6 +3362,44 @@ const from = reverse ? B : A, to = reverse ? A : B;
 const heading = reverse ? (r.crossing.heading + 180) % 360 : r.crossing.heading;
 startRouteNav({ id: r.id + (reverse ? 'b' : ''), name: r.name, waypoints: [{ lat: to.lat, lon: to.lon, label: t('crossEndPoint') }],
 crossing: { heading: heading, length: r.crossing.length, start: { lat: from.lat, lon: from.lon }, end: { lat: to.lat, lon: to.lon }, name: r.name } });
+}
+
+// ---------- Reporting a missing crossing, traffic lights, intersection or another mistake to OpenStreetMap ----------
+const OSM_NOTES_URL = 'https://api.openstreetmap.org/api/0.6/notes.json';
+function openReportMap(){
+const st = { msg: t('reportIntro') };
+const sheet = {
+title: () => t('reportTitle'), trigger: reportMapBtn,
+render(body){
+body.appendChild(sheetEl('p', 'sheet-text', st.msg)).id = 'reportMsg';
+[['reportCrossing', 'noteCrossing'], ['reportSignal', 'noteSignal'], ['reportIx', 'noteIx'], ['reportOther', 'noteOther']].forEach((k) => {
+sheetButton(body, t(k[0]), () => send(k)).dataset.report = k[0];
+});
+}
+};
+const show = (m) => { st.msg = m; if(topSheet() === sheet) renderSheet(); sayEvent(m); };
+async function send(k){
+const detail = window.prompt(t(k[0] === 'reportOther' ? 'reportOtherPrompt' : 'reportDetailPrompt'), '');
+if(detail === null) return;
+if(k[0] === 'reportOther' && !detail.trim()) return;
+if(!window.confirm(t('reportConfirm'))) return;
+show(t('reportSending'));
+let pos = null;
+try{ pos = await getPosition(); }catch(e){}
+if(!pos){ show(t('reportNoPos')); return; }
+const c = pos.coords;
+// Written for the mappers, in Slovak and English
+const text = '[Smerový asistent / Direction Assistant - nevidiaci chodec / blind pedestrian] ' + T.sk[k[1]] + ' / ' + T.en[k[1]] +
+(detail.trim() ? ' ' + detail.trim() : '') + ' (GPS +-' + Math.round(c.accuracy) + ' m)';
+const form = 'lat=' + c.latitude.toFixed(6) + '&lon=' + c.longitude.toFixed(6) + '&text=' + encodeURIComponent(text);
+let id = null;
+try{
+const r = await fetch(OSM_NOTES_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form });
+if(r.ok){ const d = await r.json(); id = d && d.properties && d.properties.id; }
+}catch(e){}
+show(id ? t('reportSent').replace('{id}', id) : t('reportFailed'));
+}
+openSheet(sheet);
 }
 
 // ---------- Places from OpenStreetMap ----------
@@ -4202,6 +4301,7 @@ return { trip: d.trip, sig: sigOf(d.trip), alternates: (d.alternates || []).filt
 function composeInstruction(w){
 let txt = w.base.replace(/\.$/, '');
 if(w.crossStreet) txt += ' ' + t('acrossStreet').replace('{s}', w.crossStreet);
+if(w.crossIx) txt += ', ' + t('atIntersection').replace('{s}', w.crossIx);
 if(w.alongStreet) txt += ', ' + t(w.cross ? 'thenAlong' : 'alongStreet').replace('{s}', w.alongStreet);
 if(w.after && w.after.length) txt += ', ' + w.after.join(', ');
 return txt + '.';
@@ -4218,6 +4318,27 @@ return (j && j.address && (j.address.road || j.address.pedestrian)) || '';
 }
 // Which street a crossing goes across, and which street an unnamed sidewalk runs along: looked up one by
 // one (the address service allows one request a second), instructions are completed as answers arrive
+// The intersection (two or more differently named streets) nearest to a point, within 35 m: "A and B", or ''
+const crossIxCache = {};
+async function crossingIntersection(pt){
+const key = pt.lat.toFixed(4) + ',' + pt.lon.toFixed(4);
+if(crossIxCache[key] !== undefined) return crossIxCache[key];
+const req = { locations: [{ lat: pt.lat, lon: pt.lon, radius: 60, search_filter: { min_road_class: 'residential' } }], costing: 'pedestrian', verbose: true };
+const d = await fetchJson(VALHALLA_BASE + '/locate?json=' + encodeURIComponent(JSON.stringify(req)), 9000);
+if(!Array.isArray(d) || !d[0] || !Array.isArray(d[0].edges)) return '';
+const seen = {}, edges = [];
+d[0].edges.forEach((e) => {
+const info = e.edge_info;
+if(!info || !Array.isArray(info.names) || !info.names.length || !info.shape || seen[info.shape]) return;
+seen[info.shape] = true;
+const pts = decodePolyline6(info.shape);
+if(pts.length) edges.push({ names: info.names, pts: pts });
+});
+const ixs = intersectionsFrom(nodesFromEdges(edges), pt.lat, pt.lon, 35);
+const txt = ixs.length ? streetList(ixs[0], '') : '';
+crossIxCache[key] = txt;
+return txt;
+}
 async function addStreetNames(route, onChange){
 if(route.streetsDone) return;
 route.streetsDone = true;
@@ -4226,6 +4347,11 @@ route.waypoints.forEach((w) => { if(w.cross) todo.push([w, 'cross']); if(w.along
 for(let k = 0; k < todo.length && k < 12; k++){
 const w = todo[k][0], kind = todo[k][1];
 if(k) await new Promise((r) => setTimeout(r, 1100));
+// (setting) the intersection a crossing is at
+if(kind === 'cross' && crossIxOn.checked){
+const ix = await crossingIntersection(w.cross);
+if(ix){ w.crossIx = ix; w.instruction = composeInstruction(w); if(!w.first) w.label = w.instruction.replace(/\.$/, ''); if(onChange) onChange(); }
+}
 const road = await lookupRoad(w[kind]);
 if(!road) continue;
 if(kind === 'cross') w.crossStreet = road; else w.alongStreet = road;
@@ -4713,6 +4839,8 @@ pieceDistOn: pieceDistOn.checked,
 crossStraightOn: crossStraightOn.checked,
 soundsInSilent: soundsInSilent.checked,
 swingFilter: swingFilter.value,
+ownCrossOnRoutes: ownCrossOnRoutes.checked,
+crossIxOn: crossIxOn.checked,
 swingOnCrossing: swingOnCrossing.checked,
 crossThreshold: crossThreshold.value,
 crossConfirmEvery: crossConfirmEvery.value,
@@ -4769,6 +4897,8 @@ if(typeof s.pointDistOn === 'boolean') pointDistOn.checked = s.pointDistOn;
 if(typeof s.pieceDistOn === 'boolean') pieceDistOn.checked = s.pieceDistOn;
 if(typeof s.crossStraightOn === 'boolean') crossStraightOn.checked = s.crossStraightOn;
 if(typeof s.soundsInSilent === 'boolean') soundsInSilent.checked = s.soundsInSilent;
+if(typeof s.ownCrossOnRoutes === 'boolean') ownCrossOnRoutes.checked = s.ownCrossOnRoutes;
+if(typeof s.crossIxOn === 'boolean') crossIxOn.checked = s.crossIxOn;
 if(s.swingFilter && Array.from(swingFilter.options).some((o) => o.value === s.swingFilter)) swingFilter.value = s.swingFilter;
 if(typeof s.swingOnCrossing === 'boolean') swingOnCrossing.checked = s.swingOnCrossing;
 if(s.crossThreshold && Array.from(crossThreshold.options).some((o) => o.value === s.crossThreshold)) crossThreshold.value = s.crossThreshold;
@@ -4817,7 +4947,8 @@ fastGps.addEventListener('change', saveSettings);
 offRouteDist.addEventListener('change', saveSettings);
 offRouteHint.addEventListener('change', saveSettings);
 markCrossingBtn.addEventListener('click', openMarkCrossing);
-[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent, swingFilter, swingOnCrossing, pieceDistOn].forEach((el) => el.addEventListener('change', saveSettings));
+reportMapBtn.addEventListener('click', openReportMap);
+[offRouteCourse, routeAnnounceEvery, pointDistOn, turnConfirmOn, nearbyKinds, approachCues, approachNow, crossStraightOn, crossThreshold, crossConfirmEvery, startAlignOn, soundsInSilent, swingFilter, swingOnCrossing, pieceDistOn, ownCrossOnRoutes, crossIxOn].forEach((el) => el.addEventListener('change', saveSettings));
 recalcBtn.addEventListener('click', recalcRoute);
 distRange.addEventListener('change', saveSettings);
 stepLength.addEventListener('change', saveSettings);
